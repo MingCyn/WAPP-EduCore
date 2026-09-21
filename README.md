@@ -8,21 +8,41 @@ Please follow this guide carefully to set up your local development environment,
 
 ## 🛠️ Initial Setup Instructions
 
-1. **Clone the Repository:**
-   * Open Visual Studio.
-   * On the startup screen, select **Clone a repository**.
-   * Enter the repo URL: `https://github.com/MingCyn/WAPP-EduCore.git`
-   * Set your local path and click **Clone**.
+### 1. Clone the Repository
+* Open **Visual Studio**.
+* On the startup screen, select **Clone a repository**.
+* Enter the repo URL: `https://github.com/MingCyn/WAPP-EduCore.git`
+* Set your local path and click **Clone**.
 
-2. **Open the Solution:**
-   * In Visual Studio, navigate to the cloned folder and open `WAPP-EduCore.sln`.
-   * **Do NOT** open individual `.aspx` files directly via Folder View—always open through the `.sln` file.
+---
 
-3. **Restore NuGet Packages:**
+### 2. Open the Solution
+* In Visual Studio, navigate to the cloned folder and open **`WAPP-EduCore.sln`**.
+* ⚠️ **Do NOT** open individual `.aspx` files directly via Folder View—always open through the `.sln` file so Visual Studio loads project dependencies correctly.
+
+---
+
+### 3. Configure Connection String in `Web.config`
+* Our database is hosted in the cloud on **Supabase**, so **you do NOT need to install PostgreSQL or pgAdmin locally**.
+* Open **`Web.config`** located at the root of the project.
+* Locate the `<connectionStrings>` section and fill in our shared database password:
+
+```xml
+<configuration>
+  <connectionStrings>
+    <add name="SupabasePostgres" 
+         connectionString="Server=db.iqrwnjvshxcqdkwfnilt.supabase.co;Port=5432;Database=postgres;User Id=postgres;Password=YOUR_TEAM_PASSWORD_HERE;Ssl Mode=Require;Trust Server Certificate=true;" 
+         providerName="Npgsql" />
+  </connectionStrings>
+  ...
+</configuration>
+
+```
+### 4. **Restore NuGet Packages:**
    * Right-click `Solution 'WAPP-EduCore'` in **Solution Explorer** -> click **Restore NuGet Packages**.
    * Go to **Build** > **Build Solution** (`Ctrl` + `Shift` + `B`) to ensure all dependencies (such as `Npgsql`) build correctly.
 
----
+
 
 ## 📁 Folder & Project Architecture
 
