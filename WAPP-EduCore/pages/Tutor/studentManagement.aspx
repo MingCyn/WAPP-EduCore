@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="courses.aspx.cs" Inherits="WAPP_EduCore.pages.General.WebForm2" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="studentManagement.aspx.cs" Inherits="WAPP_EduCore.pages.Tutor.WebForm4" %>
 
 <!DOCTYPE html>
 

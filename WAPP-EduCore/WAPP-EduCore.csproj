@@ -148,19 +148,24 @@
     <Content Include="Global.asax" />
     <Content Include="pages\Admin\adminDashboard.aspx" />
     <Content Include="pages\Admin\userManagement.aspx" />
+    <Content Include="pages\Admin\forumManagement.aspx" />
+    <Content Include="pages\Admin\coursesManagement.aspx" />
     <Content Include="pages\General\dashboard.aspx" />
-    <Content Include="pages\General\courses.aspx" />
+    <Content Include="pages\General\coursesOverview.aspx" />
     <Content Include="pages\General\discussion.aspx" />
     <Content Include="pages\General\messages.aspx" />
     <Content Include="pages\General\profile.aspx" />
+    <Content Include="pages\General\coursesDirectory.aspx" />
+    <Content Include="pages\General\calendar.aspx" />
     <Content Include="pages\Student\myCourses.aspx" />
-    <Content Include="pages\Student\calendar.aspx" />
     <Content Include="pages\Student\assessment.aspx" />
     <Content Include="pages\Student\virtualLab.aspx" />
-    <Content Include="pages\Student\achievement.aspx" />
+    <Content Include="pages\Student\result.aspx" />
+    <Content Include="pages\Student\learningProgression.aspx" />
     <Content Include="pages\Tutor\courseBuilder.aspx" />
     <Content Include="pages\Tutor\assessmentBuilder.aspx" />
     <Content Include="pages\Tutor\studentPerformance.aspx" />
+    <Content Include="pages\Tutor\studentManagement.aspx" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -278,6 +283,20 @@
     <Compile Include="pages\Admin\userManagement.aspx.designer.cs">
       <DependentUpon>userManagement.aspx</DependentUpon>
     </Compile>
+    <Compile Include="pages\Admin\forumManagement.aspx.cs">
+      <DependentUpon>forumManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Admin\forumManagement.aspx.designer.cs">
+      <DependentUpon>forumManagement.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Admin\coursesManagement.aspx.cs">
+      <DependentUpon>coursesManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Admin\coursesManagement.aspx.designer.cs">
+      <DependentUpon>coursesManagement.aspx</DependentUpon>
+    </Compile>
     <Compile Include="pages\General\dashboard.aspx.cs">
       <DependentUpon>dashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -285,12 +304,12 @@
     <Compile Include="pages\General\dashboard.aspx.designer.cs">
       <DependentUpon>dashboard.aspx</DependentUpon>
     </Compile>
-    <Compile Include="pages\General\courses.aspx.cs">
-      <DependentUpon>courses.aspx</DependentUpon>
+    <Compile Include="pages\General\coursesOverview.aspx.cs">
+      <DependentUpon>coursesOverview.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="pages\General\courses.aspx.designer.cs">
-      <DependentUpon>courses.aspx</DependentUpon>
+    <Compile Include="pages\General\coursesOverview.aspx.designer.cs">
+      <DependentUpon>coursesOverview.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\General\discussion.aspx.cs">
       <DependentUpon>discussion.aspx</DependentUpon>
@@ -313,19 +332,26 @@
     <Compile Include="pages\General\profile.aspx.designer.cs">
       <DependentUpon>profile.aspx</DependentUpon>
     </Compile>
+    <Compile Include="pages\General\coursesDirectory.aspx.cs">
+      <DependentUpon>coursesDirectory.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\General\coursesDirectory.aspx.designer.cs">
+      <DependentUpon>coursesDirectory.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\General\calendar.aspx.cs">
+      <DependentUpon>calendar.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\General\calendar.aspx.designer.cs">
+      <DependentUpon>calendar.aspx</DependentUpon>
+    </Compile>
     <Compile Include="pages\Student\myCourses.aspx.cs">
       <DependentUpon>myCourses.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="pages\Student\myCourses.aspx.designer.cs">
       <DependentUpon>myCourses.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\Student\calendar.aspx.cs">
-      <DependentUpon>calendar.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\Student\calendar.aspx.designer.cs">
-      <DependentUpon>calendar.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Student\assessment.aspx.cs">
       <DependentUpon>assessment.aspx</DependentUpon>
@@ -341,12 +367,19 @@
     <Compile Include="pages\Student\virtualLab.aspx.designer.cs">
       <DependentUpon>virtualLab.aspx</DependentUpon>
     </Compile>
-    <Compile Include="pages\Student\achievement.aspx.cs">
-      <DependentUpon>achievement.aspx</DependentUpon>
+    <Compile Include="pages\Student\result.aspx.cs">
+      <DependentUpon>result.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="pages\Student\achievement.aspx.designer.cs">
-      <DependentUpon>achievement.aspx</DependentUpon>
+    <Compile Include="pages\Student\result.aspx.designer.cs">
+      <DependentUpon>result.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Student\learningProgression.aspx.cs">
+      <DependentUpon>learningProgression.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Student\learningProgression.aspx.designer.cs">
+      <DependentUpon>learningProgression.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Tutor\courseBuilder.aspx.cs">
       <DependentUpon>courseBuilder.aspx</DependentUpon>
@@ -368,6 +401,13 @@
     </Compile>
     <Compile Include="pages\Tutor\studentPerformance.aspx.designer.cs">
       <DependentUpon>studentPerformance.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Tutor\studentManagement.aspx.cs">
+      <DependentUpon>studentManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Tutor\studentManagement.aspx.designer.cs">
+      <DependentUpon>studentManagement.aspx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Site.Master.cs">
