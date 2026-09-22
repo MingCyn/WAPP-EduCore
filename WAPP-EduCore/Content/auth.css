@@ -1,0 +1,290 @@
+﻿/* Base Resets */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body, html {
+    height: 100%;
+    width: 100%;
+    background-color: #F8F8F6;
+    color: #1E293B;
+}
+
+/* Main Split Layout */
+.signup-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Left Hero Branding Section */
+.hero-section {
+    flex: 1;
+    background-color: #0F1939;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 80px;
+}
+
+.hero-content {
+    max-width: 480px;
+    width: 100%;
+}
+
+.brand-logo {
+    margin-bottom: 48px;
+}
+
+.brand-logo-img {
+    height: 300px; /* Adjust height as needed to fit your logo aspect ratio */
+    width: auto;
+    display: block;
+    object-fit: contain;
+}
+
+.brand-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.5px;
+}
+
+.hero-title {
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    color: #FFFFFF;
+}
+
+.hero-description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #94A3B8;
+    margin-bottom: 40px;
+}
+
+/* Stats Card Panel */
+.stats-card {
+    background: rgba(30, 58, 138, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 28px 32px;
+    backdrop-filter: blur(8px);
+}
+
+.stats-title {
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: #E2E8F0;
+    margin-bottom: 20px;
+}
+
+.stats-grid {
+    display: flex;
+    gap: 36px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #FFB703;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #94A3B8;
+    font-weight: 500;
+}
+
+/* Right Form Section */
+.form-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.04);
+    padding: 40px 44px;
+    width: 100%;
+    max-width: 520px;
+}
+
+.card-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #0F172A;
+    margin-bottom: 6px;
+}
+
+.card-subtitle {
+    font-size: 14px;
+    color: #64748B;
+    margin-bottom: 28px;
+}
+
+/* Form Controls */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.form-control {
+    width: 100%;
+    height: 42px;
+    padding: 8px 14px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #0F172A;
+    background-color: #FFFFFF;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+    .form-control::placeholder {
+        color: #94A3B8;
+    }
+
+    .form-control:focus {
+        border-color: #3B82F6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+.ddl-control {
+    cursor: pointer;
+}
+
+/* Margin Utility */
+.margin-top-md {
+    margin-top: 18px;
+}
+
+/* Account Type Buttons */
+.role-selector {
+    display: flex;
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.role-btn {
+    flex: 1;
+    padding: 8px 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .role-btn.active {
+        background: #EFF6FF;
+        color: #2563EB;
+        border: 1px solid #BFDBFE;
+        font-weight: 600;
+    }
+
+/* Submit Button */
+.btn-primary {
+    width: 100%;
+    height: 44px;
+    background-color: #2D54C2;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    margin-top: 24px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+    .btn-primary:hover {
+        background-color: #1D4ED8;
+    }
+
+/* Error Message Area */
+.error-container {
+    text-align: center;
+    margin-top: 14px;
+    min-height: 20px;
+}
+
+.error-message {
+    font-size: 12px;
+    color: #EF4444;
+}
+
+/* Card Footer */
+.form-footer {
+    text-align: center;
+    font-size: 13px;
+    color: #64748B;
+    margin-top: 16px;
+}
+
+.login-link {
+    color: #2563EB;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+    .login-link:hover {
+        text-decoration: underline;
+    }
+
+/* Responsive Styles */
+@media (max-width: 960px) {
+    .signup-container {
+        flex-direction: column;
+    }
+
+    .hero-section {
+        padding: 40px 24px;
+    }
+
+    .hero-title {
+        font-size: 36px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}

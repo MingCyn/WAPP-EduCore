@@ -10,6 +10,6 @@
     <form id="form1" runat="server">
         <div>
         </div>
-    </form>
+        EduCore</form>
 </body>
 </html>

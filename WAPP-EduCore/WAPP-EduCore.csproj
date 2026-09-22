@@ -125,6 +125,7 @@
     <Content Include="auth\login.aspx" />
     <Content Include="auth\signup.aspx" />
     <Content Include="Contact.aspx" />
+    <Content Include="Content\auth.css" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
     <Content Include="Content\bootstrap-grid.rtl.css" />
@@ -393,6 +394,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="images\" />
     <Folder Include="Models\" />
     <Folder Include="Services\" />
   </ItemGroup>

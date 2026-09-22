@@ -7,11 +7,17 @@ using System.Web.UI.WebControls;
 
 namespace WAPP_EduCore.auth
 {
-    public partial class WebForm2 : System.Web.UI.Page
+    // Make sure ': Page' is present right here
+    public partial class signup : Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
 
+        }
+
+        protected void btnSignUp_Click(object sender, EventArgs e)
+        {
+            // Signup logic
         }
     }
 }
