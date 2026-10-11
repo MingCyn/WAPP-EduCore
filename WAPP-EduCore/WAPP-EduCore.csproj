@@ -146,6 +146,8 @@
     <Content Include="Default.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="images\logo.png" />
+    <Content Include="images\study.jpg" />
     <Content Include="pages\Admin\adminDashboard.aspx" />
     <Content Include="pages\Admin\userManagement.aspx" />
     <Content Include="pages\Admin\forumManagement.aspx" />
@@ -153,10 +155,12 @@
     <Content Include="pages\General\dashboard.aspx" />
     <Content Include="pages\General\coursesOverview.aspx" />
     <Content Include="pages\General\discussion.aspx" />
+    <Content Include="pages\General\HtmlPage1.html" />
     <Content Include="pages\General\messages.aspx" />
     <Content Include="pages\General\profile.aspx" />
     <Content Include="pages\General\coursesDirectory.aspx" />
     <Content Include="pages\General\calendar.aspx" />
+    <Content Include="pages\General\StyleSheet1.css" />
     <Content Include="pages\Student\myCourses.aspx" />
     <Content Include="pages\Student\assessment.aspx" />
     <Content Include="pages\Student\virtualLab.aspx" />
@@ -222,6 +226,7 @@
     <Content Include="Scripts\WebForms\WebParts.js" />
     <Content Include="Scripts\WebForms\WebUIValidation.js" />
     <Content Include="Site.Master" />
+    <Content Include="landing.css" />
     <Content Include="ViewSwitcher.ascx" />
     <Content Include="Web.config" />
     <Content Include="Bundle.config" />
@@ -434,7 +439,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="images\" />
     <Folder Include="Models\" />
     <Folder Include="Services\" />
   </ItemGroup>
