@@ -16,19 +16,19 @@ namespace WAPP_EduCore.auth
         {
             lblErrorMessage.Text = "";
 
-            // 1. Gather form input values
             string fullName = txtFullName.Text.Trim();
             string email = txtEmail.Text.Trim();
             string dobStr = txtDob.Text.Trim();
             string gender = ddlGender.SelectedValue;
             string password = txtPassword.Text;
             string confirmPassword = txtConfirmPassword.Text;
-            string role = hfRole.Value; // 'Student' or 'Tutor'
+            string role = hfRole.Value;
 
-            // 2. Basic validation checks
-            if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            // 1. Mandatory Field Validation
+            if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) ||
+                string.IsNullOrEmpty(dobStr) || string.IsNullOrEmpty(gender))
             {
-                lblErrorMessage.Text = "Please fill in all required fields.";
+                lblErrorMessage.Text = "Please fill in all required fields, including Date of Birth and Gender.";
                 return;
             }
 
@@ -45,17 +45,17 @@ namespace WAPP_EduCore.auth
             }
 
             // Parse Date of Birth safely
-            DateTime? dob = null;
-            if (DateTime.TryParse(dobStr, out DateTime parsedDob))
+            if (!DateTime.TryParse(dobStr, out DateTime parsedDob))
             {
-                dob = parsedDob;
+                lblErrorMessage.Text = "Invalid Date of Birth format.";
+                return;
             }
 
-            // 3. Insert into Supabase Database via Npgsql
+            // 2. Insert into Supabase Database
             string connString = ConfigurationManager.ConnectionStrings["SupabasePostgres"].ConnectionString;
 
             string query = @"INSERT INTO public.users (full_name, email, dob, gender, password_hash, role) 
-                             VALUES (@full_name, @email, @dob, @gender, @password_hash, @role)";
+                     VALUES (@full_name, @email, @dob, @gender, @password_hash, @role)";
 
             try
             {
@@ -66,25 +66,20 @@ namespace WAPP_EduCore.auth
                     {
                         cmd.Parameters.AddWithValue("@full_name", fullName);
                         cmd.Parameters.AddWithValue("@email", email);
-                        cmd.Parameters.AddWithValue("@dob", (object)dob ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@gender", string.IsNullOrEmpty(gender) ? (object)DBNull.Value : gender);
-
-                        // Note: For production security, hash the password here (e.g., using BCrypt). 
-                        // Storing plain text password for initial testing phase if desired.
+                        cmd.Parameters.AddWithValue("@dob", parsedDob); // Guaranteed not null due to validation above
+                        cmd.Parameters.AddWithValue("@gender", gender); // Guaranteed not null
                         cmd.Parameters.AddWithValue("@password_hash", password);
-                        cmd.Parameters.AddWithValue("@role", role);
+                        cmd.Parameters.AddWithValue("@role", string.IsNullOrEmpty(role) ? "Student" : role);
 
                         cmd.ExecuteNonQuery();
                     }
                 }
 
-                // Redirect to login or a success page upon successful registration
                 Response.Redirect("login.aspx?registered=success", false);
                 Context.ApplicationInstance.CompleteRequest();
             }
             catch (Exception ex)
             {
-                // Catch unique constraint violations (e.g. email already exists) or connection errors
                 if (ex.Message.Contains("users_email_key"))
                 {
                     lblErrorMessage.Text = "This email address is already registered.";
