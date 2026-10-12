@@ -1,0 +1,387 @@
+﻿/* ==========================================================
+   admin.css  -  shared by ALL admin pages
+   Location:  WAPP-EduCore/Content/admin.css
+
+   TABLE OF CONTENTS (use Ctrl+F and search the number)
+   ----------------------------------------------------------
+   1. COLORS ................ change colors here!
+   2. PAGE BASICS ........... font and background
+   3. SIDEBAR ............... dark menu on the left
+   4. TOP BAR ............... title bar at the top
+   5. MAIN CONTENT AREA ..... space around everything
+   6. CARDS ................. white boxes
+   7. NUMBER BOXES .......... small boxes with big numbers
+   8. LAYOUT GRIDS .......... boxes in rows / columns
+   9. TABS .................. Users | Courses | Learning
+  10. BAR CHARTS ............ horizontal bars
+  11. TABLES ................ rows and columns
+  12. TIP BOX ............... yellow message box
+   ========================================================== */
+
+
+/* ==========================================================
+   1. COLORS
+   Change a color here and it changes on the whole website.
+   ========================================================== */
+:root {
+    --navy: #0F1B4C; /* sidebar background */
+    --blue: #4F67CC; /* main blue (bars, active tab) */
+    --light-blue: #8E9EE0; /* softer blue */
+    --orange: #E0A85A; /* warning bars */
+    --text: #0F172A; /* dark text */
+    --grey: #64748B; /* small grey text */
+    --line: #E2E8F0; /* thin border lines */
+    --page: #F6F7FB; /* page background */
+}
+
+
+/* ==========================================================
+   2. PAGE BASICS
+   ========================================================== */
+* {
+    box-sizing: border-box; /* padding stays INSIDE the box width */
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', Arial, sans-serif;
+    background: var(--page);
+    color: var(--text);
+}
+
+
+/* ==========================================================
+   3. SIDEBAR  (dark menu on the left)
+   ========================================================== */
+.sidebar {
+    position: fixed; /* stays still when you scroll */
+    top: 0;
+    left: 0;
+    width: 240px;
+    height: 100vh; /* full height of the screen */
+    background: var(--navy);
+    padding: 24px 20px;
+}
+
+    /* Logo at the top of the sidebar */
+    .sidebar .logo {
+        display: block;
+        width: 130px;
+        margin: 0 auto 36px auto;
+    }
+
+    /* Each menu link (Dashboard, Users, ...) */
+    .sidebar a.menu-item {
+        display: block;
+        padding: 11px 14px;
+        margin-bottom: 6px;
+        color: #CBD5F5;
+        text-decoration: none;
+        font-size: 14px;
+        border-radius: 8px;
+    }
+
+        /* When the mouse is over a menu link */
+        .sidebar a.menu-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* The page you are on right now */
+        .sidebar a.menu-item.active {
+            background: #1E2F6E;
+            color: white;
+        }
+
+    /* Name of the logged-in admin at the bottom */
+    .sidebar .me {
+        margin-top: 30px;
+        padding-top: 18px;
+        border-top: 1px solid #2A3A78;
+        color: white;
+        font-size: 14px;
+    }
+
+        .sidebar .me small {
+            display: block;
+            margin-top: 3px;
+            color: #9FB0E8;
+            font-size: 12px;
+        }
+
+
+/* ==========================================================
+   4. TOP BAR  (page title)
+   ========================================================== */
+.main {
+    margin-left: 240px; /* leave room for the sidebar */
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 28px;
+    background: white;
+    border-bottom: 1px solid var(--line);
+}
+
+    .topbar h1 {
+        margin: 0;
+        font-size: 20px;
+    }
+
+    .topbar p {
+        margin: 3px 0 0 0;
+        font-size: 12px;
+        color: var(--grey);
+    }
+
+/* "Administrator access only" label */
+.badge-admin {
+    padding: 5px 10px;
+    background: #F1F5F9;
+    color: var(--grey);
+    font-size: 12px;
+    border-radius: 6px;
+}
+
+/* Round "MC" circle */
+.avatar {
+    display: inline-block;
+    width: 34px;
+    height: 34px;
+    margin-left: 10px;
+    background: #E0E7FF;
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 34px; /* centers the letters up and down */
+    border-radius: 50%; /* makes it a circle */
+}
+
+
+/* ==========================================================
+   5. MAIN CONTENT AREA
+   ========================================================== */
+.content {
+    padding: 24px 28px;
+}
+
+
+/* ==========================================================
+   6. CARDS  (white boxes)
+   ========================================================== */
+.card {
+    padding: 20px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+
+    .card h3 {
+        margin: 0 0 4px 0;
+        font-size: 16px;
+    }
+
+    /* Small grey text under a title */
+    .card .sub {
+        margin: 0 0 16px 0;
+        font-size: 12px;
+        color: var(--grey);
+    }
+
+
+/* ==========================================================
+   7. NUMBER BOXES  (label + big number + note)
+   ========================================================== */
+.stat-label {
+    font-size: 13px;
+    color: var(--grey);
+}
+
+.stat-number {
+    margin: 14px 0 10px 0;
+    font-size: 30px;
+}
+
+.stat-note {
+    font-size: 12px;
+    color: var(--grey);
+}
+
+
+/* ==========================================================
+   8. LAYOUT GRIDS
+   ========================================================== */
+
+/* A row of number boxes */
+.stat-row {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+    .stat-row.four {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    /* 4 boxes */
+    .stat-row.five {
+        grid-template-columns: repeat(5, 1fr);
+    }
+    /* 5 boxes */
+    .stat-row.six {
+        grid-template-columns: repeat(6, 1fr);
+    }
+/* 6 boxes */
+
+/* Two cards side by side */
+.two-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+
+/* ==========================================================
+   9. TABS  (Users | Courses | Learning Performance)
+   ========================================================== */
+.tabs {
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+}
+
+    .tabs a {
+        display: inline-block;
+        padding: 10px 4px;
+        margin-right: 28px;
+        color: var(--grey);
+        font-size: 14px;
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+    }
+
+        /* The tab you are on: blue text and blue line */
+        .tabs a.active {
+            color: var(--blue);
+            font-weight: 600;
+            border-bottom-color: var(--blue);
+        }
+
+
+/* ==========================================================
+   10. BAR CHARTS  (made from simple boxes)
+   One row =  [label]  [grey track with blue fill]  [value]
+   ========================================================== */
+.bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 14px;
+    font-size: 13px;
+}
+
+.bar-label {
+    width: 170px;
+}
+
+/* The grey background track */
+.bar-track {
+    flex: 1;
+    height: 10px;
+    background: #EEF2FF;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* The colored part (its width is set by the C# code) */
+.bar-fill {
+    height: 100%;
+    background: var(--blue);
+    border-radius: 6px;
+}
+
+    /* Add "orange" to make a bar orange */
+    .bar-fill.orange {
+        background: var(--orange);
+    }
+
+.bar-value {
+    width: 60px;
+    text-align: right;
+    font-weight: 600;
+}
+
+
+/* ==========================================================
+   11. TABLES
+   ========================================================== */
+.table-wrap {
+    margin-bottom: 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+table.data {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+    /* Header row (grey, small capital letters) */
+    table.data th {
+        padding: 11px 14px;
+        background: #F1F5F9;
+        color: var(--grey);
+        font-size: 11px;
+        text-align: left;
+        text-transform: uppercase;
+    }
+
+    /* Normal cells */
+    table.data td {
+        padding: 14px;
+        border-top: 1px solid var(--line);
+    }
+
+    /* Last "total" row (light blue and bold) */
+    table.data tr.total td {
+        background: #EEF2FF;
+        font-weight: 700;
+    }
+
+/* Small grey note under a table or chart */
+.note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--grey);
+}
+
+/* Small headings above the Top 5 / Lowest 5 tables */
+.mini-title {
+    margin: 16px 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+    .mini-title.blue {
+        color: var(--blue);
+    }
+
+    .mini-title.brown {
+        color: #92600A;
+    }
+
+
+/* ==========================================================
+   12. TIP BOX  (yellow message at the bottom)
+   ========================================================== */
+.focus-box {
+    padding: 14px 18px;
+    background: #FFF8EA;
+    border: 1px solid var(--orange);
+    border-radius: 10px;
+    color: #6B4A10;
+    font-size: 13px;
+}
