@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Default.aspx.cs" Inherits="WAPP_EduCore.Default" %>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -81,68 +83,40 @@
         </div>
     </section>
 
-    <!-- 4. POPULAR COURSES -->
-    <section id="explore" class="popular-courses">
-        <div class="section-container">
-            <div class="section-header-landing">
-                <div>
-                    <h2>Explore popular courses</h2>
-                    <p>Hand-picked programs to fast-track your tech and design skills.</p>
-                </div>
-                <a href="#" class="view-all">View all courses →</a>
+<!-- 4. POPULAR COURSES -->
+<section id="explore" class="popular-courses">
+    <div class="section-container">
+        <div class="section-header-landing">
+            <div>
+                <h2>Explore popular courses</h2>
+                <p>Hand-picked programs to fast-track your tech and design skills.</p>
             </div>
-            <div class="courses-grid-4">
-                <article class="course-card">
-                    <div class="course-thumb c1"></div>
-                    <div class="course-body">
-                        <span class="category-tag">Computer Science</span>
-                        <h4>Introduction to Computer Science &amp; Data</h4>
-                        <span class="tutor">Dr. Robert Miller</span>
-                        <div class="course-meta">
-                            <span class="rating">★ 4.9 (1.2k)</span>
-                            <span class="duration">6 weeks</span>
-                        </div>
-                    </div>
-                </article>
-                <article class="course-card">
-                    <div class="course-thumb c2"></div>
-                    <div class="course-body">
-                        <span class="category-tag">Advanced Tech</span>
-                        <h4>Advanced Data Structures &amp; Algorithms</h4>
-                        <span class="tutor">Prof. Elena Vance</span>
-                        <div class="course-meta">
-                            <span class="rating">★ 4.8 (950)</span>
-                            <span class="duration">8 weeks</span>
-                        </div>
-                    </div>
-                </article>
-                <article class="course-card">
-                    <div class="course-thumb c3"></div>
-                    <div class="course-body">
-                        <span class="category-tag">Design</span>
-                        <h4>Aesthetic Design Principles &amp; UI/UX</h4>
-                        <span class="tutor">Maria Henderson</span>
-                        <div class="course-meta">
-                            <span class="rating">★ 4.9 (2.1k)</span>
-                            <span class="duration">5 weeks</span>
-                        </div>
-                    </div>
-                </article>
-                <article class="course-card">
-                    <div class="course-thumb c4"></div>
-                    <div class="course-body">
-                        <span class="category-tag">Artificial Intelligence</span>
-                        <h4>Practical Machine Learning &amp; Chatbots</h4>
-                        <span class="tutor">Dr. Alan Turing</span>
-                        <div class="course-meta">
-                            <span class="rating">★ 5.0 (840)</span>
-                            <span class="duration">10 weeks</span>
-                        </div>
-                    </div>
-                </article>
-            </div>
+            <a href="#" class="view-all">View all courses →</a>
         </div>
-    </section>
+        
+        <!-- Repeater starts here -->
+        <div class="courses-grid-4">
+            <asp:Repeater ID="RepeaterCourses" runat="server">
+                <ItemTemplate>
+                    <article class="course-card">
+                        <!-- If you have an image URL stored in course_img, display it, otherwise fallback to a class -->
+                        <div class="course-thumb" style="background-image: url('<%# Eval("course_img") %>'); background-size: cover; background-position: center;"></div>
+                        <div class="course-body">
+                            <span class="category-tag"><%# Eval("category") %></span>
+                            <h4><%# Eval("title") %></h4>
+                            <span class="tutor"><%# Eval("tutor_name") %></span>
+                            <div class="course-meta">
+                                <span class="rating">★ 4.9</span>
+                                <span class="duration"><%# Eval("duration") %></span>
+                            </div>
+                        </div>
+                    </article>
+                </ItemTemplate>
+            </asp:Repeater>
+        </div>
+        <!-- Repeater ends here -->
+    </div>
+</section>
 
     <!-- 5. HOW IT WORKS -->
     <section id="how-it-works" class="how-it-works">
