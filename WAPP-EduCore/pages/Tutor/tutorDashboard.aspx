@@ -5,31 +5,14 @@
 <head runat="server">
     <title>EduCore - Tutor Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link href="../../Content/dashboard.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/dashboard.css" rel="stylesheet" type="text/css" runat="server" />
 </head>
 <body>
     <form id="form1" runat="server">
         <div class="dashboard-layout">
             
-            <!-- Top Navigation Bar -->
-            <header class="navbar">
-                <div class="nav-brand">
-                    <img src="../../images/EduCore_Logo.png" alt="EduCore Logo" class="nav-logo" />
-                </div>
-                <nav class="nav-links">
-                    <a href="tutorDashboard.aspx" class="nav-link active">Dashboard</a>
-                    <a href="courses.aspx" class="nav-link">My Courses</a>
-                    <a href="students.aspx" class="nav-link">Students</a>
-                    <a href="assessments.aspx" class="nav-link">Assessments</a>
-                    <a href="analytics.aspx" class="nav-link">Analytics</a>
-                    <a href="messages.aspx" class="nav-link">Messages</a>
-                </nav>
-                <div class="nav-profile">
-                    <span class="profile-name">Dr. Robert Miller</span>
-                    <!-- If avatar is missing, use a placeholder or add tutor-avatar.png to your images folder -->
-                    <img src="../../images/tutor-avatar.png" alt="Dr. Robert Miller" class="profile-avatar" onerror="this.style.display='none'" />
-                </div>
-            </header>
+            <!-- Injected Reusable Navigation ASPX File -->
+            <asp:Panel ID="pnlNavContainer" runat="server"></asp:Panel>
 
             <!-- Main Dashboard Body -->
             <main class="dashboard-container">
