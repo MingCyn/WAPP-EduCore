@@ -161,7 +161,7 @@
     <Content Include="pages\General\profile.aspx" />
     <Content Include="pages\General\coursesDirectory.aspx" />
     <Content Include="pages\General\calendar.aspx" />
-	<Content Include="Content\course.css" />
+    <Content Include="Content\course.css" />
     <Content Include="pages\General\StyleSheet1.css" />
     <Content Include="pages\Shared\Sidebar.ascx" />
     <Content Include="pages\Student\calendar.aspx" />
@@ -177,6 +177,7 @@
     <Content Include="pages\Tutor\studentPerformance.aspx" />
     <Content Include="pages\Tutor\studentManagement.aspx" />
     <Content Include="pages\Tutor\tutorDashboard.aspx" />
+    <Content Include="pages\Tutor\tutorNav.aspx" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -455,6 +456,13 @@
     </Compile>
     <Compile Include="pages\Tutor\tutorDashboard.aspx.designer.cs">
       <DependentUpon>tutorDashboard.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Tutor\tutorNav.aspx.cs">
+      <DependentUpon>tutorNav.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Tutor\tutorNav.aspx.designer.cs">
+      <DependentUpon>tutorNav.aspx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Site.Master.cs">
