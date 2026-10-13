@@ -9,6 +9,7 @@
 <body>
     <form id="form1" runat="server">
         <div>
+            General Dashboard
         </div>
     </form>
 </body>
