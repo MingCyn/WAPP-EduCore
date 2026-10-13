@@ -1,17 +1,445 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using System.Data;
+using System.Globalization;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Npgsql;
+using WAPP_EduCore.Data;
 
 namespace WAPP_EduCore.pages.Admin
 {
+    // NOTE: the class name is WebForm2 because your .aspx first line says Inherits="...WebForm2"
     public partial class WebForm2 : System.Web.UI.Page
     {
+        // These are shown in the sidebar and the top-right circle
+        protected string AdminName = "Administrator";
+        protected string AdminInitials = "AD";
+
+        private int adminId = 0;            // the id of the admin who is logged in
+        private const int PageSize = 10;    // how many users per page (change me!)
+
+        // The page number we are on (0 = first page). It is remembered between clicks.
+        private int CurrentPage
+        {
+            get { return ViewState["page"] == null ? 0 : (int)ViewState["page"]; }
+            set { ViewState["page"] = value; }
+        }
+
+        // The SQL "WHERE" part used by the search + role filter
+        private const string WhereText =
+            @" WHERE (@search = '' OR full_name ILIKE @like OR email ILIKE @like)
+                 AND (@role = '' OR role = @role) ";
+
+
+        // =====================================================
+        //  STEP 1: Page opens  ->  find out who the admin is
+        // =====================================================
         protected void Page_Load(object sender, EventArgs e)
         {
+            LoadAdminInfo();
+        }
 
+        // =====================================================
+        //  STEP 2: PreRender runs AFTER every button click and
+        //  just BEFORE the page is drawn. So the numbers and the
+        //  table are always fresh.
+        // =====================================================
+        protected void Page_PreRender(object sender, EventArgs e)
+        {
+            LoadStats();
+            LoadUsers();
+        }
+
+
+        // =====================================================
+        //  ADMIN NAME (sidebar + top-right circle)
+        // =====================================================
+        private void LoadAdminInfo()
+        {
+            using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
+            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            {
+                cmd.Connection = conn;
+
+                if (Session["user_id"] != null)
+                {
+                    cmd.CommandText = "SELECT user_id, full_name FROM public.users WHERE user_id = @id";
+                    cmd.Parameters.AddWithValue("@id", Convert.ToInt32(Session["user_id"]));
+                }
+                else
+                {
+                    cmd.CommandText = "SELECT user_id, full_name FROM public.users WHERE role = 'Admin' ORDER BY user_id LIMIT 1";
+                }
+
+                using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        adminId = Convert.ToInt32(reader[0]);
+                        string fullName = reader[1].ToString().Trim();
+                        AdminName = Server.HtmlEncode(fullName);
+
+                        string[] words = fullName.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (words.Length == 1)
+                            AdminInitials = words[0].Substring(0, 1).ToUpper();
+                        else if (words.Length > 1)
+                            AdminInitials = (words[0].Substring(0, 1) + words[words.Length - 1].Substring(0, 1)).ToUpper();
+                    }
+                }
+            }
+        }
+
+
+        // =====================================================
+        //  THE 5 NUMBER BOXES
+        // =====================================================
+        private void LoadStats()
+        {
+            int total = GetNumber("SELECT COUNT(*) FROM public.users");
+            int students = GetNumber("SELECT COUNT(*) FROM public.users WHERE role = 'Student'");
+            int tutors = GetNumber("SELECT COUNT(*) FROM public.users WHERE role = 'Tutor'");
+            int admins = GetNumber("SELECT COUNT(*) FROM public.users WHERE role = 'Admin'");
+            int newThisMonth = GetNumber("SELECT COUNT(*) FROM public.users WHERE created_at >= date_trunc('month', now())");
+
+            lblTotal.Text = total.ToString("N0");
+            lblNew.Text = newThisMonth.ToString("N0");
+
+            lblStudents.Text = students.ToString("N0");
+            lblStudentsNote.Text = Percent(students, total) + " of users";
+
+            lblTutors.Text = tutors.ToString("N0");
+            lblTutorsNote.Text = Percent(tutors, total) + " of users";
+
+            lblAdmins.Text = admins.ToString("N0");
+            lblAdminsNote.Text = Percent(admins, total) + " of users";
+        }
+
+
+        // =====================================================
+        //  THE USER TABLE  (search + filter + pages)
+        // =====================================================
+        private void LoadUsers()
+        {
+            // 1) How many users match the search?
+            int total;
+            using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
+            using (NpgsqlCommand cmd = new NpgsqlCommand("SELECT COUNT(*) FROM public.users" + WhereText, conn))
+            {
+                AddFilters(cmd);
+                total = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+
+            // 2) Make sure the page number is not too big
+            int lastPage = Math.Max(0, (total - 1) / PageSize);
+            if (CurrentPage > lastPage) CurrentPage = lastPage;
+            if (CurrentPage < 0) CurrentPage = 0;
+
+            // 3) Get only the 10 users for this page
+            DataTable table = new DataTable();
+            string sql =
+                @"SELECT user_id, full_name, email, dob, gender, role, created_at
+                  FROM public.users" + WhereText +
+                @" ORDER BY user_id ASC
+                  LIMIT @size OFFSET @skip";   // ASC = smallest first (1, 2, 3...). Change to DESC for newest first.
+
+            using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
+            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            {
+                AddFilters(cmd);
+                cmd.Parameters.AddWithValue("@size", PageSize);
+                cmd.Parameters.AddWithValue("@skip", CurrentPage * PageSize);
+
+                using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(cmd))
+                {
+                    adapter.Fill(table);
+                }
+            }
+
+            // 4) Turn every row into HTML
+            StringBuilder rows = new StringBuilder();
+            foreach (DataRow r in table.Rows)
+            {
+                rows.Append(BuildRow(r));
+            }
+            litRows.Text = rows.ToString();
+
+            // 5) Show the table OR the "No results found" box
+            pnlTable.Visible = (total > 0);
+            pnlEmpty.Visible = (total == 0);
+
+            // 6) "Showing 1-10 of 12,842 users" + Previous / Next buttons
+            int from = CurrentPage * PageSize + 1;
+            int to = CurrentPage * PageSize + table.Rows.Count;
+            lblShowing.Text = "Showing " + from + "–" + to + " of " + total.ToString("N0") + " users";
+
+            btnPrev.Enabled = (CurrentPage > 0);
+            btnNext.Enabled = (CurrentPage < lastPage);
+        }
+
+        // Gives the search words to the database command
+        private void AddFilters(NpgsqlCommand cmd)
+        {
+            string search = txtSearch.Text.Trim();
+            cmd.Parameters.AddWithValue("@search", search);
+            cmd.Parameters.AddWithValue("@like", "%" + search + "%");
+            cmd.Parameters.AddWithValue("@role", ddlRole.SelectedValue);
+        }
+
+        // Makes ONE table row.
+        // The data-... parts hide the user's info inside the row,
+        // so the popup can read it with JavaScript when you click.
+        private string BuildRow(DataRow r)
+        {
+            int id = Convert.ToInt32(r["user_id"]);
+            string name = r["full_name"].ToString();
+            string email = r["email"].ToString();
+            string role = r["role"].ToString();
+            string roleText = (role == "Admin") ? "Administrator" : role;
+
+            StringBuilder sb = new StringBuilder();
+
+            // The row itself (click = open the detail popup)
+            sb.Append("<tr class='clickable' id='row" + id + "' onclick='openDetail(" + id + ")'");
+            sb.Append(Attr("name", name));
+            sb.Append(Attr("email", email));
+            sb.Append(Attr("role", role));
+            sb.Append(Attr("roletext", roleText));
+            sb.Append(Attr("dob", FormatDate(r["dob"])));                 // 30 May 2012 (shown in the popup)
+            sb.Append(Attr("dobraw", r["dob"] == DBNull.Value ? "" :      // 2012-05-30 (the Edit box needs this style)
+                Convert.ToDateTime(r["dob"]).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
+            sb.Append(Attr("gender", r["gender"] == DBNull.Value ? "—" : r["gender"].ToString()));      // shown in the popup
+            sb.Append(Attr("genderraw", r["gender"] == DBNull.Value ? "" : r["gender"].ToString()));    // used by the Edit box
+            sb.Append(Attr("joined", FormatDate(r["created_at"])));
+            sb.Append(">");
+
+            // The cells
+            sb.Append("<td class='grey-text'>" + id + "</td>");
+            sb.Append("<td>" + Server.HtmlEncode(name) + "</td>");
+            sb.Append("<td class='grey-text'>" + Server.HtmlEncode(email) + "</td>");
+            sb.Append("<td class='grey-text'>" + FormatDate(r["dob"]) + "</td>");
+            sb.Append("<td class='grey-text'>" + (r["gender"] == DBNull.Value ? "—" : Server.HtmlEncode(r["gender"].ToString())) + "</td>");
+            sb.Append("<td>" + roleText + "</td>");
+            sb.Append("<td class='grey-text'>" + FormatDate(r["created_at"]) + "</td>");
+
+            // The 2 little icons: view and edit
+            sb.Append("<td>");
+            sb.Append(IconButton("blue", "View", "openDetail(" + id + ")",
+                "<path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/>"));
+            sb.Append(IconButton("", "Edit", "openEdit(" + id + ")",
+                "<path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z'/>"));
+            sb.Append("</td>");
+
+            sb.Append("</tr>");
+            return sb.ToString();
+        }
+
+
+        // =====================================================
+        //  BUTTONS
+        // =====================================================
+
+        // Search button / dropdown changed  ->  go back to page 1
+        protected void Filter_Changed(object sender, EventArgs e)
+        {
+            CurrentPage = 0;
+        }
+
+        protected void btnPrev_Click(object sender, EventArgs e)
+        {
+            CurrentPage = CurrentPage - 1;
+        }
+
+        protected void btnNext_Click(object sender, EventArgs e)
+        {
+            CurrentPage = CurrentPage + 1;
+        }
+
+        // ----- Edit popup: Save changes -----
+        protected void btnSaveEdit_Click(object sender, EventArgs e)
+        {
+            int id;
+            if (!int.TryParse(hfEditId.Value, out id)) return;
+
+            string name = txtEditName.Text.Trim();
+            string email = txtEditEmail.Text.Trim();
+            string role = ddlEditRole.SelectedValue;
+            string dobText = txtEditDob.Text.Trim();
+
+            // Gender: "Not set" (empty) is saved as nothing
+            object genderValue = (ddlEditGender.SelectedValue == "") ? (object)DBNull.Value : ddlEditGender.SelectedValue;
+
+            if (name == "" || email == "")
+            {
+                ShowMessage("Name and email cannot be empty.", false);
+                ReopenPopup("editModal");
+                return;
+            }
+
+            // Date of birth: empty is allowed (saved as nothing), but it must be a real date
+            object dobValue = DBNull.Value;
+            if (dobText != "")
+            {
+                DateTime dob;
+                if (!DateTime.TryParse(dobText, out dob))
+                {
+                    ShowMessage("The date of birth is not valid.", false);
+                    ReopenPopup("editModal");
+                    return;
+                }
+                dobValue = dob;
+            }
+
+            if (id == adminId && role != "Admin")
+            {
+                ShowMessage("You cannot remove your own Administrator role.", false);
+                return;
+            }
+
+            try
+            {
+                RunSql("UPDATE public.users SET full_name = @name, email = @email, dob = @dob, gender = @gender, role = @role WHERE user_id = @id",
+                    new NpgsqlParameter("@name", name),
+                    new NpgsqlParameter("@email", email),
+                    new NpgsqlParameter("@dob", dobValue),
+                    new NpgsqlParameter("@gender", genderValue),
+                    new NpgsqlParameter("@role", role),
+                    new NpgsqlParameter("@id", id));
+
+                ShowMessage("Saved! " + name + " was updated.", true);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage(ex.Message.Contains("users_email_key") ? "That email address is already used." : "Could not save: " + ex.Message, false);
+            }
+        }
+
+        // ----- Add user popup -----
+        protected void btnAddUser_Click(object sender, EventArgs e)
+        {
+            lblAddError.Text = "";
+
+            string name = txtAddName.Text.Trim();
+            string email = txtAddEmail.Text.Trim();
+            string password = txtAddPassword.Text;
+            string dobText = txtAddDob.Text.Trim();
+
+            DateTime dob;
+
+            if (name == "" || email == "" || password == "" || dobText == "")
+            {
+                lblAddError.Text = "Please fill in every box.";
+                ReopenPopup("addModal");
+                return;
+            }
+
+            if (password.Length < 8)
+            {
+                lblAddError.Text = "Password must be at least 8 characters.";
+                ReopenPopup("addModal");
+                return;
+            }
+
+            if (!DateTime.TryParse(dobText, out dob))
+            {
+                lblAddError.Text = "The date of birth is not valid.";
+                ReopenPopup("addModal");
+                return;
+            }
+
+            try
+            {
+                // Same as signup.aspx: the password is saved the same way
+                RunSql(@"INSERT INTO public.users (full_name, email, dob, gender, password_hash, role)
+                         VALUES (@name, @email, @dob, @gender, @password, @role)",
+                    new NpgsqlParameter("@name", name),
+                    new NpgsqlParameter("@email", email),
+                    new NpgsqlParameter("@dob", dob),
+                    new NpgsqlParameter("@gender", ddlAddGender.SelectedValue),
+                    new NpgsqlParameter("@password", password),
+                    new NpgsqlParameter("@role", ddlAddRole.SelectedValue));
+
+                ShowMessage("Added! " + name + " can now sign in.", true);
+
+                // clear the boxes
+                txtAddName.Text = "";
+                txtAddEmail.Text = "";
+                txtAddDob.Text = "";
+            }
+            catch (Exception ex)
+            {
+                lblAddError.Text = ex.Message.Contains("users_email_key")
+                    ? "This email address is already registered."
+                    : "Could not add the user: " + ex.Message;
+                ReopenPopup("addModal");
+            }
+        }
+
+
+        // =====================================================
+        //  HELPERS  (small tools used again and again)
+        // =====================================================
+
+        // Shows a green (ok) or red (error) message at the top
+        private void ShowMessage(string text, bool ok)
+        {
+            litMessage.Text = "<div class='msg " + (ok ? "ok" : "error") + "'>" + Server.HtmlEncode(text) + "</div>";
+        }
+
+        // Opens a popup again after a page reload (used when something is wrong)
+        private void ReopenPopup(string popupId)
+        {
+            ClientScript.RegisterStartupScript(GetType(), "reopen", "openModal('" + popupId + "');", true);
+        }
+
+        // Writes  data-key='value'  safely
+        private string Attr(string key, string value)
+        {
+            return " data-" + key + "='" + Server.HtmlEncode(value) + "'";
+        }
+
+        // Makes one little icon button inside a table row
+        private string IconButton(string color, string title, string js, string svgInside)
+        {
+            return "<button type='button' class='icon-btn " + color + "' title='" + title + "' " +
+                   "onclick='event.stopPropagation(); " + js + "'>" +
+                   "<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>" +
+                   svgInside + "</svg></button>";
+        }
+
+        // 12 Sep 2026
+        private string FormatDate(object value)
+        {
+            if (value == null || value == DBNull.Value) return "—";
+            return Convert.ToDateTime(value).ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+        }
+
+        // 79.6%
+        private string Percent(int part, int whole)
+        {
+            double p = (whole == 0) ? 0 : part * 100.0 / whole;
+            return p.ToString("0.0", CultureInfo.InvariantCulture) + "%";
+        }
+
+        // Asks the database for ONE number (like a count)
+        private int GetNumber(string sql)
+        {
+            using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
+            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            {
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+        }
+
+        // Runs a command that CHANGES the database (insert / update)
+        private void RunSql(string sql, params NpgsqlParameter[] parameters)
+        {
+            using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
+            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddRange(parameters);
+                cmd.ExecuteNonQuery();
+            }
         }
     }
 }

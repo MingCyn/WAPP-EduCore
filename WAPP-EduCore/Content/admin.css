@@ -16,6 +16,15 @@
   10. BAR CHARTS ............ horizontal bars
   11. TABLES ................ rows and columns
   12. TIP BOX ............... yellow message box
+  13. BUTTONS & INPUTS ...... buttons, text boxes, dropdowns
+  14. TOOLBAR ............... search + filters above a table
+  15. STATUS BADGES ......... Active / Inactive / Pending
+  16. CLICKABLE ROWS ........ hover color and little icons
+  17. TABLE FOOTER .......... "Showing 1-10" + Previous / Next
+  18. EMPTY STATE ........... "No results found"
+  19. MESSAGE BANNER ........ green / red message at the top
+  20. POPUPS (MODALS) ....... detail, edit, confirm, add user
+  21. DROPDOWN ARROW ........ moves the arrow away from the right edge
    ========================================================== */
 
 
@@ -384,4 +393,339 @@ table.data {
     border-radius: 10px;
     color: #6B4A10;
     font-size: 13px;
+}
+
+
+/* ==========================================================
+   13. BUTTONS & INPUTS
+   .btn         = white button with blue text
+   .btn-primary = solid blue button
+   .btn-danger  = solid red button
+   .input       = text box or dropdown
+   ========================================================== */
+.input {
+    height: 38px;
+    padding: 0 12px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--blue);   /* blue border when you click inside */
+}
+
+.btn {
+    height: 38px;
+    padding: 0 16px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--blue);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: #F8FAFF;
+}
+
+.btn:disabled {
+    opacity: 0.45;            /* faded when it cannot be clicked */
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #3F55B5;
+}
+
+.btn-danger {
+    background: #DC2626;
+    border-color: #DC2626;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #B91C1C;
+}
+
+
+/* ==========================================================
+   14. TOOLBAR  (search box + filters above a table)
+   ========================================================== */
+.card.flush {
+    padding: 0;               /* a card with no inside space, so the table touches the edges */
+    overflow: hidden;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+}
+
+.toolbar .search-box {
+    width: 300px;
+}
+
+.toolbar .spacer {
+    flex: 1;                  /* pushes the "Add user" button to the far right */
+}
+
+
+/* ==========================================================
+   15. STATUS BADGES
+   ========================================================== */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.badge.active   { background: #DCFCE7; color: #15803D; }   /* green  */
+.badge.inactive { background: #EEF2F6; color: var(--grey); } /* grey   */
+.badge.pending  { background: #FEF3C7; color: #B45309; }   /* yellow */
+
+
+/* ==========================================================
+   16. CLICKABLE ROWS  +  ICON BUTTONS
+   ========================================================== */
+table.data tr.clickable {
+    cursor: pointer;
+}
+
+table.data tr.clickable:hover td {
+    background: #F8FAFF;      /* light blue when the mouse is over a row */
+}
+
+.grey-text {
+    color: var(--grey);
+}
+
+.icon-btn {
+    padding: 4px;
+    margin-right: 6px;
+    background: none;
+    border: none;
+    color: var(--grey);
+    cursor: pointer;
+}
+
+.icon-btn:hover { opacity: 0.6; }
+.icon-btn.blue  { color: var(--blue); }
+.icon-btn.red   { color: #DC2626; }
+.icon-btn.green { color: #16A34A; }
+
+
+/* ==========================================================
+   17. TABLE FOOTER  (Showing 1-10 of ... + Previous / Next)
+   ========================================================== */
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: #F1F5F9;
+    color: var(--grey);
+    font-size: 12px;
+}
+
+.table-footer .btn {
+    height: 32px;
+    margin-left: 8px;
+    font-size: 12px;
+}
+
+
+/* ==========================================================
+   18. EMPTY STATE  (nothing found)
+   ========================================================== */
+.empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--grey);
+    font-size: 13px;
+}
+
+.empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 12px auto;
+    background: #EEF2FF;
+    border-radius: 50%;
+    color: var(--blue);
+}
+
+.empty-title {
+    margin-bottom: 6px;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+
+/* ==========================================================
+   19. MESSAGE BANNER  (shows after you save something)
+   ========================================================== */
+.msg {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.msg.ok    { background: #DCFCE7; border: 1px solid #86EFAC; color: #166534; }
+.msg.error { background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; }
+
+
+/* ==========================================================
+   20. POPUPS (MODALS)
+   .modal-back = dark background that covers the page
+   .modal-box  = the white popup card in the middle
+   JavaScript adds the word "open" to show it.
+   ========================================================== */
+.modal-back {
+    display: none;            /* hidden until JavaScript adds "open" */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 20px;
+    background: rgba(15, 27, 76, 0.45);
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-back.open {
+    display: flex;
+}
+
+.modal-box {
+    width: 100%;
+    max-width: 440px;
+    max-height: 90vh;
+    overflow: auto;
+    padding: 24px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(15, 27, 76, 0.25);
+}
+
+/* Red version used for "Deactivate / Reactivate?" */
+.modal-box.danger {
+    background: #FFF5F5;
+    border: 1px solid #FECACA;
+}
+
+.modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.modal-head h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.modal-title {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.modal-text {
+    margin: 0 0 16px 0;
+    color: var(--grey);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.modal-box.danger .modal-title { color: #B91C1C; }
+.modal-box.danger .modal-text  { color: #B91C1C; }
+
+/* Grey box with small label + bold value */
+.info-box {
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    background: #F1F5F9;
+    border-radius: 10px;
+}
+
+.info-label {
+    color: var(--grey);
+    font-size: 12px;
+}
+
+.info-value {
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.info-value:last-child {
+    margin-bottom: 0;
+}
+
+.modal-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Form fields inside popups */
+.form-field {
+    margin-bottom: 14px;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--grey);
+    font-size: 12px;
+}
+
+.form-field .input {
+    width: 100%;
+}
+
+.form-error {
+    margin-bottom: 10px;
+    color: #DC2626;
+    font-size: 12px;
+}
+
+
+/* ==========================================================
+   21. DROPDOWN ARROW  (moves the little arrow away from the edge)
+   Applies to every dropdown that has class="input"
+   ========================================================== */
+select.input {
+    appearance: none;                 /* hide the browser's own arrow */
+    -webkit-appearance: none;
+    padding-right: 40px;              /* keep the text away from the arrow */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;   /* 16px from the right edge. Make it bigger to move the arrow more to the left */
+    background-size: 14px;
 }
