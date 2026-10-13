@@ -142,6 +142,7 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\Site.css" />
+    <Content Include="Content\navDashboard.css" />
     <Content Include="Default.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
@@ -152,15 +153,13 @@
     <Content Include="pages\Admin\userManagement.aspx" />
     <Content Include="pages\Admin\forumManagement.aspx" />
     <Content Include="pages\Admin\coursesManagement.aspx" />
-    <Content Include="pages\General\dashboard.aspx" />
-    <Content Include="pages\General\coursesOverview.aspx" />
+    <Content Include="pages\General\courseOverview.aspx" />
     <Content Include="pages\General\discussion.aspx" />
-    <Content Include="pages\General\HtmlPage1.html" />
     <Content Include="pages\General\messages.aspx" />
     <Content Include="pages\General\profile.aspx" />
     <Content Include="pages\General\coursesDirectory.aspx" />
     <Content Include="pages\General\calendar.aspx" />
-    <Content Include="pages\General\StyleSheet1.css" />
+    <Content Include="Content\course.css" />
     <Content Include="pages\Student\myCourses.aspx" />
     <Content Include="pages\Student\assessment.aspx" />
     <Content Include="pages\Student\virtualLab.aspx" />
@@ -198,6 +197,7 @@
     <Content Include="Content\bootstrap-grid.rtl.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
     <Content Include="Content\bootstrap-grid.css.map" />
+    <Content Include="navDashboard.ascx" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -257,6 +257,7 @@
     <Compile Include="auth\signup.aspx.designer.cs">
       <DependentUpon>signup.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Db.cs" />
     <Compile Include="Contact.aspx.cs">
       <DependentUpon>Contact.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -310,19 +311,12 @@
     <Compile Include="pages\Admin\coursesManagement.aspx.designer.cs">
       <DependentUpon>coursesManagement.aspx</DependentUpon>
     </Compile>
-    <Compile Include="pages\General\dashboard.aspx.cs">
-      <DependentUpon>dashboard.aspx</DependentUpon>
+    <Compile Include="pages\General\courseOverview.aspx.cs">
+      <DependentUpon>courseOverview.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="pages\General\dashboard.aspx.designer.cs">
-      <DependentUpon>dashboard.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\General\coursesOverview.aspx.cs">
-      <DependentUpon>coursesOverview.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\General\coursesOverview.aspx.designer.cs">
-      <DependentUpon>coursesOverview.aspx</DependentUpon>
+    <Compile Include="pages\General\courseOverview.aspx.designer.cs">
+      <DependentUpon>courseOverview.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\General\discussion.aspx.cs">
       <DependentUpon>discussion.aspx</DependentUpon>
@@ -450,6 +444,13 @@
     </Compile>
     <Compile Include="ViewSwitcher.ascx.designer.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="navDashboard.ascx.cs">
+      <DependentUpon>navDashboard.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="navDashboard.ascx.designer.cs">
+      <DependentUpon>navDashboard.ascx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
