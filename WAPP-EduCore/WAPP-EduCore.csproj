@@ -162,8 +162,11 @@
     <Content Include="pages\General\coursesDirectory.aspx" />
     <Content Include="pages\General\calendar.aspx" />
     <Content Include="pages\General\StyleSheet1.css" />
+    <Content Include="pages\Shared\Sidebar.ascx" />
+    <Content Include="pages\Student\calendar.aspx" />
     <Content Include="pages\Student\myCourses.aspx" />
     <Content Include="pages\Student\assessment.aspx" />
+    <Content Include="pages\Student\settings.aspx" />
     <Content Include="pages\Student\virtualLab.aspx" />
     <Content Include="pages\Student\result.aspx" />
     <Content Include="pages\Student\learningProgression.aspx" />
@@ -361,6 +364,17 @@
     <Compile Include="pages\General\calendar.aspx.designer.cs">
       <DependentUpon>calendar.aspx</DependentUpon>
     </Compile>
+    <Compile Include="pages\Shared\Sidebar.ascx.cs">
+      <DependentUpon>Sidebar.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Student\calendar.aspx.cs">
+      <DependentUpon>calendar.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Student\calendar.aspx.designer.cs">
+      <DependentUpon>calendar.aspx</DependentUpon>
+    </Compile>
     <Compile Include="pages\Student\myCourses.aspx.cs">
       <DependentUpon>myCourses.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -374,6 +388,13 @@
     </Compile>
     <Compile Include="pages\Student\assessment.aspx.designer.cs">
       <DependentUpon>assessment.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Student\settings.aspx.cs">
+      <DependentUpon>settings.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Student\settings.aspx.designer.cs">
+      <DependentUpon>settings.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Student\virtualLab.aspx.cs">
       <DependentUpon>virtualLab.aspx</DependentUpon>
