@@ -1,4 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="myCourses.aspx.cs" Inherits="WAPP_EduCore.pages.Student.WebForm1" %>
+<%@ Register Src="~/pages/Shared/Sidebar.ascx" TagName="Sidebar" TagPrefix="uc" %>
 
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -12,25 +13,7 @@
 <body>
     <form id="form1" runat="server">
         <div class="app">
-            <div class="sidebar">
-                <img src="../../images/logo.png" alt="EduCore" class="logo" />
-
-                <a class="menu-item" href="studentDashboard.aspx">Dashboard</a>
-                <a class="menu-item active" href="myCourses.aspx">My Courses</a>
-                <a class="menu-item" href="#">Calendar</a>
-                <a class="menu-item" href="#">Messages</a>
-                <a class="menu-item" href="#">Grades</a>
-                <a class="menu-item" href="#">Certificates</a>
-                <a class="menu-item" href="#">Settings</a>
-
-                <div class="me">
-                    <img src="../../images/profile-placeholder.png" alt="Profile" style="width:36px;height:36px;border-radius:50%;vertical-align:middle;margin-right:8px;" />
-                    <div style="display:inline-block;vertical-align:middle">
-                        <div><strong>Priya Sharma</strong></div>
-                        <small>Student ID: 48922</small>
-                    </div>
-                </div>
-            </div>
+            <uc:Sidebar ID="Sidebar1" runat="server" />
             <main class="main">
                 <div class="topbar">
                     <div class="title">Explore Courses</div>
