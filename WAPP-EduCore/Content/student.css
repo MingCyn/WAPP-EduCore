@@ -1,0 +1,86 @@
+/* Shared student dashboard / courses styles - moved from inline pages
+   This file is loaded after admin.css so it can override where needed.
+*/
+*{box-sizing:border-box;margin:0;padding:0;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif}
+body{background:#f6f5f3;color:#16223b}
+.app{display:flex;min-height:100vh}
+
+/* Sidebar (admin.css provides base; keep these to ensure look matches) */
+.sidebar{width:220px;background:#0f2540;color:#fff;padding:30px 20px;display:flex;flex-direction:column;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .logo{width:36px;height:36px;background:#183153;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.brand h1{font-size:18px}
+nav ul{list-style:none;margin-top:20px}
+nav a{color:inherit;text-decoration:none;display:block;padding:10px 8px;border-radius:8px}
+nav li{padding:0;border-radius:8px;display:block;align-items:center;gap:10px;color:#cfe0ff}
+nav li.active{background:#163356;color:#fff}
+nav li.active a{color:#fff}
+.profile{display:flex;align-items:center;gap:10px;margin-top:30px}
+.avatar{width:42px;height:42px;border-radius:50%;background:#fff}
+
+/* Main area common */
+.main{flex:1;padding:30px 48px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.greeting,.title{font-size:22px;font-weight:600}
+.search{display:flex;align-items:center;gap:12px}
+.search input{padding:10px 14px;border-radius:20px;border:1px solid #e6e6e6;width:360px}
+
+/* Hero (dashboard) */
+.hero{background:#0f2540;color:#fff;border-radius:12px;padding:32px;display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:26px}
+.hero h2{font-size:28px;margin-bottom:8px}
+.hero p{opacity:0.95;margin-bottom:16px}
+.btn{background:#3561b3;color:#fff;padding:10px 16px;border-radius:8px;border:none;cursor:pointer}
+.thought{background:#f6e9dd;color:#1b1b1b;padding:18px;border-radius:8px;min-width:220px}
+.thought small{display:block;color:#6b6b6b;margin-top:8px}
+
+/* Content grid (dashboard) */
+.content{display:grid;grid-template-columns:1fr 320px;gap:24px}
+.left-col{display:flex;flex-direction:column;gap:18px}
+.section-title{font-size:18px;font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+
+.courses{display:flex;gap:18px}
+.course-card{background:#fff;border-radius:10px;padding:0;overflow:hidden;width:260px;box-shadow:0 6px 18px rgba(16,24,40,0.06)}
+.course-card .thumb{height:120px;background:linear-gradient(135deg,#0f3b6b,#183153)}
+.course-card .meta{padding:14px;background:#fcf6ee}
+.course-card h4{font-size:15px;margin-bottom:6px}
+.course-card small{color:#59637a}
+.progress{height:8px;background:#e9eef6;border-radius:6px;margin-top:10px}
+.progress > span{display:block;height:100%;background:#3561b3;border-radius:6px}
+
+.stats{display:flex;gap:14px;margin-top:12px}
+.stat{background:#fff;padding:18px;border-radius:10px;flex:1;box-shadow:0 6px 18px rgba(16,24,40,0.04)}
+.stat .num{font-size:22px;font-weight:700;color:#163356}
+.stat small{color:#7b8697}
+
+/* Right column cards */
+.card{background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 18px rgba(16,24,40,0.04)}
+.deadline{display:flex;flex-direction:column;gap:10px}
+.deadline-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.deadline-item:last-child{border-bottom:none}
+.badge{background:#f4e6d6;padding:6px 10px;border-radius:10px;color:#4a3a2a}
+.achievements li{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #f3f3f3}
+.achievements li:last-child{border-bottom:none}
+
+/* Courses page */
+.filters{display:flex;align-items:center;gap:12px;margin:18px 0}
+.pill{padding:8px 12px;border-radius:20px;background:#fff;border:1px solid #eef0f3;color:#2b3b59;font-weight:600}
+.pill.active{background:#2f4f8a;color:#fff}
+.filter-row{display:flex;gap:10px;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px}
+.course{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 6px 18px rgba(16,24,40,0.06)}
+.course .media{height:140px;background:linear-gradient(135deg,#0f3b6b,#183153)}
+.course .body{padding:14px;background:#fcf6ee}
+.course .body .meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.tag{background:#eef2fb;color:#1f3f6a;padding:6px 8px;border-radius:8px;font-size:12px}
+.course h4{font-size:16px;margin-bottom:6px}
+.course small{color:#59637a}
+.course .footer{padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.btn{background:#2f4f8a;color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+
+/* Fix: ensure topbar alignment consistent between pages */
+.topbar .title, .topbar .greeting{display:block}
+.topbar .search{margin-left:auto}
+
+@media(max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}.content{grid-template-columns:1fr 320px}}
+@media(max-width:1000px){.content{grid-template-columns:1fr}.courses{flex-wrap:wrap}}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.search input{width:180px}}
