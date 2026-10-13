@@ -29,8 +29,8 @@
                 <a href="#about">About</a>
             </div>
             <div class="nav-auth">
-                <a href="#" class="btn-login">Log In</a>
-                <a href="#" class="btn-primary">Get Started Free</a>
+                <a href="/Auth/login.aspx" class="btn-login">Log In</a>
+                <a href="/Auth/signup.aspx" class="btn-primary">Get Started Free</a>
             </div>
         </div>
     </nav>
@@ -180,8 +180,8 @@
         <div class="reg-content">
             <h2>Start Your Science Learning Journey Today</h2>
             <p>Join high school students mastering Biology, Chemistry, and Physics on EduCore.</p>
-            <a href="#" class="btn-primary-large">Create Your Free Account</a>
-            <p class="reg-note">Teaching at a school? <a href="#">Contact us about school plans</a></p>
+            <a href="/Auth/signup.aspx" class="btn-primary-large">Create Your Free Account</a>
+            <p class="reg-note">Teaching at a school? <a href="/Auth/signup.aspx">Contact us about school plans</a></p>
         </div>
     </section>
 

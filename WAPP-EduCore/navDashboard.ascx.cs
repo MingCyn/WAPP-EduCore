@@ -46,7 +46,7 @@ namespace WAPP_EduCore
             get
             {
                 string back = HttpUtility.UrlEncode(Request.Url.PathAndQuery);
-                return ResolveUrl("~/login.aspx") + "?returnUrl=" + back;
+                return ResolveUrl("~/auth/login.aspx") + "?returnUrl=" + back;
             }
         }
 

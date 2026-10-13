@@ -17,6 +17,8 @@ namespace WAPP_EduCore.pages.General
             }
         }
 
+        protected string StartLessonUrl { get; set; } = "coursesDirectory.aspx";
+
         protected void Page_Load(object sender, EventArgs e)
         {
             int courseId;
@@ -76,6 +78,20 @@ namespace WAPP_EduCore.pages.General
                 img = img.Replace("'", "%27").Replace("\"", "%22");
 
                 hero.Attributes["style"] = "background-image:url('" + img + "')";
+            }
+
+            // MOVED OUTSIDE: Always find the first lesson for this course so the button works reliably
+            DataTable firstLesson = Db.Query(@"
+            SELECT lesson_id FROM lesson 
+            WHERE course_id = @id 
+            ORDER BY lesson_id 
+            LIMIT 1",
+            new Dictionary<string, object> { { "@id", courseId } });
+
+            if (firstLesson.Rows.Count > 0)
+            {
+                int firstLessonId = Convert.ToInt32(firstLesson.Rows[0]["lesson_id"]);
+                StartLessonUrl = ResolveUrl($"~/pages/General/lesson.aspx?id={firstLessonId}");
             }
 
             // About

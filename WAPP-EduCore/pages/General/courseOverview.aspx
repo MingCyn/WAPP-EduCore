@@ -97,10 +97,10 @@
 
                         <aside class="access" aria-label="Enrollment">
                             <div class="eyebrow">Your access status</div>
-                            <h3>Log in to enroll</h3>
+                            <h3>You are Enrolled</h3>
 
-                            <a class="btn btn-block" href="<%= LoginUrl %>">Log in to Start Learning</a>
-                            <p class="alt">No account? <a href="<%= ResolveUrl("~/register.aspx") %>">Create one</a></p>
+                            <a class="btn btn-block" href="<%= StartLessonUrl %>">Start Learning</a>
+                            <p class="alt">No account? <a href="<%= ResolveUrl("/Auth/signup.aspx") %>">Create one</a></p>
 
                             <ul>
                                 <li>

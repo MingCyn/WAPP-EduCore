@@ -161,8 +161,9 @@
     <Content Include="pages\General\profile.aspx" />
     <Content Include="pages\General\coursesDirectory.aspx" />
     <Content Include="pages\General\calendar.aspx" />
-	<Content Include="Content\course.css" />
+    <Content Include="Content\course.css" />
     <Content Include="pages\General\StyleSheet1.css" />
+    <Content Include="pages\General\lesson.aspx" />
     <Content Include="pages\Shared\Sidebar.ascx" />
     <Content Include="pages\Student\calendar.aspx" />
     <Content Include="pages\Student\myCourses.aspx" />
@@ -361,6 +362,13 @@
     <Compile Include="pages\General\calendar.aspx.designer.cs">
       <DependentUpon>calendar.aspx</DependentUpon>
     </Compile>
+    <Compile Include="pages\General\lesson.aspx.cs">
+      <DependentUpon>lesson.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\General\lesson.aspx.designer.cs">
+      <DependentUpon>lesson.aspx</DependentUpon>
+    </Compile>
     <Compile Include="pages\Shared\Sidebar.ascx.cs">
       <DependentUpon>Sidebar.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -516,13 +524,12 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
+
   <Target Name="BeforeBuild">
   </Target>
   <Target Name="AfterBuild">
   </Target>
-  -->
+
   <ProjectExtensions>
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
