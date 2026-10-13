@@ -5,7 +5,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
-namespace WAPP_EduCore.pages.General
+namespace WAPP_EduCore.pages.Student
 {
     public partial class WebForm2 : System.Web.UI.Page
     {

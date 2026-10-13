@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WAPP_EduCore.pages.General
+namespace WAPP_EduCore.pages.Student
 {
 
 

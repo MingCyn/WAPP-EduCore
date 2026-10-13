@@ -7,11 +7,11 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WAPP_EduCore.pages.General
+namespace WAPP_EduCore.pages.Student
 {
 
 
-    public partial class WebForm1
+    public partial class calendar
     {
 
         /// <summary>
