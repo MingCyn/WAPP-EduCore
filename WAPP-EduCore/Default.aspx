@@ -84,39 +84,41 @@
     </section>
 
 <!-- 4. POPULAR COURSES -->
-<section id="explore" class="popular-courses">
+    <section id="explore" class="popular-courses">
     <div class="section-container">
         <div class="section-header-landing">
             <div>
                 <h2>Explore popular courses</h2>
-                <p>Hand-picked programs to fast-track your tech and design skills.</p>
+                <p>Hand-picked programs to fast-track your science skills.</p>
             </div>
-            <a href="#" class="view-all">View all courses →</a>
+            <%-- Updated: Links to the full course directory --%>
+            <a href="pages/General/coursesDirectory.aspx" class="view-all">View all courses &rarr;</a>
         </div>
         
         <!-- Repeater starts here -->
         <div class="courses-grid-4">
             <asp:Repeater ID="RepeaterCourses" runat="server">
                 <ItemTemplate>
-                    <article class="course-card">
-                        <!-- If you have an image URL stored in course_img, display it, otherwise fallback to a class -->
-                        <div class="course-thumb" style="background-image: url('<%# Eval("course_img") %>'); background-size: cover; background-position: center;"></div>
-                        <div class="course-body">
-                            <span class="category-tag"><%# Eval("category") %></span>
-                            <h4><%# Eval("title") %></h4>
-                            <span class="tutor"><%# Eval("tutor_name") %></span>
-                            <div class="course-meta">
-                                <span class="rating">★ 4.9</span>
-                                <span class="duration"><%# Eval("duration") %></span>
+                    <%-- Wrapped the card inside an anchor tag linking to courseOverview with the specific course ID --%>
+                    <a href="pages/General/courseOverview.aspx?id=<%# Eval("course_id") %>" class="course-card-link" style="text-decoration: none; color: inherit; display: block;">
+                        <article class="course-card">
+                            <div class="course-thumb" style="background-image: url('<%# Eval("course_img") %>'); background-size: cover; background-position: center;"></div>
+                            <div class="course-body">
+                                <span class="category-tag"><%# Eval("category") %></span>
+                                <h4><%# Eval("title") %></h4>
+                                <span class="tutor"><%# Eval("tutor_name") %></span>
+                                <div class="course-meta">
+                                    <span class="rating">★ 4.9</span>
+                                    <span class="duration"><%# Eval("duration") %></span>
+                                </div>
                             </div>
-                        </div>
-                    </article>
+                        </article>
+                    </a>
                 </ItemTemplate>
             </asp:Repeater>
         </div>
         <!-- Repeater ends here -->
-    </div>
-</section>
+    </div></section>
 
     <!-- 5. HOW IT WORKS -->
     <section id="how-it-works" class="how-it-works">
@@ -129,15 +131,15 @@
             </div>
             <div class="steps-grid">
                 <div class="step">
-                    <h3>1. Select Your Subject</h3>
+                    <h3>Select Your Subject</h3>
                     <p>Choose from Biology, Chemistry, or Physics structured by SPM or IGCSE topics.</p>
                 </div>
                 <div class="step">
-                    <h3>2. Learn & Practice</h3>
+                    <h3>Learn & Practice</h3>
                     <p>Watch synchronous sessions or learn asynchronously with interactive quizzes and immediate feedback.</p>
                 </div>
                 <div class="step">
-                    <h3>3. Track Progress</h3>
+                    <h3>Track Progress</h3>
                     <p>Monitor your learning hours, streaks, and quiz performance to sharpen your exam readiness.</p>
                 </div>
             </div>
