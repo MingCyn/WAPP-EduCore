@@ -142,11 +142,8 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\Site.css" />
-<<<<<<< HEAD
     <Content Include="Content\navDashboard.css" />
-=======
     <Content Include="Content\student.css" />
->>>>>>> 4bc06fa80b8cd7627dac6f6a3ca8f7bccababc68
     <Content Include="Default.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
