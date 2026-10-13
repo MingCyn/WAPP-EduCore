@@ -60,18 +60,23 @@ namespace WAPP_EduCore.auth
                                     Session["UserRole"] = role;
 
                                     // Role-based Redirection with correct path tracking out of /auth/
+                                    // 4. Role-based Redirection with correct folder paths
                                     if (role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
                                     {
                                         Response.Redirect("../pages/Admin/adminDashboard.aspx", false);
                                     }
-                                    else if (role.Equals("Student", StringComparison.OrdinalIgnoreCase) ||
-                                             role.Equals("Tutor", StringComparison.OrdinalIgnoreCase))
+                                    else if (role.Equals("Tutor", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        Response.Redirect("../pages/General/dashboard.aspx", false);
+                                        Response.Redirect("../pages/Tutor/tutorDashboard.aspx", false);
+                                    }
+                                    else if (role.Equals("Student", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        Response.Redirect("../pages/Student/studentDashboard.aspx", false);
                                     }
                                     else
                                     {
-                                        Response.Redirect("../pages/General/dashboard.aspx", false);
+                                        // Default fallback
+                                        Response.Redirect("../pages/Student/studentDashboard.aspx", false);
                                     }
 
                                     Context.ApplicationInstance.CompleteRequest();

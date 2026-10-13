@@ -1,0 +1,375 @@
+﻿/* ==========================================
+   EduCore - Dashboard Global & Tutor Theme
+   ========================================== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #f8fafc;
+    color: #1e293b;
+    min-height: 100vh;
+}
+
+.dashboard-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Top Navigation Bar --- */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 0 32px;
+    height: 72px;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+}
+
+.nav-logo {
+    height: 28px;
+    width: auto;
+}
+
+
+.profile-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* --- Top Navigation Bar (Dark Theme) --- */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #0f172a; /* Dark blue background */
+    padding: 0 32px;
+    height: 72px;
+    border-bottom: 1px solid #1e293b;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-links {
+    display: flex;
+    gap: 24px;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #94a3b8; /* Lighter grey text for contrast */
+    font-weight: 500;
+    font-size: 14px;
+    transition: color 0.2s ease;
+    padding: 8px 0;
+}
+
+    .nav-link:hover, .nav-link.active {
+        color: #ffffff; /* White text on hover/active */
+        border-bottom: 2px solid #3b82f6; /* Bright accent indicator */
+    }
+
+.nav-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff; /* White text for the profile name */
+}
+/* --- Dashboard Container --- */
+.dashboard-container {
+    padding: 32px;
+    max-width: 1440px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* --- Statistics Overview Grid --- */
+.stats-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background-color: #fdf8f0; /* Soft warm card background matching mock */
+    border: 1px solid #f6eadc;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.stat-card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-card-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 8px 0;
+}
+
+.stat-trend {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+    .stat-trend.positive {
+        color: #059669;
+    }
+
+    .stat-trend.neutral {
+        color: #64748b;
+    }
+
+/* --- Content Split Grid Layout --- */
+.content-split-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+}
+
+@media (max-width: 1024px) {
+    .content-split-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.section-block {
+    margin-bottom: 32px;
+}
+
+.section-heading {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+}
+
+/* --- Course Mini Cards --- */
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.course-mini-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.course-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+    .course-card-header h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+.action-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e3a8a;
+    text-decoration: none;
+}
+
+    .action-link:hover {
+        text-decoration: underline;
+    }
+
+.course-card-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.progress-text {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+/* --- Progress Bars --- */
+.progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background-color: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+    .progress-bar-container.small {
+        height: 5px;
+        width: 120px;
+    }
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: #3b82f6;
+    border-radius: 4px;
+}
+
+/* --- Data Tables --- */
+.table-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+    .data-table th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 14px 20px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .data-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        vertical-align: middle;
+    }
+
+    .data-table tr:last-child td {
+        border-bottom: none;
+    }
+
+.table-progress-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+    .table-progress-wrapper span {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0f172a;
+        min-width: 32px;
+    }
+
+/* --- Status Badges --- */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.status-on-track {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-attention {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-risk {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* --- Awaiting Review Sidebar List --- */
+.review-card-list {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.review-item-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #f1f5f9;
+}
+
+.review-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.review-info p {
+    font-size: 12px;
+    color: #64748b;
+    margin: 2px 0;
+}
+
+.time-ago {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.btn-grade {
+    background-color: #1e3a8a;
+    color: #ffffff;
+    border: none;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+    .btn-grade:hover {
+        background-color: #172554;
+    }
