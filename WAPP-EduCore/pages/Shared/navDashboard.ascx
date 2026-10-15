@@ -1,6 +1,7 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="navDashboard.ascx.cs" Inherits="WAPP_EduCore.navDashboard" %>
 
-<link rel="stylesheet" href="<%= ResolveUrl("~/Content/navDashboard.css") %>" />
+<link rel="stylesheet" href="<%= ResolveUrl("/Content/navDashboard.css") %>" />
+
 <aside class="nav-dashboard" aria-label="Main navigation">
     <a class="nav-logo" href="<%= ResolveUrl("~/default.aspx") %>">
         <img src="<%= ResolveUrl("~/images/logo.png") %>" alt="EduCore" />
@@ -16,7 +17,7 @@
             </a>
         </li>
         <li>
-            <a href="<%= ResolveUrl("~/coursesDirectory.aspx") %>" class="<%= Css("courses") %>">
+            <a href="<%= ResolveUrl("/pages/General/coursesDirectory.aspx") %>" class="<%= Css("courses") %>">
                 <svg viewBox="0 0 24 24"><path d="M2 5h7a3 3 0 013 3v12a2 2 0 00-2-2H2z"/><path d="M22 5h-7a3 3 0 00-3 3v12a2 2 0 012-2h8z"/></svg>
                 Explore Courses
             </a>
@@ -25,7 +26,7 @@
         <% } else { %>
 
         <li>
-            <a href="<%= ResolveUrl("~/dashboard.aspx") %>" class="<%= Css("dashboard") %>">
+            <a href="<%= ResolveUrl("/pages/Student/studentDashboard.aspx") %>" class="<%= Css("dashboard") %>">
                 <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                 Dashboard
             </a>

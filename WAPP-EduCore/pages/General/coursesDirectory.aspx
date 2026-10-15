@@ -1,5 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="coursesDirectory.aspx.cs" Inherits="WAPP_EduCore.pages.General.coursesDirectory" %>
-<%@ Register Src="~/navDashboard.ascx" TagPrefix="uc" TagName="Nav" %>
+<%@ Register Src="/pages/Shared/navDashboard.ascx" TagPrefix="uc" TagName="Nav" %>
 <!DOCTYPE html>
 <html lang="en">
 <head runat="server">

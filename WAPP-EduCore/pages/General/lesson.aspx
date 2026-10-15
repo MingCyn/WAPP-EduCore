@@ -1,7 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="lesson.aspx.cs" Inherits="WAPP_EduCore.pages.General.lesson" %>
-
-<%@ Register Src="~/navDashboard.ascx" TagPrefix="uc" TagName="Nav" %>
-
+<%@ Register Src="/pages/Shared/navDashboard.ascx" TagPrefix="uc" TagName="Nav" %>
 <!DOCTYPE html>
 <html lang="en">
 <head runat="server">
@@ -37,11 +35,8 @@
                         <div style="display: flex; flex-direction: column; gap: 6px;">
                             <asp:Repeater ID="rptSyllabus" runat="server">
                                 <ItemTemplate>
-                                    <a href="lesson.aspx?id=<%# Eval("lesson_id") %>" 
-                                       style="display: block; padding: 10px 12px; border-radius: 6px; font-size: 13px; text-decoration: none; 
-                                              background: <%# IsCurrentLesson(Eval("lesson_id")) ? "var(--cream)" : "#fff" %>; 
-                                              color: <%# IsCurrentLesson(Eval("lesson_id")) ? "var(--navy)" : "var(--ink)" %>;
-                                              border: 1px solid <%# IsCurrentLesson(Eval("lesson_id")) ? "var(--cream-line)" : "var(--line)" %>;">
+                                    <a href='lesson.aspx?id=<%# Eval("lesson_id") %>' 
+                                       class='syllabus-item <%# Convert.ToBoolean(IsCurrentLesson(Eval("lesson_id"))) ? "active" : "" %>'>
                                         <%# Enc(Eval("lesson_title")) %>
                                     </a>
                                 </ItemTemplate>
@@ -73,6 +68,31 @@
                             <div style="font-size: 13.5px; line-height: 1.6; color: var(--ink);">
                                 <asp:Literal ID="litLessonContent" runat="server" />
                             </div>
+
+                            <!-- Lesson Quiz Button -->
+                            <asp:Panel ID="pnlLessonQuiz" runat="server"
+                                Visible="false"
+                                style="margin-top: 24px; padding-top: 20px;
+                                       border-top: 1px solid var(--line);">
+
+                                <div style="display: flex; justify-content: space-between;
+                                            align-items: center; gap: 16px; flex-wrap: wrap;">
+
+                                    <div>
+                                        <h3 style="margin: 0 0 6px; font-size: 16px;">
+                                            Ready to test your knowledge?
+                                        </h3>
+
+                                        <p style="font-size: 13px; color: var(--muted);">
+                                            Complete this lesson quiz to check your understanding.
+                                        </p>
+                                    </div>
+
+                                    <asp:HyperLink ID="lnkAttemptQuiz" runat="server"
+                                        CssClass="btn"
+                                        Text="Attempt Quiz &#8594;" />
+                                </div>
+                            </asp:Panel>
                         </div>
                     </main>
 

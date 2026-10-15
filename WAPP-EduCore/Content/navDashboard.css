@@ -124,6 +124,12 @@
     color: #98a1c9;
 }
 
+.app-shell {
+    display: grid;
+    grid-template-columns: 176px minmax(0, 1fr);
+    min-height: 100vh;
+}
+
 /* Responsive adjustments for sidebar */
 @media (max-width: 760px) {
     .nav-dashboard {

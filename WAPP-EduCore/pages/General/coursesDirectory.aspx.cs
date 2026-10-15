@@ -4,6 +4,8 @@ using System.Data;
 using System.Text;
 using System.Web;
 using System.Web.UI;
+using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
 using WAPP_EduCore;
 
 namespace WAPP_EduCore.pages.General
@@ -69,6 +71,7 @@ namespace WAPP_EduCore.pages.General
             rptCourses.DataBind();
             pnlEmpty.Visible = dt.Rows.Count == 0;
         }
+
 
         // ---------- Filter UI ----------
 

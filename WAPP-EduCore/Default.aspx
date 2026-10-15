@@ -8,9 +8,9 @@
     <meta name="description" content="EduCore offers interactive synchronous and asynchronous learning for secondary students preparing for SPM and IGCSE Biology, Chemistry, and Physics.">
     <title>EduCore - Master the Core of Science, Excel in Every Exam.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="landing.css">
+    <link rel="stylesheet" href="/Content/landing.css">
 </head>
 <body class="landing-body">
 
