@@ -240,6 +240,7 @@
     <Compile Include="auth\signup.aspx.designer.cs">
       <DependentUpon>signup.aspx</DependentUpon>
     </Compile>
+    <Content Include="Content\quiz.css" />
     <Compile Include="Data\Db.cs" />
     <Compile Include="Contact.aspx.cs">
       <DependentUpon>Contact.aspx</DependentUpon>

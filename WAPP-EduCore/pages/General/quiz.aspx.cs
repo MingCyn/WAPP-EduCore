@@ -242,8 +242,8 @@ namespace WAPP_EduCore.pages.General
             litGrade.Text = Server.HtmlEncode(grade);
             litScore.Text = string.Format("You scored {0} / {1} ({2}%)", correct, total, percent);
             litVerdict.Text = passed
-                ? "<span class=\"verdict pass\">Passed</span>"
-                : "<span class=\"verdict fail\">Not passed yet - give it another try</span>";
+                ? "<span class=\"qz-verdict pass\">Passed</span>"
+                : "<span class=\"qz-verdict fail\">Not passed yet - give it another try</span>";
             litSaveNote.Text = Server.HtmlEncode(saveNote);
             litReview.Text = review.ToString();
             litReviewSummary.Text = string.Format("{0} of {1} correct", correct, total);
@@ -282,11 +282,11 @@ namespace WAPP_EduCore.pages.General
             string tagText = picked == null ? "Not answered" : (isRight ? "Correct" : "Incorrect");
 
             var sb = new StringBuilder();
-            sb.Append("<article class=\"rv\">");
-            sb.AppendFormat("<div class=\"rv-head\"><span class=\"rv-q\">Question {0}</span><span class=\"rv-tag {1}\">{2}</span></div>",
+            sb.Append("<article class=\"qz-rv\">");
+            sb.AppendFormat("<div class=\"qz-rv-head\"><span class=\"qz-rv-q\">Question {0}</span><span class=\"qz-rv-tag {1}\">{2}</span></div>",
                 number, tagClass, tagText);
-            sb.AppendFormat("<h3 class=\"rv-text\">{0}</h3>", Server.HtmlEncode(Convert.ToString(r["question_text"])));
-            sb.Append("<ul class=\"rv-opts\">");
+            sb.AppendFormat("<h3 class=\"qz-rv-text\">{0}</h3>", Server.HtmlEncode(Convert.ToString(r["question_text"])));
+            sb.Append("<ul class=\"qz-rv-opts\">");
 
             foreach (string letter in new[] { "A", "B", "C", "D" })
             {
@@ -297,22 +297,22 @@ namespace WAPP_EduCore.pages.General
                 bool isCorrectOpt = letter == right;
                 bool isPicked = letter == picked;
 
-                string cls = "ro" + (isCorrectOpt ? " right" : "") + (isPicked && !isCorrectOpt ? " wrong" : "");
+                string cls = "qz-ro" + (isCorrectOpt ? " right" : "") + (isPicked && !isCorrectOpt ? " wrong" : "");
                 string label = isCorrectOpt && isPicked ? "Your answer - correct"
                              : isCorrectOpt ? "Correct answer"
                              : isPicked ? "Your answer"
                              : "";
 
-                sb.AppendFormat("<li class=\"{0}\"><span class=\"key\">{1}</span><span class=\"rt\">{2}</span>{3}</li>",
+                sb.AppendFormat("<li class=\"{0}\"><span class=\"qz-key\">{1}</span><span class=\"qz-rt\">{2}</span>{3}</li>",
                     cls, letter, Server.HtmlEncode(text),
-                    label.Length > 0 ? "<span class=\"rl\">" + label + "</span>" : "");
+                    label.Length > 0 ? "<span class=\"qz-rl\">" + label + "</span>" : "");
             }
             sb.Append("</ul>");
 
             string explanation = r["explanation"] == DBNull.Value ? "" : Convert.ToString(r["explanation"]).Trim();
             if (explanation.Length > 0)
             {
-                sb.AppendFormat("<div class=\"expl\"><strong>Explanation</strong><p>{0}</p></div>",
+                sb.AppendFormat("<div class=\"qz-expl\"><strong>Explanation</strong><p>{0}</p></div>",
                     Server.HtmlEncode(explanation));
             }
 
