@@ -12,6 +12,7 @@ namespace WAPP_EduCore.pages.Shared
         // Declared by hand because this control has no designer file
         protected HtmlGenericControl lblName;
         protected HtmlGenericControl lblId;
+        protected HtmlGenericControl lblInitials;
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -28,8 +29,9 @@ namespace WAPP_EduCore.pages.Shared
                 string currentFile = Path.GetFileName(
                     Request.AppRelativeCurrentExecutionFilePath ?? string.Empty).ToLowerInvariant();
 
-                // Keep "My Courses" highlighted on the course overview page
-                if (currentFile == "courseoverview.aspx" || currentFile == "assessment.aspx") currentFile = "mycourses.aspx";
+                // These pages belong to "My Courses", so keep that item highlighted
+                if (currentFile == "courseoverview.aspx" || currentFile == "assessment.aspx" || currentFile == "learningprogression.aspx")
+                    currentFile = "mycourses.aspx";
 
                 FindAndMarkActive(this, currentFile);
             }
@@ -58,7 +60,7 @@ namespace WAPP_EduCore.pages.Shared
             }
         }
 
-        // ---------- student name and ID ----------
+        // ---------- logged-in student ----------
 
         private void LoadStudent()
         {
@@ -82,8 +84,20 @@ namespace WAPP_EduCore.pages.Shared
 
                 if (lblName != null) lblName.InnerText = name;
                 if (lblId != null) lblId.InnerText = "Student ID: " + userId;
+                if (lblInitials != null) lblInitials.InnerText = InitialsOf(name);
             }
             catch { /* keep the placeholder text if anything fails */ }
+        }
+
+        // "Priya Sharma" -> "PS"
+        private static string InitialsOf(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return "?";
+
+            string[] parts = name.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string initials = parts[0].Substring(0, 1);
+            if (parts.Length > 1) initials += parts[parts.Length - 1].Substring(0, 1);
+            return initials.ToUpperInvariant();
         }
     }
 }

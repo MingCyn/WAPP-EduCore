@@ -319,7 +319,7 @@ namespace WAPP_EduCore.pages.Student
             lnkRetake.NavigateUrl = "~/pages/Student/assessment.aspx?quiz=" + _quizId;
             lnkBack.NavigateUrl = _quiz["course_id"] == DBNull.Value
                 ? "~/pages/Student/myCourses.aspx"
-                : "~/pages/Student/courseOverview.aspx?id=" + Convert.ToInt64(_quiz["course_id"]);
+                : "~/pages/Student/learningProgression.aspx?course=" + Convert.ToInt64(_quiz["course_id"]);
 
             pnlQuiz.Visible = false;
             chipBox.Visible = false;

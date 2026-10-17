@@ -114,15 +114,7 @@ namespace WAPP_EduCore.pages.Student
             pnlNoLessons.Visible = lessons.Rows.Count == 0;
             litLessonCount.Text = lessons.Rows.Count.ToString();
 
-            // Start Learning opens the first quiz of this course (until the lesson page exists)
-            DataTable firstQuiz = Db.Query(
-                "SELECT q.quiz_id FROM quiz q " +
-                "JOIN lesson l ON (l.lesson_id = q.lesson_id OR l.quiz_id = q.quiz_id) " +
-                "WHERE l.course_id = @cid ORDER BY q.quiz_id LIMIT 1",
-                new Dictionary<string, object> { { "@cid", courseId } });
-
-            if (firstQuiz.Rows.Count > 0)
-                lnkStart.NavigateUrl = "~/pages/Student/assessment.aspx?quiz=" + Convert.ToInt64(firstQuiz.Rows[0]["quiz_id"]);
+            lnkStart.NavigateUrl = "~/pages/Student/learningProgression.aspx?course=" + courseId;
         }
 
         protected void btnEnroll_Click(object sender, EventArgs e)
