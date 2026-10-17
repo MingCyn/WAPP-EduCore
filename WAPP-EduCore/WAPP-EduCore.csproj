@@ -145,7 +145,14 @@
     <Content Include="Default.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="images\calendar_icon.png" />
+    <Content Include="images\certificates_icon.png" />
+    <Content Include="images\dashboard_icon.png" />
+    <Content Include="images\grades_icon.png" />
     <Content Include="images\logo.png" />
+    <Content Include="images\messages_icon.png" />
+    <Content Include="images\mycourse_icon.png" />
+    <Content Include="images\settings_icon.png" />
     <Content Include="images\study.jpg" />
     <Content Include="pages\Admin\adminDashboard.aspx" />
     <Content Include="pages\Admin\adminReports.aspx" />
@@ -162,6 +169,7 @@
     <Content Include="pages\General\lesson.aspx" />
     <Content Include="pages\Shared\Sidebar.ascx" />
     <Content Include="pages\Student\calendar.aspx" />
+    <Content Include="pages\Student\courseOverview.aspx" />
     <Content Include="pages\Student\myCourses.aspx" />
     <Content Include="pages\Student\assessment.aspx" />
     <Content Include="pages\Student\settings.aspx" />
@@ -354,6 +362,13 @@
     </Compile>
     <Compile Include="pages\Student\calendar.aspx.designer.cs">
       <DependentUpon>calendar.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Student\courseOverview.aspx.cs">
+      <DependentUpon>courseOverview.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Student\courseOverview.aspx.designer.cs">
+      <DependentUpon>courseOverview.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Student\myCourses.aspx.cs">
       <DependentUpon>myCourses.aspx</DependentUpon>

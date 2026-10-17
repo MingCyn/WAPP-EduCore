@@ -7,6 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Explore Courses</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
 </head>
@@ -17,94 +18,72 @@
             <main class="main">
                 <div class="topbar">
                     <div class="title">Explore Courses</div>
-                    <div class="search"><input placeholder="Search courses, lessons, resources..." /></div>
+                    <div class="search">
+                        <asp:TextBox ID="txtSearch" runat="server" AutoPostBack="true"
+                            OnTextChanged="Filters_Changed"
+                            placeholder="Search courses by title or topic..."></asp:TextBox>
+                    </div>
                 </div>
 
                 <div class="filters">
                     <div class="filter-row">
-                        <button class="pill">Primary</button>
-                        <button class="pill">Secondary</button>
-                        <button class="pill active">Undergraduate</button>
-                        <button class="pill">Professional</button>
-                        <button class="pill">Lifelong</button>
+                        <asp:LinkButton ID="btnAllLevels" runat="server" OnClick="btnAllLevels_Click"
+                            CssClass="pill">All</asp:LinkButton>
+                        <asp:Repeater ID="rptLevels" runat="server" OnItemCommand="rptLevels_ItemCommand">
+                            <ItemTemplate>
+                                <asp:LinkButton runat="server" CommandName="level"
+                                    CommandArgument='<%# Eval("course_level") %>'
+                                    CssClass='<%# PillClass(Eval("course_level")) %>'><%#: Eval("course_level") %></asp:LinkButton>
+                            </ItemTemplate>
+                        </asp:Repeater>
                     </div>
-                    <div style="flex:1"></div>
                     <div class="filter-row">
-                        <select style="padding:8px 12px;border-radius:8px;border:1px solid #e8e8e8">
-                            <option>Topic: Computer Science</option>
-                        </select>
-                        <select style="padding:8px 12px;border-radius:8px;border:1px solid #e8e8e8">
-                            <option>Sort by: Most Popular</option>
-                        </select>
+                        <asp:DropDownList ID="ddlCategory" runat="server" AutoPostBack="true"
+                            OnSelectedIndexChanged="Filters_Changed"></asp:DropDownList>
+                        <asp:DropDownList ID="ddlSort" runat="server" AutoPostBack="true"
+                            OnSelectedIndexChanged="Filters_Changed">
+                            <asp:ListItem Value="popular" Text="Sort by: Most Popular" />
+                            <asp:ListItem Value="newest" Text="Sort by: Newest" />
+                            <asp:ListItem Value="title" Text="Sort by: Title (A-Z)" />
+                        </asp:DropDownList>
                     </div>
                 </div>
 
+                <asp:Label ID="lblMessage" runat="server" Visible="false"
+                    Style="display:block;margin:10px 0;color:#2563eb"></asp:Label>
+
+                <asp:Panel ID="pnlEmpty" runat="server" Visible="false"
+                    Style="padding:40px;text-align:center;color:#7b8697">
+                    No courses match your filters.
+                </asp:Panel>
+
                 <div class="grid">
-                    <div class="course">
-                        <div class="media"></div>
-                        <div class="body">
-                            <div class="meta"><span class="tag">Undergraduate</span><span>⭐ 4.8</span></div>
-                            <h4>Introduction to Computer Science</h4>
-                            <small>Dr. Robert Miller</small>
-                            <div style="margin-top:10px;color:#7b8697;font-size:13px">1,240 students</div>
-                        </div>
-                        <div class="footer"><div></div><button class="btn">View Course</button></div>
-                    </div>
-
-                    <div class="course">
-                        <div class="media" style="background:linear-gradient(135deg,#eef3fb,#e6f0ff)"></div>
-                        <div class="body">
-                            <div class="meta"><span class="tag">Professional</span><span>⭐ 4.9</span></div>
-                            <h4>Advanced Data Structures</h4>
-                            <small>Prof. Elena Vance</small>
-                            <div style="margin-top:10px;color:#7b8697;font-size:13px">542 students</div>
-                        </div>
-                        <div class="footer"><div></div><button class="btn">View Course</button></div>
-                    </div>
-
-                    <div class="course">
-                        <div class="media" style="background:linear-gradient(135deg,#e9e2d8,#f6efe6)"></div>
-                        <div class="body">
-                            <div class="meta"><span class="tag">Undergraduate</span><span>⭐ 4.7</span></div>
-                            <h4>Aesthetic Design Principles</h4>
-                            <small>Maria Henderson</small>
-                            <div style="margin-top:10px;color:#7b8697;font-size:13px">892 students</div>
-                        </div>
-                        <div class="footer"><div></div><button class="btn">View Course</button></div>
-                    </div>
-
-                    <div class="course">
-                        <div class="media" style="background:#0f324f;display:flex;align-items:center;justify-content:center;color:#fff">Diagram</div>
-                        <div class="body">
-                            <div class="meta"><span class="tag">Undergraduate</span><span>⭐ 4.9</span></div>
-                            <h4>Applied Discrete Mathematics</h4>
-                            <small>Dr. Alan Turing</small>
-                            <div style="margin-top:10px;color:#7b8697;font-size:13px">310 students</div>
-                        </div>
-                        <div class="footer"><div></div><button class="btn">Enroll</button></div>
-                    </div>
-
-                    <div class="course">
-                        <div class="media" style="background:url('/images/instructor1.jpg') center/cover"></div>
-                        <div class="body">
-                            <div class="meta"><span class="tag">Professional</span><span>⭐ 4.6</span></div>
-                            <h4>Fundamentals of UX/UI Design</h4>
-                            <small>Sarah Jenkins</small>
-                            <div style="margin-top:10px;color:#7b8697;font-size:13px">1,450 students</div>
-                        </div>
-                        <div class="footer"><div></div><button class="btn">Enroll</button></div>
-                    </div>
-
-                    <div class="course">
-                        <div class="media" style="background:url('/images/instructor2.jpg') center/cover"></div>
-                        <div class="body">
-                            <div class="meta"><span class="tag">Professional</span><span>⭐ 5.0</span></div>
-                            <h4>Machine Learning Foundations</h4>
-                            <small>Prof. Andrew Ng</small>
-                            <div style="margin-top:10px;color:#7b8697;font-size:13px">2,100 students</div>
-                        </div>
-                        <div class="footer"><div></div><button class="btn">Enroll</button></div>
-                    </div>
+                    <asp:Repeater ID="rptCourses" runat="server" OnItemCommand="rptCourses_ItemCommand">
+                        <ItemTemplate>
+                            <div class="course">
+                                <div class="media" style="<%# MediaStyle(Eval("course_img")) %>"></div>
+                                <div class="body">
+                                    <div class="meta">
+                                        <span class="tag"><%#: Eval("course_level") %></span>
+                                        <span class="duration"><%#: Eval("duration") %></span>
+                                    </div>
+                                    <h4><%#: Eval("title") %></h4>
+                                    <small><%#: Eval("instructor") %></small>
+                                    <asp:PlaceHolder runat="server" Visible='<%# Convert.ToBoolean(Eval("is_enrolled")) %>'>
+                                        <div class="progress"><div class="progress-bar" style='width:<%# Percent(Eval("total_lessons"), Eval("done_lessons")) %>%'></div></div>
+                                        <small class="progress-text"><%# Percent(Eval("total_lessons"), Eval("done_lessons")) %>% complete</small>
+                                    </asp:PlaceHolder>
+                                </div>
+                                <div class="footer">
+                                    <span class="students"><%#: Eval("student_count") %> students</span>
+                                    <asp:Button runat="server" CssClass="btn"
+                                        CommandName='<%# Convert.ToBoolean(Eval("is_enrolled")) ? "view" : "enroll" %>'
+                                        CommandArgument='<%# Eval("course_id") %>'
+                                        Text='<%# Convert.ToBoolean(Eval("is_enrolled")) ? "View Course" : "Enroll" %>' />
+                                </div>
+                            </div>
+                        </ItemTemplate>
+                    </asp:Repeater>
                 </div>
             </main>
         </div>
