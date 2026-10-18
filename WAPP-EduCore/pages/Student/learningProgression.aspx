@@ -84,6 +84,7 @@
                                 <button type="button" class="btn-start" disabled="disabled" title="Messages coming soon">Ask Tutor</button>
                             </div>
 
+                            <asp:HyperLink ID="lnkDiscuss" runat="server" CssClass="btn-ghost" Style="display:block;text-align:center;margin-bottom:22px">Open Lesson Discussion</asp:HyperLink>
                             <h3>Your progress</h3>
                             <div class="lv-bar"><div class="lv-bar-fill" id="barFill" runat="server"></div></div>
                             <small style="color:#6b7385"><asp:Literal ID="litDoneCount" runat="server"></asp:Literal> of <asp:Literal ID="litTotalCount" runat="server"></asp:Literal> lessons completed</small>

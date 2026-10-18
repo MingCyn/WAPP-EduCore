@@ -180,6 +180,8 @@ namespace WAPP_EduCore.pages.Student
             litTutorName.Text = tutor;
             litTutorInitial.Text = tutor.Length > 0 ? tutor.Substring(0, 1).ToUpperInvariant() : "?";
             litTutorRole.Text = string.IsNullOrWhiteSpace(category) ? "Tutor" : "Tutor \u00B7 " + category;
+
+            lnkDiscuss.NavigateUrl = "~/pages/Student/messages.aspx?lesson=" + _lessonId + "&tab=lesson";
         }
 
         // ---------- mark as complete ----------

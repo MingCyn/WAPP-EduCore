@@ -5,7 +5,7 @@
     <a href="~/pages/Student/studentDashboard.aspx" class="menu-item" runat="server"><img src="../../images/dashboard_icon.png" alt="" class="menu-icon" /><span>Dashboard</span></a>
     <a href="~/pages/Student/myCourses.aspx" class="menu-item" runat="server"><img src="../../images/mycourse_icon.png" alt="" class="menu-icon" /><span>My Courses</span></a>
     <a href="~/pages/Student/calendar.aspx" class="menu-item" runat="server"><img src="../../images/calendar_icon.png" alt="" class="menu-icon" /><span>Calendar</span></a>
-    <a href="~/pages/General/messages.aspx" class="menu-item" runat="server"><img src="../../images/messages_icon.png" alt="" class="menu-icon" /><span>Messages</span></a>
+    <a href="~/pages/Student/messages.aspx" class="menu-item" runat="server"><img src="../../images/messages_icon.png" alt="" class="menu-icon" /><span>Messages</span></a>
     <a href="~/pages/Student/result.aspx" class="menu-item" runat="server"><img src="../../images/grades_icon.png" alt="" class="menu-icon" /><span>Grades</span></a>
     <a href="~/pages/Student/certificates.aspx" class="menu-item" runat="server"><img src="../../images/certificates_icon.png" alt="" class="menu-icon" /><span>Certificates</span></a>
     <a href="~/pages/Student/settings.aspx" class="menu-item" runat="server"><img src="../../images/settings_icon.png" alt="" class="menu-icon" /><span>Settings</span></a>
