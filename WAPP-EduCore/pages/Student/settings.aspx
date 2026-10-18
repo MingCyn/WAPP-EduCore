@@ -6,30 +6,44 @@
 <head runat="server">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Settings & Preferences</title>
+    <title>Settings &amp; Preferences</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
     <style>
-        .profile-banner{background:#0f2540;color:#fff;padding:22px;border-radius:12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-        .profile-info{display:flex;align-items:center;gap:16px}
-        .profile-info .avatar-lg{width:72px;height:72px;border-radius:50%;background:#fff8;display:inline-block}
-        .profile-info h3{margin:0;font-size:20px}
-        .profile-info small{display:block;color:#d6e0f3}
+        .st-banner{display:flex;align-items:center;gap:18px;padding:24px 28px;margin-bottom:22px;background:#0f1a46;color:#fff;border-radius:14px}
+        .st-avatar{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:72px;height:72px;border-radius:50%;background:#2a4496;font-size:24px;font-weight:700}
+        .st-banner h3{margin:0 0 4px;font-family:'Merriweather',Georgia,serif;font-size:20px}
+        .st-banner small{display:block;margin-top:2px;color:#cbd8ee;font-size:13px}
 
-        .settings-grid{display:grid;grid-template-columns:1fr 420px;gap:22px}
-        .card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 6px 18px rgba(16,24,40,0.04);}
-        .field{margin-bottom:12px}
-        .field label{display:block;color:#59637a;font-size:13px;margin-bottom:6px}
-        .field input, .field select{width:100%;padding:10px;border-radius:8px;border:1px solid #ececec;background:#fbfbfb}
+        .st-grid{display:grid;grid-template-columns:1fr 420px;gap:22px}
+        .st-card{padding:22px 24px;background:#fff;border:1px solid #ebe7e1;border-radius:12px}
+        .st-card h3{margin:0 0 16px;font-family:'Merriweather',Georgia,serif;font-size:18px;color:#111c3d}
 
-        .access-list{display:flex;flex-direction:column;gap:12px}
-        .toggle{float:right}
+        .st-field{margin-bottom:14px}
+        .st-field label{display:block;margin-bottom:6px;font-size:13px;color:#59637a}
+        .st-field input[type=text],.st-field input[type=email],.st-field input[type=date],
+        .st-field input[type=password],.st-field select{width:100%;height:40px;padding:0 12px;border:1px solid #e3e3e3;border-radius:8px;background:#fbfbfb;font-family:inherit;font-size:14px;color:#16223b;box-sizing:border-box}
+        .st-field input:focus,.st-field select:focus{outline:none;border-color:#4f67cc}
+        .st-field input[type=range]{width:100%;accent-color:#2f4f8a}
+        .st-row{display:flex;justify-content:space-between;align-items:center}
+        .st-goal{font-size:13px;color:#7b8697}
+        .st-hint{margin-top:6px;font-size:12px;color:#8a8478}
 
-        .actions{display:flex;justify-content:flex-end;gap:12px;margin-top:18px}
-        .btn-primary{background:#2f4f8a;color:#fff;padding:10px 14px;border-radius:8px;border:none}
-        .btn-ghost{background:#fff;border:1px solid #e6e6e6;padding:10px 14px;border-radius:8px}
+        .chk{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px}
+        .chk input{width:16px;height:16px;accent-color:#2f4f8a}
 
-        @media(max-width:1000px){.settings-grid{grid-template-columns:1fr}.profile-banner{flex-direction:column;align-items:flex-start}}
+        .st-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:22px}
+        .st-btn-solid{padding:10px 20px;border:0;border-radius:8px;background:#243f86;color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+        .st-btn-solid:hover{background:#1b3270}
+        .st-btn-ghost{padding:10px 20px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;color:#16223b;font-size:14px;cursor:pointer}
+
+        /* accessibility options (applied on this page; can move to student.css to use site-wide) */
+        html.a11y-contrast{filter:contrast(1.3)}
+        html.a11y-large body{zoom:1.12}
+        html.a11y-motion *,html.a11y-motion *::before,html.a11y-motion *::after{animation:none!important;transition:none!important}
+
+        @media(max-width:1000px){.st-grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
@@ -40,81 +54,120 @@
             <main class="main">
                 <div class="topbar">
                     <div>
-                        <h1>Settings &amp; Preferences</h1>
-                        <p style="color:#7b8697">Manage your profile information, learning habits, and security rules.</p>
-                    </div>
-                    <div class="search"><input placeholder="Search courses, modules, grades..." /></div>
-                </div>
-
-                <div class="profile-banner">
-                    <div class="profile-info">
-                        <div class="avatar-lg"></div>
-                        <div>
-                            <h3>Priya Sharma</h3>
-                            <small>priya.sharma@estudio.edu · Student ID: 48922</small>
-                            <small style="margin-top:6px;color:#cbd8ee">Academic Member since September 2024</small>
-                        </div>
-                    </div>
-                    <div>
-                        <button type="button" class="btn-ghost">Edit Photo</button>
+                        <div class="title">Settings &amp; Preferences</div>
+                        <div class="subtitle">Manage your profile information, learning habits, and security rules.</div>
                     </div>
                 </div>
 
-                <div class="settings-grid">
+                <asp:Panel ID="pnlMsg" runat="server" Visible="false" CssClass="msg ok">
+                    <asp:Literal ID="litMsg" runat="server" Mode="Encode"></asp:Literal>
+                </asp:Panel>
+
+                <div class="st-banner">
+                    <span class="st-avatar"><asp:Literal ID="litInitials" runat="server" Mode="Encode"></asp:Literal></span>
                     <div>
-                        <div class="card">
+                        <h3><asp:Literal ID="litBannerName" runat="server" Mode="Encode"></asp:Literal></h3>
+                        <small><asp:Literal ID="litBannerEmail" runat="server" Mode="Encode"></asp:Literal> &middot; Student ID: <asp:Literal ID="litBannerId" runat="server"></asp:Literal></small>
+                        <small>Member since <asp:Literal ID="litSince" runat="server" Mode="Encode"></asp:Literal></small>
+                    </div>
+                </div>
+
+                <div class="st-grid">
+                    <div>
+                        <div class="st-card">
                             <h3>Personal Information</h3>
-                            <div class="field"><label>Full Legal Name</label><input value="Priya Sharma" /></div>
-                            <div class="field"><label>Primary Academic Email</label><input value="priya.sharma@estudio.edu" /></div>
-                            <div class="field"><label>Registered Contact Phone</label><input value="+1 (555) 234-5678" /></div>
-                            <div class="field"><label>Enrolled Program</label><input value="B.Sc. in Computer Engineering &amp; Design" /></div>
+                            <div class="st-field">
+                                <label for="txtName">Full Name</label>
+                                <asp:TextBox ID="txtName" runat="server" MaxLength="100"></asp:TextBox>
+                            </div>
+                            <div class="st-field">
+                                <label for="txtEmail">Email Address</label>
+                                <asp:TextBox ID="txtEmail" runat="server" TextMode="Email" MaxLength="150"></asp:TextBox>
+                            </div>
+                            <div class="st-field">
+                                <label for="txtDob">Date of Birth</label>
+                                <asp:TextBox ID="txtDob" runat="server" TextMode="Date"></asp:TextBox>
+                            </div>
+                            <div class="st-field">
+                                <label for="txtPhone">Contact Phone</label>
+                                <asp:TextBox ID="txtPhone" runat="server" MaxLength="30"></asp:TextBox>
+                            </div>
+                            <div class="st-field">
+                                <label for="txtProgram">Enrolled Program</label>
+                                <asp:TextBox ID="txtProgram" runat="server" MaxLength="120"></asp:TextBox>
+                            </div>
                         </div>
 
-                        <div class="card" style="margin-top:18px">
+                        <div class="st-card" style="margin-top:18px">
                             <h3>Account &amp; Security</h3>
-                            <div style="display:flex;align-items:center;justify-content:space-between">
-                                <div>
-                                    <div style="font-weight:600">Two-Factor Authentication (2FA)</div>
-                                    <div class="meta" style="color:#7b8697">Provides strong protection using SMS codes.</div>
-                                </div>
-                                <div style="display:flex;align-items:center;gap:12px">
-                                    <div style="width:44px;height:26px;background:#e6eefc;border-radius:16px;display:inline-block;position:relative">
-                                        <div style="width:22px;height:22px;background:#2f4f8a;border-radius:50%;position:absolute;top:2px;left:18px"></div>
-                                    </div>
-                                    <button class="btn-primary">Change Password</button>
-                                </div>
+                            <asp:Panel ID="pnlPwMsg" runat="server" Visible="false" CssClass="msg error">
+                                <asp:Literal ID="litPwMsg" runat="server" Mode="Encode"></asp:Literal>
+                            </asp:Panel>
+                            <div class="st-field">
+                                <label for="txtCurrentPw">Current Password</label>
+                                <asp:TextBox ID="txtCurrentPw" runat="server" TextMode="Password"></asp:TextBox>
                             </div>
+                            <div class="st-field">
+                                <label for="txtNewPw">New Password</label>
+                                <asp:TextBox ID="txtNewPw" runat="server" TextMode="Password"></asp:TextBox>
+                                <div class="st-hint">At least 8 characters.</div>
+                            </div>
+                            <div class="st-field">
+                                <label for="txtConfirmPw">Confirm New Password</label>
+                                <asp:TextBox ID="txtConfirmPw" runat="server" TextMode="Password"></asp:TextBox>
+                            </div>
+                            <asp:Button ID="btnPassword" runat="server" Text="Change Password"
+                                CssClass="st-btn-solid" CausesValidation="false" OnClick="btnPassword_Click" />
                         </div>
                     </div>
 
                     <div>
-                        <div class="card">
+                        <div class="st-card">
                             <h3>Learning Preferences</h3>
-                            <div class="field"><label>Preferred Learning Style</label>
-                                <select><option>Visual &amp; Interactive Models</option></select>
+                            <div class="st-field">
+                                <label for="ddlStyle">Preferred Learning Style</label>
+                                <asp:DropDownList ID="ddlStyle" runat="server">
+                                    <asp:ListItem Value="Visual &amp; Interactive Models">Visual &amp; Interactive Models</asp:ListItem>
+                                    <asp:ListItem Value="Reading &amp; Writing">Reading &amp; Writing</asp:ListItem>
+                                    <asp:ListItem Value="Audio &amp; Discussion">Audio &amp; Discussion</asp:ListItem>
+                                    <asp:ListItem Value="Hands-on Practice">Hands-on Practice</asp:ListItem>
+                                </asp:DropDownList>
                             </div>
-                            <div class="field"><label>Daily Study Goal <span style="float:right;color:#7b8697">1.5 hrs / day</span></label>
-                                <div style="background:#eef3fb;border-radius:8px;height:10px;overflow:hidden"><div style="width:45%;height:100%;background:#3561b3"></div></div>
+                            <div class="st-field">
+                                <div class="st-row">
+                                    <label for="rngGoal">Daily Study Goal</label>
+                                    <span class="st-goal" id="goalLbl"></span>
+                                </div>
+                                <input type="range" id="rngGoal" runat="server" min="0.5" max="6" step="0.5"
+                                    oninput="document.getElementById('goalLbl').textContent = this.value + ' hrs / day'" />
                             </div>
                         </div>
 
-                        <div class="card" style="margin-top:18px">
+                        <div class="st-card" style="margin-top:18px">
                             <h3>Accessibility Settings</h3>
-                            <div class="access-list">
-                                <div><label>High Contrast Text Mode</label><div class="toggle"> <input type="checkbox" /></div></div>
-                                <div><label>Larger System Font Scales</label><div class="toggle"> <input type="checkbox" /></div></div>
-                                <div><label>Reduced Interactive Motion</label><div class="toggle"> <input type="checkbox" /></div></div>
-                            </div>
+                            <asp:CheckBox ID="chkContrast" runat="server" CssClass="chk" Text="High Contrast Text Mode" />
+                            <asp:CheckBox ID="chkLarge" runat="server" CssClass="chk" Text="Larger System Font Scales" />
+                            <asp:CheckBox ID="chkMotion" runat="server" CssClass="chk" Text="Reduced Interactive Motion" />
                         </div>
                     </div>
                 </div>
 
-                <div class="actions">
-                    <button class="btn-ghost" type="button">Cancel</button>
-                    <button class="btn-primary" type="button">Save Changes</button>
+                <div class="st-actions">
+                    <asp:Button ID="btnCancel" runat="server" Text="Cancel" CssClass="st-btn-ghost"
+                        CausesValidation="false" OnClick="btnCancel_Click" />
+                    <asp:Button ID="btnSave" runat="server" Text="Save Changes" CssClass="st-btn-solid"
+                        OnClick="btnSave_Click" />
                 </div>
             </main>
         </div>
+
+        <asp:Literal ID="litA11y" runat="server" Mode="PassThrough"></asp:Literal>
+        <script>
+(function () {
+    var r = document.getElementById('rngGoal');
+    if (r) document.getElementById('goalLbl').textContent = r.value + ' hrs / day';
+})();
+</script>
     </form>
 </body>
 </html>

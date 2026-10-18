@@ -7,36 +7,77 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Calendar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
     <style>
-        /* Calendar specific styles */
-        .calendar-wrap{display:grid;grid-template-columns:1fr 320px;gap:24px}
-        .calendar-panel{background:transparent}
-        .calendar-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-        .date-title{font-size:20px;font-weight:600}
-        .date-nav button{padding:6px 8px;border-radius:6px;border:1px solid #e6e6e6;background:#fff}
-        .view-toggle{margin-left:auto;display:flex;gap:8px}
-        .view-toggle button{padding:8px 12px;border-radius:8px;border:1px solid #e6e6e6;background:#fff}
+        .cl-head-left{display:flex;align-items:center;gap:14px}
+        .cl-nav{display:flex;gap:6px}
+        .cl-nav a{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#f1f0ee;color:#111c3d;font-weight:700;text-decoration:none}
+        .cl-today{padding:6px 12px;border-radius:6px;background:#f1f0ee;color:#111c3d;font-size:13px;font-weight:600;text-decoration:none}
+        .cl-views{display:flex;gap:8px}
+        .cl-views a{padding:8px 16px;border-radius:6px;background:#f1f0ee;color:#4a5468;font-size:13px;font-weight:600;text-decoration:none}
+        .cl-views a.active{background:#243f86;color:#fff}
 
-        .week-days{display:flex;gap:14px;margin-bottom:12px}
-        .weekday{padding:8px 12px;border:1px solid transparent;border-radius:8px;background:#fff}
+        .cl-wrap{display:grid;grid-template-columns:1fr 320px;margin:0 -40px -40px;min-height:calc(100vh - 82px)}
+        .cl-main{min-width:0;padding:24px 32px;overflow-x:auto}
+        .cl-side{padding:20px;background:#fff;border-left:1px solid #e8e8e8}
+        .cl-empty{padding:30px 10px;text-align:center;font-size:13px;color:#7b8697}
 
-        .grid-calendar{display:grid;grid-template-columns:80px repeat(7,1fr);gap:12px}
-        .time-col{display:flex;flex-direction:column;gap:12px}
-        .time-cell{height:48px;color:#9aa6b8;font-size:13px;padding-right:8px;text-align:right}
-        .day-cell{background:#fff;border-radius:8px;min-height:48px;border:1px solid #f1f3f5}
+        /* week and day grid */
+        .cl-grid{display:grid;grid-template-columns:60px repeat(var(--n),minmax(90px,1fr));gap:6px;min-width:560px}
+        .cl-dayhead{padding:8px 0;border:1px solid #e3e3e3;border-radius:8px;background:#fff;color:#16223b;font-size:13px;font-weight:600;text-align:center;text-decoration:none}
+        .cl-dayhead.today{background:#243f86;border-color:#243f86;color:#fff}
+        .cl-times{display:flex;flex-direction:column;gap:6px}
+        .cl-time{display:flex;align-items:center;justify-content:flex-end;height:64px;padding-right:8px;font-size:12px;color:#9aa6b8}
+        .cl-col{position:relative;display:flex;flex-direction:column;gap:6px}
+        .cl-slot{height:64px;background:#fff;border:1px solid #ebe9e6;border-radius:8px}
+        .cl-ev{position:absolute;box-sizing:border-box;padding:6px 8px;overflow:hidden;border-radius:6px;color:#fff;font-size:12px;line-height:1.25}
+        .cl-ev strong{display:block;font-weight:600}
+        .cl-ev small{display:block;opacity:.85;font-size:11px}
 
-        .event{padding:8px 10px;border-radius:6px;color:#fff;font-size:13px;margin:4px;display:inline-block}
-        .event.blue{background:#264a8a}
-        .event.orange{background:#d9a863;color:#2b2b2b}
+        .ev-live{background:#243f86}
+        .ev-deadline{background:#e0a85a;color:#2b2b2b}
+        .ev-exam{background:#c05a5a}
+        .ev-study{background:#5068c8}
+        .ev-other{background:#6b7385}
 
-        .side-card{background:#fff;padding:16px;border-radius:10px}
-        .upcoming .item{background:#fbf3e8;padding:10px;border-radius:8px;margin-bottom:10px}
-        .add-btn{display:block;margin-top:12px;background:#2f4f8a;color:#fff;padding:10px;border-radius:8px;text-align:center;text-decoration:none}
+        /* month grid */
+        .cl-month{display:grid;grid-template-columns:repeat(7,minmax(80px,1fr));gap:6px}
+        .cl-mhead{padding:8px;font-size:12px;font-weight:700;color:#7b8697;text-align:center}
+        .cl-mcell{min-height:104px;padding:6px;background:#fff;border:1px solid #ebe9e6;border-radius:8px;font-size:12px}
+        .cl-mcell.muted{background:#faf9f7}
+        .cl-mcell.muted .cl-mnum{color:#b3b7c0}
+        .cl-mcell.today{border-color:#243f86;box-shadow:inset 0 0 0 1px #243f86}
+        .cl-mnum{display:inline-block;margin-bottom:4px;font-weight:600;color:#111c3d;text-decoration:none}
+        .cl-chip{margin-bottom:3px;padding:2px 6px;overflow:hidden;border-radius:4px;color:#fff;font-size:11px;white-space:nowrap;text-overflow:ellipsis}
+        .cl-more{font-size:11px;color:#7b8697}
 
-        @media(max-width:1000px){.calendar-wrap{grid-template-columns:1fr}.view-toggle{display:none}}
+        /* right panel */
+        .cl-up{padding:20px;background:#fbead6;border-radius:14px}
+        .cl-up h3{margin:0 0 14px;font-family:'Merriweather',Georgia,serif;font-size:19px;color:#111c3d}
+        .cl-item{position:relative;padding:12px 14px;margin-bottom:12px;background:#fff;border-radius:10px}
+        .cl-tag{display:inline-block;margin-bottom:6px;padding:2px 7px;border-radius:4px;color:#fff;font-size:11px;font-weight:600}
+        .cl-itemtitle{font-family:'Merriweather',Georgia,serif;font-size:15px;font-weight:700;color:#111c3d}
+        .cl-itemdate{margin-top:4px;font-size:12px;color:#7b8697}
+        .cl-del{position:absolute;top:8px;right:10px;font-size:11px;color:#9aa0ad;text-decoration:none}
+        .cl-del:hover{color:#c05a5a}
+        .cl-add{display:block;margin-top:16px;padding:14px;border-radius:8px;background:#243f86;color:#fff;font-size:14px;font-weight:600;text-align:center;text-decoration:none}
+        .cl-add:hover{background:#1b3270}
+
+        /* add-event popup (modal styles come from admin.css) */
+        .cl-btn-solid{padding:10px 20px;border:0;border-radius:8px;background:#243f86;color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+        .cl-btn-solid:hover{background:#1b3270}
+        .cl-btn-ghost{padding:10px 20px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;color:#16223b;font-size:14px;cursor:pointer}
+        .cl-close{border:0;background:none;font-size:22px;line-height:1;color:#7b8697;cursor:pointer}
+        .cl-times-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+        @media(max-width:1000px){.cl-wrap{grid-template-columns:1fr}.cl-side{border-left:0;border-top:1px solid #e8e8e8}}
     </style>
+    <script>
+function openAdd() { document.getElementById('addModal').classList.add('open'); }
+function closeAdd() { document.getElementById('addModal').classList.remove('open'); }
+</script>
 </head>
 <body>
     <form id="form1" runat="server">
@@ -45,79 +86,93 @@
 
             <main class="main">
                 <div class="topbar">
-                    <div>
-                        <h1>Calendar</h1>
-                        <p>August 25-31, 2026</p>
+                    <div class="cl-head-left">
+                        <span class="title"><asp:Literal ID="litTitle" runat="server" Mode="Encode"></asp:Literal></span>
+                        <asp:Literal ID="litNav" runat="server" Mode="PassThrough"></asp:Literal>
                     </div>
-                    <div>
-                        <span class="avatar">PS</span>
+                    <div class="cl-views">
+                        <asp:Literal ID="litViews" runat="server" Mode="PassThrough"></asp:Literal>
                     </div>
                 </div>
 
-                <div class="calendar-wrap">
-                    <div class="calendar-panel">
-                        <div class="calendar-header">
-                            <div class="date-title">August 25-31, 2026</div>
-                            <div class="date-nav"><button>&lt;</button><button>&gt;</button></div>
-                            <div class="view-toggle">
-                                <button>Month</button>
-                                <button style="background:#2f4f8a;color:#fff">Week</button>
-                                <button>Day</button>
-                            </div>
-                        </div>
-
-                        <div class="week-days">
-                            <div class="weekday">Mon 25</div>
-                            <div class="weekday">Tue 26</div>
-                            <div class="weekday">Wed 27</div>
-                            <div class="weekday">Thu 28</div>
-                            <div class="weekday">Fri 29</div>
-                            <div class="weekday">Sat 30</div>
-                            <div class="weekday">Sun 31</div>
-                        </div>
-
-                        <div class="grid-calendar">
-                            <div class="time-col">
-                                <div style="height:40px"></div>
-                                <div class="time-cell">8 AM</div>
-                                <div class="time-cell">10 AM</div>
-                                <div class="time-cell">12 PM</div>
-                                <div class="time-cell">2 PM</div>
-                                <div class="time-cell">4 PM</div>
-                                <div class="time-cell">6 PM</div>
-                                <div class="time-cell">8 PM</div>
-                            </div>
-
-                            <!-- seven day columns -->
-                            <div class="day-cell"></div>
-                            <div class="day-cell"></div>
-                            <div class="day-cell"></div>
-                            <div class="day-cell">
-                                <div class="event blue">Live: Algorithms<br /><small style="color:#e6eefc">10:00 - 11:30</small></div>
-                            </div>
-                            <div class="day-cell"></div>
-                            <div class="day-cell">
-                                <div class="event orange">Lab Due: BST<br /><small style="color:#3b2a12">2:00 PM</small></div>
-                            </div>
-                            <div class="day-cell">
-                                <div class="event blue">Self-Study: Design<br /><small style="color:#e6eefc">12:00 - 1:30</small></div>
-                            </div>
-                        </div>
+                <div class="cl-wrap">
+                    <div class="cl-main">
+                        <asp:Literal ID="litGrid" runat="server" Mode="PassThrough"></asp:Literal>
                     </div>
 
-                    <aside>
-                        <div class="side-card">
-                            <h4>Upcoming Events</h4>
-                            <div class="upcoming">
-                                <div class="item"><strong>Live: Complex Trees</strong><div style="font-size:13px;color:#7b8697">Aug 26, 10:00 AM</div></div>
-                                <div class="item"><strong>Assignment: Design proposal</strong><div style="font-size:13px;color:#7b8697">Aug 28, 4:00 PM</div></div>
-                                <div class="item"><strong>Algorithms Midterm</strong><div style="font-size:13px;color:#7b8697">Sep 02, 9:00 AM</div></div>
-                            </div>
-                            <a class="add-btn" href="#">+ Add Event</a>
+                    <div class="cl-side">
+                        <div class="cl-up">
+                            <h3>Upcoming Events</h3>
+                            <asp:Panel ID="pnlNoUpcoming" runat="server" Visible="false" CssClass="cl-empty">
+                                No upcoming events yet. Use Add Event to plan something.
+                            </asp:Panel>
+                            <asp:Repeater ID="rptUpcoming" runat="server" OnItemCommand="rptUpcoming_ItemCommand">
+                                <ItemTemplate>
+                                    <div class="cl-item">
+                                        <asp:LinkButton runat="server" CssClass="cl-del" CommandName="delete"
+                                            CommandArgument='<%# Eval("Id") %>'
+                                            OnClientClick="return confirm('Remove this event?');">Remove</asp:LinkButton>
+                                        <span class='<%# "cl-tag " + Eval("Css") %>'><%#: Eval("Type") %></span>
+                                        <div class="cl-itemtitle"><%#: Eval("Title") %></div>
+                                        <div class="cl-itemdate"><%#: Eval("When") %></div>
+                                    </div>
+                                </ItemTemplate>
+                            </asp:Repeater>
                         </div>
-                    </aside>
+                        <a href="#" class="cl-add" onclick="openAdd(); return false;">+ Add Event</a>
+                    </div>
                 </div>
             </main>
+        </div>
+
+        <!-- Add Event popup -->
+        <div class="modal-back" id="addModal">
+            <div class="modal-box">
+                <div class="modal-head">
+                    <h3>Add Event</h3>
+                    <button type="button" class="cl-close" onclick="closeAdd()">&times;</button>
+                </div>
+
+                <asp:Label ID="lblFormError" runat="server" CssClass="form-error" Visible="false"></asp:Label>
+
+                <div class="form-field">
+                    <label for="txtTitle">Title</label>
+                    <asp:TextBox ID="txtTitle" runat="server" CssClass="input" MaxLength="120"></asp:TextBox>
+                </div>
+                <div class="form-field">
+                    <label for="ddlType">Type</label>
+                    <asp:DropDownList ID="ddlType" runat="server" CssClass="input">
+                        <asp:ListItem Value="Live Class">Live Class</asp:ListItem>
+                        <asp:ListItem Value="Deadline">Deadline</asp:ListItem>
+                        <asp:ListItem Value="Exam">Exam</asp:ListItem>
+                        <asp:ListItem Value="Self-Study">Self-Study</asp:ListItem>
+                        <asp:ListItem Value="Other" Selected="True">Other</asp:ListItem>
+                    </asp:DropDownList>
+                </div>
+                <div class="form-field">
+                    <label for="ddlCourse">Course (optional)</label>
+                    <asp:DropDownList ID="ddlCourse" runat="server" CssClass="input"></asp:DropDownList>
+                </div>
+                <div class="form-field">
+                    <label for="txtDate">Date</label>
+                    <asp:TextBox ID="txtDate" runat="server" TextMode="Date" CssClass="input"></asp:TextBox>
+                </div>
+                <div class="cl-times-row">
+                    <div class="form-field">
+                        <label for="txtStart">Start time</label>
+                        <asp:TextBox ID="txtStart" runat="server" TextMode="Time" CssClass="input"></asp:TextBox>
+                    </div>
+                    <div class="form-field">
+                        <label for="txtEnd">End time</label>
+                        <asp:TextBox ID="txtEnd" runat="server" TextMode="Time" CssClass="input"></asp:TextBox>
+                    </div>
+                </div>
+
+                <div class="modal-buttons" style="margin-top:6px">
+                    <asp:Button ID="btnAdd" runat="server" Text="Save Event" CssClass="cl-btn-solid" OnClick="btnAdd_Click" />
+                    <button type="button" class="cl-btn-ghost" onclick="closeAdd()">Cancel</button>
+                </div>
+            </div>
         </div>
     </form>
 </body>
