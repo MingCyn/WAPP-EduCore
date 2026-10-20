@@ -1,0 +1,141 @@
+﻿/* ==========================================
+   EduCore - My Courses (courses.aspx)
+   Load AFTER dashboard.css and courseBuilder.css
+   ========================================== */
+
+.cl-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.cl-search {
+    width: 340px;
+    max-width: 100%;
+    height: 44px;
+    padding: 0 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background-color: #ffffff;
+    border: 1px solid #e3e6ee;
+    border-radius: 10px;
+}
+
+    .cl-search::placeholder {
+        color: #7b8194;
+    }
+
+    .cl-search:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(74, 95, 200, 0.15);
+    }
+
+.cl-count {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* --- Course cards --- */
+.cl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.cl-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background-color: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+    .cl-card:hover {
+        border-color: var(--accent);
+        box-shadow: 0 6px 18px rgba(15, 27, 69, 0.08);
+        transform: translateY(-1px);
+    }
+
+    .cl-card[hidden] {
+        display: none;
+    }
+
+.cl-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 24px;
+}
+
+.cl-topic {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    background-color: var(--stat-bg);
+    color: #8a5a14;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.cl-id {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.cl-title {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.cl-stats {
+    display: flex;
+    gap: 18px;
+    font-size: 13px;
+    color: var(--text);
+}
+
+.cl-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid #f0eeea;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.cl-open {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-link);
+}
+
+.cl-empty {
+    font-size: 14px;
+    color: var(--muted);
+    padding: 28px 20px;
+    text-align: center;
+    border: 1px dashed #cdd2de;
+    border-radius: 12px;
+    background-color: #faf9f7;
+}
+
+    .cl-empty[hidden] {
+        display: none;
+    }
