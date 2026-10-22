@@ -149,31 +149,10 @@ namespace WAPP_EduCore.pages.Tutor
         /// </remarks>
         protected global::System.Web.UI.WebControls.Literal LitSummary;
 
-        /// <summary>
-        /// PnlVideo control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
         protected global::System.Web.UI.WebControls.Panel PnlVideo;
 
-        /// <summary>
-        /// LitVideoSource control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
         protected global::System.Web.UI.WebControls.Literal LitVideoSource;
 
-        /// <summary>
-        /// BtnUploadVideo control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
         protected global::System.Web.UI.WebControls.Button BtnUploadVideo;
 
         /// <summary>
@@ -302,13 +281,6 @@ namespace WAPP_EduCore.pages.Tutor
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl DivAddRow;
 
-        /// <summary>
-        /// BtnAddVideo control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlButton BtnAddVideo;
 
         /// <summary>
@@ -482,40 +454,10 @@ namespace WAPP_EduCore.pages.Tutor
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button BtnSaveDetails;
 
-        /// <summary>
-        /// PnlUploadVideo control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
         protected global::System.Web.UI.WebControls.Panel PnlUploadVideo;
 
-        /// <summary>
-        /// FileVideo control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.FileUpload FileVideo;
-
-        /// <summary>
-        /// TxtVideoUrl control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox TxtVideoUrl;
 
-        /// <summary>
-        /// BtnConfirmUpload control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
         protected global::System.Web.UI.WebControls.Button BtnConfirmUpload;
 
         /// <summary>

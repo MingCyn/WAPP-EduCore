@@ -82,7 +82,7 @@
                                         <div class="lesson-body">
                                             <%# Enc(Eval("lesson_description")) %>
                                             <div class="lesson-flags">
-                                                <%# HasValue(Eval("video_url")) ? "<span class=\"flag\">Video</span>" : "" %>
+                                                <%# HasVideo(Container.DataItem) ? "<span class=\"flag\">Video</span>" : "" %>
                                                 <%# HasQuiz(Container.DataItem) ? "<span class=\"flag\">Quiz</span>" : "" %>
                                             </div>
                                         </div>

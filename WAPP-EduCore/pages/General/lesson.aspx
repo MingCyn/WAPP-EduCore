@@ -1,16 +1,10 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="lesson.aspx.cs" Inherits="WAPP_EduCore.pages.General.lesson" %>
-<%@ Register Src="/pages/Shared/navDashboard.ascx" TagPrefix="uc" TagName="Nav" %>
-<!DOCTYPE html>
-<html lang="en">
-<head runat="server">
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="lesson.aspx.cs" Inherits="WAPP_EduCore.pages.General.lesson" %><%@ Register Src="/pages/Shared/navDashboard.ascx" TagPrefix="uc" TagName="Nav" %><!DOCTYPE html><html lang="en"><head runat="server">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><asp:Literal ID="litLessonTitle" runat="server" /> | EduCore</title>
     <link rel="stylesheet" href="/Content/navDashboard.css" />
     <link rel="stylesheet" href="/Content/site.css" />
-    <link rel="stylesheet" href="/Content/course.css" />
-</head>
-<body>
+    <link rel="stylesheet" href="/Content/course.css" /></head><body>
     <form id="form1" runat="server">
         <div class="app-shell">
             <!-- Sidebar Navigation -->
@@ -44,27 +38,10 @@
                         </div>
                     </aside>
 
-                    <!-- Center: Video & Lesson Content Player -->
+                    <!-- Center: Lesson Content Area -->
                     <main style="display: flex; flex-direction: column; gap: 18px;">
-                        <div class="panel" style="padding: 16px; background: var(--navy); color: #fff; border-radius: 10px;">
-                            <div style="aspect-ratio: 16/9; background: #000; border-radius: 6px; display: grid; place-items: center; position: relative; overflow: hidden;">
-                                <asp:Panel ID="pnlVideoEmbed" runat="server" Visible="false">
-                                    <iframe id="iframeVideo" runat="server" style="width:100%; height:100%; border:0;" allowfullscreen></iframe>
-                                </asp:Panel>
-                                <asp:Panel ID="pnlVideoPlaceholder" runat="server" style="text-align: center; color: #cfd5ee;">
-                                    <h3 style="color: #fff; margin-bottom: 6px;"><asp:Literal ID="litPlayerTitle" runat="server" /></h3>
-                                    <p style="font-size: 12.5px; color: #98a1c9;">Interactive lesson module ready</p>
-                                </asp:Panel>
-                            </div>
-                        </div>
-
-                        <!-- Tab Content Block -->
-                        <div class="panel" style="padding: 20px;">
-                            <div style="display: flex; gap: 20px; border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 16px; font-weight: 500; font-size: 13.5px;">
-                                <span style="color: var(--blue); border-bottom: 2px solid var(--blue); padding-bottom: 10px; margin-bottom: -11px;">Interactive Objects</span>
-                                <span style="color: var(--muted); cursor: pointer;">Overview</span>
-                                <span style="color: var(--muted); cursor: pointer;">Transcript</span>
-                            </div>
+                        <!-- Lesson Content Block Container (Tabs removed) -->
+                        <div class="panel" style="padding: 24px;">
                             <div style="font-size: 13.5px; line-height: 1.6; color: var(--ink);">
                                 <asp:Literal ID="litLessonContent" runat="server" />
                             </div>
@@ -109,13 +86,11 @@
 
                         <div class="panel" style="padding: 18px;">
                             <h3 style="font-size: 15px; margin-bottom: 10px;">My Saved Notes</h3>
-                            <p style="font-size: 12px; color: var(--muted); line-height: 1.4;">Notes saved during lessons will appear here for easy exam review.</p>
+                            <p style="font-size: 12px; color: var(--muted); line-height: 1.4;">Notes saved during lessons will appear here for exam review.</p>
                         </div>
                     </aside>
 
                 </div>
             </div>
         </div>
-    </form>
-</body>
-</html>
+    </form></body></html>

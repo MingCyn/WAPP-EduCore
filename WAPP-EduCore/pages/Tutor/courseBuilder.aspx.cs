@@ -48,18 +48,15 @@ namespace WAPP_EduCore.pages.Tutor
             "VALUES (@cid, @title, @desc, NOW()) RETURNING lesson_id";
 
         private const string SqlLessons =
-            "SELECT lesson_id, lesson_title, (video_url IS NOT NULL AND video_url <> '') AS has_video " +
+            "SELECT lesson_id, lesson_title, lesson_content::text " +
             "FROM lessons WHERE course_id = @cid ORDER BY created_at, lesson_id";
 
         private const string SqlLesson =
-            "SELECT lesson_title, lesson_description, video_url, quiz_id, lesson_content::text, created_at " +
+            "SELECT lesson_title, lesson_description, quiz_id, lesson_content::text, created_at " +
             "FROM lessons WHERE lesson_id = @lid AND course_id = @cid";
 
         private const string SqlLessonDetailsUpdate =
             "UPDATE lessons SET lesson_title = @title, lesson_description = @desc WHERE lesson_id = @lid AND course_id = @cid";
-
-        private const string SqlLessonVideoUpdate =
-            "UPDATE lessons SET video_url = @url WHERE lesson_id = @lid AND course_id = @cid";
 
         // ------------------------------------------------------------------
         // Data shapes
@@ -201,7 +198,7 @@ namespace WAPP_EduCore.pages.Tutor
                         {
                             LessonId = Convert.ToInt32(r["lesson_id"]),
                             Title = r.IsDBNull(1) ? "(Untitled lesson)" : r.GetString(1),
-                            HasVideo = !r.IsDBNull(2) && r.GetBoolean(2)
+                            HasVideo = FindBlock(ParseBlocks(r.IsDBNull(2) ? "" : r.GetString(2)), "video") != null
                         });
                     }
                 }
@@ -222,10 +219,10 @@ namespace WAPP_EduCore.pages.Tutor
                     {
                         Title = r.IsDBNull(0) ? "(Untitled lesson)" : r.GetString(0),
                         Description = r.IsDBNull(1) ? "" : r.GetString(1),
-                        VideoUrl = r.IsDBNull(2) ? "" : r.GetString(2),
-                        QuizId = r.IsDBNull(3) ? (long?)null : r.GetInt64(3),
-                        ContentJson = r.IsDBNull(4) ? "" : r.GetString(4),
-                        CreatedAt = r.GetDateTime(5)
+                        VideoUrl = GetVideoUrl(r.IsDBNull(3) ? "" : r.GetString(3)),
+                        QuizId = r.IsDBNull(2) ? (long?)null : r.GetInt64(2),
+                        ContentJson = r.IsDBNull(3) ? "" : r.GetString(3),
+                        CreatedAt = r.GetDateTime(4)
                     };
                 }
             }
@@ -255,14 +252,13 @@ namespace WAPP_EduCore.pages.Tutor
                 TxtVideoUrl.Text = lesson.VideoUrl;
             }
 
-            // video_url
             bool hasVideo = !string.IsNullOrWhiteSpace(lesson.VideoUrl);
             PnlVideo.Visible = hasVideo;
             BtnAddVideo.Visible = !hasVideo;
             if (hasVideo)
             {
                 Uri uri;
-                string source = Uri.TryCreate(lesson.VideoUrl, UriKind.Absolute, out uri) ? uri.Host : "Uploaded video";
+                string source = Uri.TryCreate(lesson.VideoUrl, UriKind.Absolute, out uri) ? uri.Host : "Video";
                 LitVideoSource.Text = Server.HtmlEncode(source);
             }
 
@@ -357,6 +353,12 @@ namespace WAPP_EduCore.pages.Tutor
             return null;
         }
 
+        private static string GetVideoUrl(string json)
+        {
+            Dictionary<string, object> video = FindBlock(ParseBlocks(json), "video");
+            return video == null ? "" : Str(video, "url", "");
+        }
+
         private static string Str(Dictionary<string, object> block, string key, string fallback)
         {
             object v;
@@ -385,7 +387,7 @@ namespace WAPP_EduCore.pages.Tutor
 
         protected string GetLessonIcon(object hasVideo)
         {
-            if ((bool)hasVideo)
+            if (Convert.ToBoolean(hasVideo))
                 return "<svg class=\"lesson-icon\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><rect x=\"1.5\" y=\"3.5\" width=\"9\" height=\"9\" rx=\"1.5\" /><path d=\"M10.5 7l4-2v6l-4-2z\" /></svg>";
             return "<svg class=\"lesson-icon\" viewBox=\"0 0 16 16\" fill=\"currentColor\"><path d=\"M3 1.5h6.5L13 5v9.5H3z\" /><path d=\"M9.5 1.5V5H13\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1\" /><path d=\"M5 8h6M5 10.5h6\" stroke=\"#fff\" stroke-width=\"1\" /></svg>";
         }
@@ -435,6 +437,43 @@ namespace WAPP_EduCore.pages.Tutor
             Response.Redirect(Request.RawUrl);
         }
 
+        protected void BtnConfirmUpload_Click(object sender, EventArgs e)
+        {
+            string url = TxtVideoUrl.Text.Trim();
+            Uri uri;
+            if (lessonId <= 0 || !Uri.TryCreate(url, UriKind.Absolute, out uri) || uri.Scheme != Uri.UriSchemeHttps)
+            {
+                ShowMessage("Please paste a valid https video link.", true);
+                return;
+            }
+
+            using (NpgsqlConnection conn = OpenConnection())
+            using (var cmd = new NpgsqlCommand("SELECT lesson_content::text FROM lessons WHERE lesson_id = @lid AND course_id = @cid", conn))
+            {
+                cmd.Parameters.AddWithValue("lid", lessonId);
+                cmd.Parameters.AddWithValue("cid", courseId);
+                string json = Convert.ToString(cmd.ExecuteScalar());
+                List<Dictionary<string, object>> blocks = ParseBlocks(json);
+                Dictionary<string, object> video = FindBlock(blocks, "video");
+                if (video == null)
+                {
+                    video = new Dictionary<string, object>();
+                    video["type"] = "video";
+                    blocks.Add(video);
+                }
+                video["url"] = url;
+
+                using (var update = new NpgsqlCommand("UPDATE lessons SET lesson_content = CAST(@content AS jsonb) WHERE lesson_id = @lid AND course_id = @cid", conn))
+                {
+                    update.Parameters.AddWithValue("content", new JavaScriptSerializer().Serialize(blocks));
+                    update.Parameters.AddWithValue("lid", lessonId);
+                    update.Parameters.AddWithValue("cid", courseId);
+                    update.ExecuteNonQuery();
+                }
+            }
+            Response.Redirect(Request.RawUrl);
+        }
+
         protected void BtnConfirmAddModule_Click(object sender, EventArgs e)
         {
             string title = TxtModuleTitle.Text.Trim();
@@ -475,35 +514,6 @@ namespace WAPP_EduCore.pages.Tutor
                 cmd.Parameters.AddWithValue("title", title);
                 // empty summary is stored as NULL so the student page skips it
                 cmd.Parameters.AddWithValue("desc", desc.Length == 0 ? (object)DBNull.Value : desc);
-                cmd.Parameters.AddWithValue("lid", lessonId);
-                cmd.Parameters.AddWithValue("cid", courseId);
-                cmd.ExecuteNonQuery();
-            }
-            Response.Redirect(Request.RawUrl);
-        }
-
-        protected void BtnConfirmUpload_Click(object sender, EventArgs e)
-        {
-            string url = TxtVideoUrl.Text.Trim();
-
-            if (url.Length == 0 && FileVideo.HasFile)
-            {
-                // TODO: upload FileVideo.PostedFile to Supabase Storage, then save the public URL below.
-                ShowMessage("Uploading video files is not set up yet. Paste a video link instead.", true);
-                return;
-            }
-
-            Uri uri;
-            if (lessonId <= 0 || !Uri.TryCreate(url, UriKind.Absolute, out uri) || uri.Scheme != Uri.UriSchemeHttps)
-            {
-                ShowMessage("Please paste a valid https video link.", true);
-                return;
-            }
-
-            using (NpgsqlConnection conn = OpenConnection())
-            using (var cmd = new NpgsqlCommand(SqlLessonVideoUpdate, conn))
-            {
-                cmd.Parameters.AddWithValue("url", url);
                 cmd.Parameters.AddWithValue("lid", lessonId);
                 cmd.Parameters.AddWithValue("cid", courseId);
                 cmd.ExecuteNonQuery();

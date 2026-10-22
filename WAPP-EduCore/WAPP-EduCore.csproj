@@ -148,6 +148,7 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="images\calendar_icon.png" />
+    <Content Include="images\cell-diagram.png" />
     <Content Include="images\certificates_icon.png" />
     <Content Include="images\dashboard_icon.png" />
     <Content Include="images\grades_icon.png" />

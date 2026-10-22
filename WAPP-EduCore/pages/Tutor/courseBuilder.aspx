@@ -88,7 +88,6 @@
 
                         <div class="component-list">
 
-                            <!-- Video (lessons.video_url) -->
                             <asp:Panel ID="PnlVideo" runat="server" CssClass="component-card" Visible="false">
                                 <div class="video-thumb"></div>
                                 <div class="component-body">
@@ -155,6 +154,20 @@
                                 <a id="LnkAddInteractive" runat="server" class="btn btn-outline btn-sm">+ Interactive Object</a>
                                 <a id="LnkAddLab" runat="server" class="btn btn-outline btn-sm">+ Virtual Lab</a>
                             </div>
+
+            <div class="modal-overlay" id="modalUploadVideo" aria-hidden="true">
+                <asp:Panel ID="PnlUploadVideo" runat="server" CssClass="modal" DefaultButton="BtnConfirmUpload" role="dialog" aria-modal="true" aria-labelledby="title_modalUploadVideo">
+                    <h3 class="modal-title" id="title_modalUploadVideo">Set lesson video</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="TxtVideoUrl">Video link</label>
+                        <asp:TextBox ID="TxtVideoUrl" runat="server" CssClass="form-control" placeholder="https://..." />
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-cancel" onclick="closeModal('modalUploadVideo')">Cancel</button>
+                        <asp:Button ID="BtnConfirmUpload" runat="server" OnClick="BtnConfirmUpload_Click" Text="Save video" CssClass="btn btn-accent" />
+                    </div>
+                </asp:Panel>
+            </div>
 
                         </div>
 
@@ -238,31 +251,6 @@
                 </asp:Panel>
             </div>
 
-            <div class="modal-overlay" id="modalUploadVideo" aria-hidden="true">
-                <asp:Panel ID="PnlUploadVideo" runat="server" CssClass="modal" DefaultButton="BtnConfirmUpload" role="dialog" aria-modal="true" aria-labelledby="title_modalUploadVideo">
-                    <h3 class="modal-title" id="title_modalUploadVideo">Upload new video</h3>
-                    <div class="form-group">
-                        <label class="dropzone" for="FileVideo">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
-                            <span><strong>Click to choose a video</strong> or drag it here</span>
-                            <span class="form-hint">MP4, MOV or WEBM, up to 2 GB</span>
-                            <span class="dropzone-file" id="videoFileName">No file selected</span>
-                            <asp:FileUpload ID="FileVideo" runat="server" CssClass="dropzone-input" accept="video/*" />
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="TxtVideoUrl">Or paste a video link</label>
-                        <asp:TextBox ID="TxtVideoUrl" runat="server" CssClass="form-control" placeholder="https://..." />
-                    </div>
-                    <div class="modal-actions">
-                        <button type="button" class="btn btn-cancel" onclick="closeModal('modalUploadVideo')">Cancel</button>
-                        <asp:Button ID="BtnConfirmUpload" runat="server" OnClick="BtnConfirmUpload_Click" Text="Upload video" CssClass="btn btn-accent" />
-                    </div>
-                </asp:Panel>
-            </div>
-
-
-
             <div class="modal-overlay" id="modalPublish" aria-hidden="true">
                 <asp:Panel ID="PnlPublish" runat="server" CssClass="modal" DefaultButton="BtnConfirmPublish" role="dialog" aria-modal="true" aria-labelledby="title_modalPublish">
                     <h3 class="modal-title" id="title_modalPublish">Publish module content?</h3>
@@ -316,16 +304,6 @@
         document.querySelectorAll('.modal-overlay').forEach(function (o) {
             o.addEventListener('mousedown', function (e) { if (e.target === o) closeModal(o.id); });
         });
-
-        // Show the chosen video file name in the drop zone
-        /** @type {HTMLInputElement} */
-        var videoInput = document.getElementById('FileVideo');
-        if (videoInput) {
-            videoInput.addEventListener('change', function () {
-                document.getElementById('videoFileName').textContent =
-                    videoInput.files.length ? videoInput.files[0].name : 'No file selected';
-            });
-        }
 
         var link = document.querySelector('.nav-link[href="courses.aspx"]');
         if (link) link.classList.add('active');

@@ -60,42 +60,6 @@ namespace WAPP_EduCore.pages.General
         protected global::System.Web.UI.WebControls.Repeater rptSyllabus;
 
         /// <summary>
-        /// pnlVideoEmbed control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlVideoEmbed;
-
-        /// <summary>
-        /// iframeVideo control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlIframe iframeVideo;
-
-        /// <summary>
-        /// pnlVideoPlaceholder control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlVideoPlaceholder;
-
-        /// <summary>
-        /// litPlayerTitle control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litPlayerTitle;
-
-        /// <summary>
         /// litLessonContent control.
         /// </summary>
         /// <remarks>

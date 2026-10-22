@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Web.Script.Serialization;
 using System.Web;
 using System.Web.UI;
 using WAPP_EduCore;
@@ -101,7 +102,7 @@ namespace WAPP_EduCore.pages.General
 
             // Lessons
             DataTable lessons = Db.Query(@"
-            SELECT l.lesson_id, l.lesson_title, l.lesson_description, l.video_url, l.quiz_id,
+            SELECT l.lesson_id, l.lesson_title, l.lesson_description, l.lesson_content::text, l.quiz_id,
                    (SELECT COUNT(*) FROM quiz q WHERE q.lesson_id = l.lesson_id) AS quiz_count
             FROM lesson l
             WHERE l.course_id = @id
@@ -154,6 +155,35 @@ namespace WAPP_EduCore.pages.General
         protected static bool HasValue(object o)
         {
             return Str(o) != "";
+        }
+
+        protected static bool HasVideo(object dataItem)
+        {
+            DataRow row = dataItem as DataRow;
+            if (row == null)
+            {
+                DataRowView view = dataItem as DataRowView;
+                if (view == null) return false;
+                row = view.Row;
+            }
+
+            try
+            {
+                var blocks = new JavaScriptSerializer().Deserialize<List<Dictionary<string, object>>>(Str(row["lesson_content"]));
+                if (blocks == null) return false;
+                foreach (var block in blocks)
+                {
+                    object type;
+                    object url;
+                    if (block != null && block.TryGetValue("type", out type) &&
+                        string.Equals(Convert.ToString(type), "video", StringComparison.OrdinalIgnoreCase) &&
+                        block.TryGetValue("url", out url) && Str(url) != "")
+                        return true;
+                }
+            }
+            catch (ArgumentException) { }
+            catch (InvalidOperationException) { }
+            return false;
         }
 
         protected static bool HasQuiz(object dataItem)

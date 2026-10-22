@@ -114,15 +114,6 @@ namespace WAPP_EduCore.pages.Student
         protected global::System.Web.UI.WebControls.Repeater rptSyllabus;
 
         /// <summary>
-        /// litVideo control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litVideo;
-
-        /// <summary>
         /// litLessonTitle control.
         /// </summary>
         /// <remarks>
@@ -139,6 +130,8 @@ namespace WAPP_EduCore.pages.Student
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Literal litLessonDesc;
+
+        protected global::System.Web.UI.WebControls.Literal litVideo;
 
         /// <summary>
         /// pnlContent control.

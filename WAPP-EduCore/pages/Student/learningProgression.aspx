@@ -53,7 +53,6 @@
                         <!-- centre: lesson -->
                         <div class="lv-main">
                             <asp:Literal ID="litVideo" runat="server" Mode="PassThrough"></asp:Literal>
-
                             <h2 class="lv-title"><asp:Literal ID="litLessonTitle" runat="server" Mode="Encode"></asp:Literal></h2>
                             <p class="lv-desc"><asp:Literal ID="litLessonDesc" runat="server" Mode="Encode"></asp:Literal></p>
 

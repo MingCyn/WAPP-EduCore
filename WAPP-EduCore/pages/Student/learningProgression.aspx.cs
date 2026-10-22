@@ -4,6 +4,7 @@ using System.Data;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.UI;
+using System.Web.Script.Serialization;
 
 namespace WAPP_EduCore.pages.Student
 {
@@ -54,7 +55,7 @@ namespace WAPP_EduCore.pages.Student
 
             // all lessons of the course, with this student's completion
             _lessons = Db.Query(
-                "SELECT l.lesson_id, l.lesson_title, l.lesson_description, l.lesson_content, l.video_url, l.quiz_id, " +
+                "SELECT l.lesson_id, l.lesson_title, l.lesson_description, l.lesson_content, l.quiz_id, " +
                 "  COALESCE(lp.is_completed, false) AS done " +
                 "FROM lesson l " +
                 "LEFT JOIN lesson_progress lp ON lp.lesson_id = l.lesson_id AND lp.user_id = @uid " +
@@ -143,10 +144,8 @@ namespace WAPP_EduCore.pages.Student
                     .Replace("\r\n", "<br />").Replace("\n", "<br />");
             }
 
-            string video = BuildVideoHtml(Convert.ToString(cur["video_url"]));
-            litVideo.Text = video.Length > 0
-                ? video
-                : "<div class=\"lv-novideo\">No video for this lesson yet.</div>";
+            string videoUrl = GetVideoUrl(content);
+            litVideo.Text = BuildVideoHtml(videoUrl);
 
             // buttons
             bool isDone = Convert.ToBoolean(cur["done"]);
@@ -227,27 +226,43 @@ namespace WAPP_EduCore.pages.Student
             return css;
         }
 
-        // YouTube link -> embedded player. Only the 11-character video ID is used in the page.
+        private string GetVideoUrl(string json)
+        {
+            try
+            {
+                var blocks = new JavaScriptSerializer().Deserialize<List<Dictionary<string, object>>>(json);
+                if (blocks == null) return "";
+                foreach (var block in blocks)
+                {
+                    object type;
+                    object url;
+                    if (block != null && block.TryGetValue("type", out type) &&
+                        string.Equals(Convert.ToString(type), "video", StringComparison.OrdinalIgnoreCase) &&
+                        block.TryGetValue("url", out url))
+                        return Convert.ToString(url).Trim();
+                }
+            }
+            catch (ArgumentException) { }
+            catch (InvalidOperationException) { }
+            return "";
+        }
+
         private string BuildVideoHtml(string url)
         {
             if (string.IsNullOrWhiteSpace(url)) return "";
-            url = url.Trim();
+            Match match = Regex.Match(url,
+                @"(?:youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/)|youtu\.be/)([A-Za-z0-9_-]{11})",
+                RegexOptions.IgnoreCase);
+            if (match.Success)
+                return "<div class=\"lv-video\"><iframe src=\"https://www.youtube.com/embed/" + match.Groups[1].Value + "\" title=\"Lesson video\" allowfullscreen></iframe></div>";
 
-            Match m = Regex.Match(url,
-                @"(?:youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/)|youtu\.be/)([A-Za-z0-9_-]{11})");
-            if (m.Success)
-            {
-                return "<div class=\"lv-video\"><iframe src=\"https://www.youtube.com/embed/" + m.Groups[1].Value +
-                       "\" title=\"Lesson video\" allow=\"accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe></div>";
-            }
-
-            if (url.StartsWith("http", StringComparison.OrdinalIgnoreCase) &&
-                url.ToLowerInvariant().Contains(".mp4"))
-            {
+            Uri uri;
+            if (Uri.TryCreate(url, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps &&
+                url.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
                 return "<div class=\"lv-video\"><video controls src=\"" + HttpUtility.HtmlAttributeEncode(url) + "\"></video></div>";
-            }
 
             return "";
         }
+
     }
 }
