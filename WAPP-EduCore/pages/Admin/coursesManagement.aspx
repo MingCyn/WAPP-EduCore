@@ -26,14 +26,68 @@
             background-size: 14px;
         }
 
-        /* The course picture in the detail popup (hidden when the course has no picture) */
-        .course-img {
-            display: none;
-            width: 100%;
-            max-height: 170px;
+        /* A blue "New" badge */
+        .badge.new {
+            background: #EEF2FF;
+            color: var(--blue);
+        }
+
+        /* ---------- The course preview card (used in the Create + Detail popups) ---------- */
+        .preview-card {
+            margin-bottom: 16px;
+            padding: 14px;
+            background: #F6F7FB;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+        }
+
+        /* The picture box on top of the card */
+        .preview-img-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 150px;
             margin-bottom: 14px;
-            object-fit: cover;
+            overflow: hidden;
+            background: linear-gradient(135deg, #DCE6F7, #C9D8F2);
             border-radius: 10px;
+            color: var(--grey);
+            font-size: 12px;
+        }
+
+        .preview-img-box img {
+            display: none;               /* hidden until there is a picture */
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-title {
+            margin-bottom: 6px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .preview-desc {
+            margin-bottom: 16px;
+            color: var(--grey);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Big text box for the description */
+        .input.textarea {
+            height: auto;
+            padding: 10px 12px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        /* "Choose file" button */
+        .file-input {
+            width: 100%;
+            margin-bottom: 14px;
+            font-size: 12px;
         }
     </style>
 
@@ -53,6 +107,30 @@
         function show(id, text)  { document.getElementById(id).innerText = text; }                 // put text in a box
         function orDash(text)    { return (text == null || text == '') ? '—' : text; }             // empty -> a dash
 
+        // Put a picture in a picture box (or show the words "No picture" when there is none)
+        function setPicture(imgId, textId, link) {
+            var picture = document.getElementById(imgId);
+            var words = document.getElementById(textId);
+
+            if (link != '') {
+                picture.src = link;
+                picture.style.display = 'block';
+                words.style.display = 'none';
+            } else {
+                picture.style.display = 'none';
+                words.style.display = 'block';
+            }
+        }
+
+        // When the admin chooses a picture file, show it right away in the Create popup
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                setPicture('addImg', 'addImgText', URL.createObjectURL(input.files[0]));
+            } else {
+                setPicture('addImg', 'addImgText', '');
+            }
+        }
+
         // ----- POPUP 1 : course detail (when you click a row) -----
         function openDetail(id) {
             currentId = id;
@@ -61,19 +139,22 @@
             show('dTitle',    row.getAttribute('data-title'));
             show('dTopic',    orDash(row.getAttribute('data-topic')));
             show('dDuration', orDash(row.getAttribute('data-duration')));
-            show('dLessons',  row.getAttribute('data-lessons'));
             show('dCreated',  row.getAttribute('data-created'));
             show('dId',       id);
 
-            // Show the picture only if the course has one
-            var picture = document.getElementById('dImg');
-            var link = row.getAttribute('data-img');
-            if (link != '') {
-                picture.src = link;
-                picture.style.display = 'block';
-            } else {
-                picture.style.display = 'none';
-            }
+            // The description (hidden when the course has none)
+            var description = row.getAttribute('data-description');
+            show('dDesc', description);
+            document.getElementById('dDesc').style.display = (description == '') ? 'none' : 'block';
+
+            // The badge: how many lessons
+            var lessons = parseInt(row.getAttribute('data-lessons'));
+            var badge = document.getElementById('dBadge');
+            badge.innerText = lessons + (lessons == 1 ? ' lesson' : ' lessons');
+            badge.className = 'badge ' + (lessons > 0 ? 'active' : 'pending');
+
+            // The picture
+            setPicture('dImg', 'dImgText', row.getAttribute('data-img'));
 
             openModal('detailModal');
         }
@@ -91,6 +172,11 @@
             document.getElementById('txtEditTitle').value    = row.getAttribute('data-title');
             document.getElementById('txtEditTopic').value    = row.getAttribute('data-topic');
             document.getElementById('txtEditDuration').value = row.getAttribute('data-duration');
+
+            // The description box only exists when the table has a description column
+            var box = document.getElementById('txtEditDescription');
+            if (box != null) { box.value = row.getAttribute('data-description'); }
+
             openModal('editModal');
         }
     </script>
@@ -265,18 +351,32 @@
 
         <!-- ==================================================
              POPUP 1 : COURSE DETAIL  (opens when you click a row)
+             Same look as the Figma "course preview" card.
              ================================================== -->
         <div class="modal-back" id="detailModal">
             <div class="modal-box">
 
                 <div class="modal-head">
-                    <h3>Course detail</h3>
+                    <h3>Course preview</h3>
+                    <span id="dBadge" class="badge active">0 lessons</span>
                 </div>
 
-                <img id="dImg" class="course-img" alt="Course picture" />
+                <div class="preview-card">
 
-                <div class="modal-title" id="dTitle"></div>
-                <p class="modal-text">Information saved for this course.</p>
+                    <!-- the picture -->
+                    <div class="preview-img-box">
+                        <img id="dImg" alt="Course picture" />
+                        <span id="dImgText">No picture yet</span>
+                    </div>
+
+                    <div class="preview-title" id="dTitle"></div>
+                    <div class="preview-desc" id="dDesc"></div>
+
+                    <div class="modal-buttons">
+                        <button type="button" class="btn btn-primary" onclick="editFromDetail()">Edit course</button>
+                        <button type="button" class="btn" onclick="closeModal('detailModal')">Close</button>
+                    </div>
+                </div>
 
                 <div class="info-box">
                     <div class="info-label">Topic</div>
@@ -285,19 +385,11 @@
                     <div class="info-label">Duration</div>
                     <div class="info-value" id="dDuration"></div>
 
-                    <div class="info-label">Lessons</div>
-                    <div class="info-value" id="dLessons"></div>
-
                     <div class="info-label">Created</div>
                     <div class="info-value" id="dCreated"></div>
 
                     <div class="info-label">Course ID</div>
                     <div class="info-value" id="dId"></div>
-                </div>
-
-                <div class="modal-buttons">
-                    <button type="button" class="btn" onclick="editFromDetail()">Edit course</button>
-                    <button type="button" class="btn" onclick="closeModal('detailModal')">Close</button>
                 </div>
 
             </div>
@@ -323,6 +415,12 @@
                     <asp:TextBox ID="txtEditTitle" runat="server" ClientIDMode="Static" CssClass="input"></asp:TextBox>
                 </div>
 
+                <!-- Only shown when the table has a description column -->
+                <asp:Panel ID="pnlEditDesc" runat="server" CssClass="form-field">
+                    <label>Description</label>
+                    <asp:TextBox ID="txtEditDescription" runat="server" ClientIDMode="Static" TextMode="MultiLine" Rows="3" CssClass="input textarea"></asp:TextBox>
+                </asp:Panel>
+
                 <div class="form-field">
                     <label>Topic</label>
                     <asp:TextBox ID="txtEditTopic" runat="server" ClientIDMode="Static" CssClass="input" list="topicList"></asp:TextBox>
@@ -344,36 +442,57 @@
 
         <!-- ==================================================
              POPUP 3 : CREATE COURSE
+             Same look as the Figma "course preview" card:
+             picture on top, then title, description and buttons.
              ================================================== -->
         <div class="modal-back" id="addModal">
             <div class="modal-box">
 
                 <div class="modal-head">
                     <h3>Create course</h3>
+                    <span class="badge new">New</span>
                 </div>
 
-                <div class="form-field">
-                    <label>Course title</label>
-                    <asp:TextBox ID="txtAddTitle" runat="server" CssClass="input" placeholder="e.g. Introduction to Python"></asp:TextBox>
-                </div>
+                <div class="preview-card">
 
-                <div class="form-field">
-                    <label>Topic</label>
-                    <asp:TextBox ID="txtAddTopic" runat="server" CssClass="input" list="topicList" placeholder="Pick one or type a new topic"></asp:TextBox>
-                </div>
+                    <!-- the picture (shows the file you choose) -->
+                    <div class="preview-img-box">
+                        <img id="addImg" alt="Course picture" />
+                        <span id="addImgText">Course picture preview</span>
+                    </div>
 
-                <div class="form-field">
-                    <label>Duration</label>
-                    <asp:TextBox ID="txtAddDuration" runat="server" CssClass="input" placeholder="e.g. 4"></asp:TextBox>
-                </div>
+                    <!-- choose a picture file from the computer -->
+                    <asp:FileUpload ID="fuAddImage" runat="server" CssClass="file-input" accept="image/*" onchange="previewImage(this)" />
 
-                <div class="form-error">
-                    <asp:Label ID="lblAddError" runat="server"></asp:Label>
-                </div>
+                    <div class="form-field">
+                        <label>Course title</label>
+                        <asp:TextBox ID="txtAddTitle" runat="server" CssClass="input" placeholder="e.g. Applied Data Literacy"></asp:TextBox>
+                    </div>
 
-                <div class="modal-buttons">
-                    <button type="button" class="btn" onclick="closeModal('addModal')">Cancel</button>
-                    <asp:Button ID="btnAddCourse" runat="server" Text="Create course" CssClass="btn btn-primary" OnClick="btnAddCourse_Click" />
+                    <!-- Only shown when the table has a description column -->
+                    <asp:Panel ID="pnlAddDesc" runat="server" CssClass="form-field">
+                        <label>Description</label>
+                        <asp:TextBox ID="txtAddDescription" runat="server" TextMode="MultiLine" Rows="3" CssClass="input textarea" placeholder="A short introduction to the course"></asp:TextBox>
+                    </asp:Panel>
+
+                    <div class="form-field">
+                        <label>Topic</label>
+                        <asp:TextBox ID="txtAddTopic" runat="server" CssClass="input" list="topicList" placeholder="Pick one or type a new topic"></asp:TextBox>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Duration</label>
+                        <asp:TextBox ID="txtAddDuration" runat="server" CssClass="input" placeholder="e.g. 4"></asp:TextBox>
+                    </div>
+
+                    <div class="form-error">
+                        <asp:Label ID="lblAddError" runat="server"></asp:Label>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <asp:Button ID="btnAddCourse" runat="server" Text="Create course" CssClass="btn btn-primary" OnClick="btnAddCourse_Click" />
+                        <button type="button" class="btn" onclick="closeModal('addModal')">Cancel</button>
+                    </div>
                 </div>
 
             </div>

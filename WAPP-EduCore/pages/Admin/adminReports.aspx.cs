@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -18,13 +20,23 @@ namespace WAPP_EduCore.pages.Admin
         protected string AdminName = "Administrator";
         protected string AdminInitials = "AD";
 
+        // Numbers are always written the same way (1234.5, never 1234,5)
+        private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
+
+        // We remember the "who was active?" SQL, so we only build it once per page load
+        private string recentActivitySql = null;
+
         protected void Page_Load(object sender, EventArgs e)
         {
             LoadAdminInfo();   // runs every time the page opens
 
             if (!IsPostBack)
             {
-                lblSnapshot.Text = "Snapshot · " + DateTime.Now.ToString("dd MMM yyyy");
+                // "Snapshot · 22 Sep 2026" shown at the top right of every tab
+                string snapshot = "Snapshot · " + DateTime.Now.ToString("dd MMM yyyy", Inv);
+                lblSnapshot.Text = snapshot;
+                lblSnapshotCourses.Text = snapshot;
+                lblSnapshotLearning.Text = snapshot;
 
                 LoadUsersTab();
                 LoadCoursesTab();
@@ -95,7 +107,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  TAB 1 : USERS  (real data from the users table)
+        //  TAB 1 : USERS  (users table + the "who was active" tables)
         // =====================================================
         private void LoadUsersTab()
         {
@@ -103,107 +115,223 @@ namespace WAPP_EduCore.pages.Admin
             int students = GetNumber("SELECT COUNT(*) FROM public.users WHERE role = 'Student'");
             int tutors = GetNumber("SELECT COUNT(*) FROM public.users WHERE role = 'Tutor'");
             int admins = total - students - tutors;   // everyone else
+
+            // ----- New registrations: this month so far, and the same days last month -----
             int newThisMonth = GetNumber(
                 "SELECT COUNT(*) FROM public.users WHERE created_at >= date_trunc('month', now())");
+            int newLastMonth = GetNumber(
+                @"SELECT COUNT(*) FROM public.users
+                  WHERE created_at >= date_trunc('month', now()) - interval '1 month'
+                    AND created_at <  now() - interval '1 month'");
 
+            // ----- Active users = did something in the last 30 days -----
+            string recent = RecentActivitySql();
+            int active = GetNumber("SELECT COUNT(*) FROM public.users WHERE user_id IN (" + recent + ")");
+            int activeStudents = GetNumber("SELECT COUNT(*) FROM public.users WHERE role = 'Student' AND user_id IN (" + recent + ")");
+            int activeTutors = GetNumber("SELECT COUNT(*) FROM public.users WHERE role = 'Tutor' AND user_id IN (" + recent + ")");
+            int activeAdmins = active - activeStudents - activeTutors;
+            int inactive = total - active;
+
+            // ----- The 4 number boxes -----
             lblTotalUsers.Text = total.ToString("N0");
-            lblStudents.Text = students.ToString("N0");
-            lblTutors.Text = tutors.ToString("N0");
-            lblNewUsers.Text = newThisMonth.ToString("N0");
 
-            // ----- Line chart: new accounts per month -----
+            lblActiveUsers.Text = active.ToString("N0");
+            lblActiveNote.Text = Percent(active, total) + " of accounts";
+
+            lblNewUsers.Text = newThisMonth.ToString("N0");
+            lblNewNote.Text = "1–" + DateTime.Now.Day + " " + DateTime.Now.ToString("MMM yyyy", Inv) + " · " + GrowthText(newThisMonth, newLastMonth);
+
+            lblInactiveUsers.Text = inactive.ToString("N0");
+            lblInactiveNote.Text = Percent(inactive, total) + " of all accounts";
+
+            // ----- Line chart: new accounts per month (the last 6 months, even empty ones) -----
             DataTable months = GetTable(
-                @"SELECT to_char(date_trunc('month', created_at), 'Mon') AS month_name,
-                         COUNT(*) AS total
-                  FROM public.users
-                  WHERE created_at >= date_trunc('month', now()) - interval '5 months'
-                  GROUP BY date_trunc('month', created_at)
-                  ORDER BY date_trunc('month', created_at)");
+                @"SELECT to_char(m.month_start, 'Mon') AS month_name,
+                         to_char(m.month_start, 'FMMonth') AS month_full,
+                         COUNT(u.user_id) AS total
+                  FROM generate_series(date_trunc('month', now()) - interval '5 months',
+                                       date_trunc('month', now()),
+                                       interval '1 month') AS m(month_start)
+                  LEFT JOIN public.users u ON date_trunc('month', u.created_at) = m.month_start
+                  GROUP BY m.month_start
+                  ORDER BY m.month_start");
             litLineChart.Text = BuildLineChart(months);
 
-            // ----- Bars: users by role -----
+            lblRegSub.Text = "Monthly new accounts · " + DateTime.Now.ToString("MMMM", Inv) + " through " +
+                             DateTime.Now.Day + " " + DateTime.Now.ToString("MMM", Inv);
+
+            if (months.Rows.Count >= 2)
+            {
+                DataRow thisMonth = months.Rows[months.Rows.Count - 1];
+                DataRow lastMonth = months.Rows[months.Rows.Count - 2];
+                litRegNote.Text = "<div class='note'>" + thisMonth["total"] + " registrations in " + thisMonth["month_full"] +
+                                  "; " + lastMonth["total"] + " in " + lastMonth["month_full"] + ".</div>";
+            }
+
+            // ----- Bars: users by role (the numbers under the bars go 0 ... biggest) -----
+            lblRoleSub.Text = total.ToString("N0");
+
+            int roleMax = NiceCeiling(Math.Max(students, Math.Max(tutors, admins)));
+
             StringBuilder bars = new StringBuilder();
-            bars.Append(BarRow("Student", students, total, students.ToString("N0"), false));
-            bars.Append(BarRow("Tutor", tutors, total, tutors.ToString("N0"), false));
-            bars.Append(BarRow("Admin", admins, total, admins.ToString("N0"), false));
+            bars.Append(BarRow("Student", students, roleMax, students.ToString("N0"), false));
+            bars.Append(BarRow("Tutor", tutors, roleMax, tutors.ToString("N0"), false));
+            bars.Append(BarRow("Admin", admins, roleMax, admins.ToString("N0"), false));
+            bars.Append(BarAxis(roleMax));
+            bars.Append("<div class='note'>Students represent " + Percent(students, total) + " of the platform population.</div>");
             litRoleBars.Text = bars.ToString();
 
             // ----- Role table -----
             StringBuilder rows = new StringBuilder();
-            rows.Append(RoleTableRow("Student", students, total));
-            rows.Append(RoleTableRow("Tutor", tutors, total));
-            rows.Append(RoleTableRow("Admin", admins, total));
-            rows.Append("<tr class='total'><td>All roles</td><td>" + total.ToString("N0") + "</td><td>100%</td></tr>");
+            rows.Append(RoleTableRow("Student", students, total, activeStudents));
+            rows.Append(RoleTableRow("Tutor", tutors, total, activeTutors));
+            rows.Append(RoleTableRow("Admin", admins, total, activeAdmins));
+            rows.Append("<tr class='total'><td>All roles</td><td>" + total.ToString("N0") + "</td><td>100%</td><td>" +
+                        active.ToString("N0") + "</td><td>" + inactive.ToString("N0") + "</td><td>" + Percent(active, total) + "</td></tr>");
             litRoleTable.Text = rows.ToString();
         }
 
-        private string RoleTableRow(string role, int count, int total)
+        private string RoleTableRow(string role, int count, int total, int active)
         {
-            double share = (total == 0) ? 0 : count * 100.0 / total;
-            return "<tr><td>" + role + "</td><td>" + count.ToString("N0") + "</td><td>" + share.ToString("0.0") + "%</td></tr>";
+            return "<tr><td>" + role + "</td><td>" + count.ToString("N0") + "</td><td>" + Percent(count, total) +
+                   "</td><td>" + active.ToString("N0") + "</td><td>" + (count - active).ToString("N0") +
+                   "</td><td>" + Percent(active, count) + "</td></tr>";
+        }
+
+        // "+4.8% growth" (this month so far compared with the same days last month)
+        private string GrowthText(int thisMonth, int lastMonth)
+        {
+            if (lastMonth == 0)
+                return (thisMonth == 0) ? "no change" : "new this month";
+
+            double growth = (thisMonth - lastMonth) * 100.0 / lastMonth;
+            return growth.ToString("+0.0;-0.0;0.0", Inv) + "% growth";
         }
 
         // =====================================================
-        //  TAB 2 : COURSES  (real data from courses + lesson tables)
+        //  TAB 2 : COURSES  (courses + lesson + enrollment + users tables)
         // =====================================================
         private void LoadCoursesTab()
         {
-            lblTotalCourses.Text = GetNumber("SELECT COUNT(*) FROM public.courses").ToString("N0");
-            lblTopics.Text = GetNumber("SELECT COUNT(DISTINCT category) FROM public.courses").ToString("N0");
-            lblLessons.Text = GetNumber("SELECT COUNT(*) FROM public.lesson").ToString("N0");
-            lblNewCourses.Text = GetNumber(
-                "SELECT COUNT(*) FROM public.courses WHERE created_at >= date_trunc('month', now())").ToString("N0");
+            // ----- The 5 number boxes -----
+            int total = GetNumber("SELECT COUNT(*) FROM public.courses");
+            int topics = GetNumber("SELECT COUNT(DISTINCT category) FROM public.courses");
+            int published = GetNumber("SELECT COUNT(*) FROM public.courses WHERE status::text ILIKE 'publish%'");
+            int pending = GetNumber("SELECT COUNT(*) FROM public.courses WHERE status::text ILIKE 'pending%' OR status::text ILIKE '%review%'");
+            int draft = GetNumber("SELECT COUNT(*) FROM public.courses WHERE status::text ILIKE 'draft%'");
+            int archived = GetNumber("SELECT COUNT(*) FROM public.courses WHERE status::text ILIKE 'archiv%'");
 
-            // ----- Bars: courses per topic -----
-            DataTable topics = GetTable(
+            lblTotalCourses.Text = total.ToString("N0");
+            lblTotalNote.Text = "Across " + topics + " topics";
+
+            lblPublished.Text = published.ToString("N0");
+            lblPublishedNote.Text = Percent(published, total) + " of catalogue";
+
+            lblPending.Text = pending.ToString("N0");
+            lblPendingNote.Text = Percent(pending, total) + " of catalogue";
+
+            lblDraft.Text = draft.ToString("N0");
+            lblDraftNote.Text = Percent(draft, total) + " of catalogue";
+
+            lblArchived.Text = archived.ToString("N0");
+            lblArchivedNote.Text = Percent(archived, total) + " of catalogue";
+
+            // ----- Status chart (Draft, Pending Review, Published, Archived) -----
+            List<string> statusNames = new List<string> { "Draft", "Pending Review", "Published", "Archived" };
+            List<int> statusValues = new List<int> { draft, pending, published, archived };
+            List<string> statusColors = new List<string> { "#8E9EE0", "#E0A85A", "#4F67CC", "#CBD2F0" };
+
+            litStatusChart.Text = DrawColumns(statusNames, statusValues, statusColors) +
+                                  "<div class='note'>" + pending.ToString("N0") + " courses are awaiting review before publication.</div>";
+
+            // ----- Top 5 and lowest 5 published courses by enrolment -----
+            DataTable top5 = GetTable(RankSql("DESC"));
+            DataTable low5 = GetTable(RankSql("ASC"));
+
+            // ----- Bars: enrolment per course (top 5) -----
+            int maxEnrol = 0;
+            foreach (DataRow r in top5.Rows)
+                maxEnrol = Math.Max(maxEnrol, Convert.ToInt32(r["enrolments"]));
+            int enrolAxis = NiceCeiling(maxEnrol);
+
+            StringBuilder enrolBars = new StringBuilder();
+            if (top5.Rows.Count == 0)
+            {
+                enrolBars.Append("<div class='note'>No published courses yet.</div>");
+            }
+            else
+            {
+                foreach (DataRow r in top5.Rows)
+                {
+                    int n = Convert.ToInt32(r["enrolments"]);
+                    enrolBars.Append(BarRow(r["title"].ToString(), n, enrolAxis, n.ToString("N0"), false));
+                }
+                enrolBars.Append(BarAxis(enrolAxis));
+            }
+            enrolBars.Append("<div class='note'>Counts include all enrolments recorded for each course.</div>");
+            litEnrolBars.Text = enrolBars.ToString();
+
+            // ----- Column chart: which subject (topic) has the most courses -----
+            // The topic with the MOST courses comes first.
+            DataTable topicTable = GetTable(
                 @"SELECT category, COUNT(*) AS total
                   FROM public.courses
+                  WHERE category IS NOT NULL AND category <> ''
                   GROUP BY category
-                  ORDER BY total DESC
+                  ORDER BY total DESC, category
                   LIMIT 6");
 
-            int maxTopic = 0;
-            foreach (DataRow r in topics.Rows)
-                maxTopic = Math.Max(maxTopic, Convert.ToInt32(r["total"]));
+            litTopicBars.Text = BuildColumnChart(topicTable);
 
-            StringBuilder topicBars = new StringBuilder();
-            foreach (DataRow r in topics.Rows)
-            {
-                int n = Convert.ToInt32(r["total"]);
-                topicBars.Append(BarRow(r["category"].ToString(), n, maxTopic, n.ToString(), false));
-            }
-            litTopicBars.Text = topicBars.ToString();
-
-            // ----- Top 5 courses by lesson count -----
-            string lessonSql =
-                @"SELECT c.title, c.category, COUNT(l.lesson_id) AS lessons
+            // ----- Bars: the 5 courses with the most lessons -----
+            DataTable lessonTop = GetTable(
+                @"SELECT c.title, COUNT(l.lesson_id) AS lessons
                   FROM public.courses c
                   LEFT JOIN public.lesson l ON l.course_id = c.course_id
-                  GROUP BY c.course_id, c.title, c.category
-                  ORDER BY lessons ";
+                  GROUP BY c.course_id, c.title
+                  ORDER BY lessons DESC, c.title LIMIT 5");
 
-            DataTable top5 = GetTable(lessonSql + "DESC, c.title LIMIT 5");
-            DataTable low5 = GetTable(lessonSql + "ASC, c.title LIMIT 5");
-
-            // bars for top 5
             int maxLessons = 0;
-            foreach (DataRow r in top5.Rows)
+            foreach (DataRow r in lessonTop.Rows)
                 maxLessons = Math.Max(maxLessons, Convert.ToInt32(r["lessons"]));
 
             StringBuilder lessonBars = new StringBuilder();
-            foreach (DataRow r in top5.Rows)
+            foreach (DataRow r in lessonTop.Rows)
             {
                 int n = Convert.ToInt32(r["lessons"]);
                 lessonBars.Append(BarRow(r["title"].ToString(), n, maxLessons, n.ToString(), false));
             }
             litLessonBars.Text = lessonBars.ToString();
 
-            litTopCourses.Text = CourseRows(top5);
-            litLowCourses.Text = CourseRows(low5);
+            // ----- The two tables -----
+            litTopCourses.Text = RankRows(top5);
+            litLowCourses.Text = RankRows(low5);
+
+            lblRankNote.Text = "Ranking covers " + published.ToString("N0") +
+                               " published courses. Draft, pending-review and archived courses are excluded to compare live learning opportunities.";
         }
 
-        private string CourseRows(DataTable table)
+        // The SQL for "published courses, ranked by how many learners enrolled".
+        // order = "DESC" (most first) or "ASC" (fewest first)
+        private string RankSql(string order)
         {
+            return @"SELECT c.course_id, c.title, c.category, c.course_level, c.status::text AS status,
+                            u.full_name AS instructor,
+                            COUNT(e.enrollment_id) AS enrolments
+                     FROM public.courses c
+                     LEFT JOIN public.users u ON u.user_id = c.user_id
+                     LEFT JOIN public.enrollment e ON e.course_id = c.course_id
+                     WHERE c.status::text ILIKE 'publish%'
+                     GROUP BY c.course_id, c.title, c.category, c.course_level, c.status, u.full_name
+                     ORDER BY enrolments " + order + ", c.title LIMIT 5";
+        }
+
+        // Turns the ranking table into HTML rows
+        private string RankRows(DataTable table)
+        {
+            if (table.Rows.Count == 0)
+                return "<tr><td colspan='7' class='grey-text'>No published courses yet.</td></tr>";
+
             StringBuilder sb = new StringBuilder();
             int rank = 1;
             foreach (DataRow r in table.Rows)
@@ -211,94 +339,289 @@ namespace WAPP_EduCore.pages.Admin
                 sb.Append("<tr>");
                 sb.Append("<td>" + rank + "</td>");
                 sb.Append("<td>" + Server.HtmlEncode(r["title"].ToString()) + "</td>");
-                sb.Append("<td>" + Server.HtmlEncode(r["category"].ToString()) + "</td>");
-                sb.Append("<td>" + r["lessons"] + "</td>");
+                sb.Append("<td>" + OrDash(r["instructor"]) + "</td>");
+                sb.Append("<td>" + OrDash(r["course_level"]) + "</td>");
+                sb.Append("<td>" + OrDash(r["category"]) + "</td>");
+                sb.Append("<td>" + OrDash(r["status"]) + "</td>");
+                sb.Append("<td>" + Convert.ToInt32(r["enrolments"]).ToString("N0") + "</td>");
                 sb.Append("</tr>");
                 rank++;
             }
             return sb.ToString();
         }
 
+        // Empty database value -> a dash. Otherwise the text, made safe for the page.
+        private string OrDash(object value)
+        {
+            if (value == null || value == DBNull.Value || value.ToString().Trim() == "") return "—";
+            return Server.HtmlEncode(value.ToString());
+        }
+
         // =====================================================
-        //  TAB 3 : LEARNING PERFORMANCE  (SAMPLE numbers!)
-        //  There is no enrolment or quiz table yet, so we type
-        //  the numbers ourselves. Later, replace them with a
-        //  database query. Easy to change during the demo!
+        //  TAB 3 : LEARNING PERFORMANCE
+        //  (enrollment + quiz_score + quiz + lesson + courses tables)
+        //  "Reporting cohort" = the 5 courses with the most enrolments.
         // =====================================================
         private void LoadLearningTab()
         {
-            //                     course name                   topic           enrolments  completions  quiz score
-            object[][] sample =
-            {
-                new object[] { "Applied Data Literacy",     "Data Science", 1284, 1053, 82 },
-                new object[] { "Introduction to Python",    "Programming",  1106,  863, 79 },
-                new object[] { "Climate Systems Lab",       "Science",       942,  716, 84 },
-                new object[] { "Modern History Survey",     "History",       876,  631, 77 },
-                new object[] { "Foundations of Algebra",    "Mathematics",   638,  408, 73 }
-            };
+            // An enrolment counts as "complete" when its status says complete,
+            // or its progression reached 100 (only if progression is a number column).
+            string doneRule = "e.enrollment_status::text ILIKE 'complet%'";
+            if (IsNumberType(ColumnType("enrollment", "progression")))
+                doneRule += " OR e.progression >= 100";
 
+            // The 5 courses with the most enrolments + how many of them are complete
+            DataTable cohort = GetTable(
+                @"SELECT c.course_id, c.title, c.category, u.full_name AS instructor,
+                         COUNT(e.enrollment_id) AS enrol,
+                         COUNT(*) FILTER (WHERE (" + doneRule + @")) AS done
+                  FROM public.courses c
+                  JOIN public.enrollment e ON e.course_id = c.course_id
+                  LEFT JOIN public.users u ON u.user_id = c.user_id
+                  GROUP BY c.course_id, c.title, c.category, u.full_name
+                  ORDER BY enrol DESC, c.title
+                  LIMIT 5");
+
+            // Average quiz score of every course (course_id -> score)
+            Dictionary<int, int> quizByCourse = new Dictionary<int, int>();
+            DataTable quizCourses = GetTable(
+                @"SELECT l.course_id, ROUND(AVG(qs.total_score::numeric)) AS avg_score
+                  FROM public.quiz_score qs
+                  JOIN public.quiz q ON q.quiz_id = qs.quiz_id
+                  JOIN public.lesson l ON l.lesson_id = q.lesson_id
+                  GROUP BY l.course_id");
+            foreach (DataRow r in quizCourses.Rows)
+                quizByCourse[Convert.ToInt32(r["course_id"])] = Convert.ToInt32(r["avg_score"]);
+
+            // Average quiz score of every topic (the 5 topics with the most quiz attempts)
+            DataTable quizTopics = GetTable(
+                @"SELECT c.category, ROUND(AVG(qs.total_score::numeric)) AS avg_score, COUNT(*) AS attempts
+                  FROM public.quiz_score qs
+                  JOIN public.quiz q ON q.quiz_id = qs.quiz_id
+                  JOIN public.lesson l ON l.lesson_id = q.lesson_id
+                  JOIN public.courses c ON c.course_id = l.course_id
+                  WHERE c.category IS NOT NULL AND c.category <> ''
+                  GROUP BY c.category
+                  ORDER BY attempts DESC, c.category
+                  LIMIT 5");
+
+            // ----- Quiz score by topic bars -----
+            StringBuilder quizBars = new StringBuilder();
+            int quizSum = 0;
+            string lowestTopic = "";
+            int lowestScore = 101;
+
+            foreach (DataRow r in quizTopics.Rows)
+            {
+                string topic = r["category"].ToString();
+                int score = Convert.ToInt32(r["avg_score"]);
+                quizSum += score;
+
+                // low scores get an orange bar (below 74%)
+                quizBars.Append(BarRow(topic, score, 100, score + "%", score < 74));
+
+                if (score < lowestScore) { lowestScore = score; lowestTopic = topic; }
+            }
+
+            bool hasQuiz = quizTopics.Rows.Count > 0;
+            int avgQuiz = hasQuiz ? (int)Math.Round(quizSum / (double)quizTopics.Rows.Count) : 0;
+
+            if (!hasQuiz)
+                quizBars.Append("<div class='note'>No quiz scores recorded yet.</div>");
+            else if (lowestScore < 74)
+                quizBars.Append("<div class='note'>Scores on a 0–100% scale · " + Server.HtmlEncode(lowestTopic) + " needs attention.</div>");
+            else
+                quizBars.Append("<div class='note'>Scores on a 0–100% scale · every topic is doing well.</div>");
+
+            litQuizBars.Text = quizBars.ToString();
+
+            lblQuiz.Text = hasQuiz ? avgQuiz + "%" : "—";
+            lblQuizNote.Text = "Mean across " + quizTopics.Rows.Count + " topic scores";
+
+            // ----- The cohort: bars + table + totals -----
             int totalEnrol = 0;
             int totalDone = 0;
-            int quizSum = 0;
             StringBuilder completionBars = new StringBuilder();
-            StringBuilder quizBars = new StringBuilder();
             StringBuilder table = new StringBuilder();
+            HashSet<string> cohortTopics = new HashSet<string>();
 
             string weakest = "";
+            string weakestTeacher = "";
             int weakestRate = 101;
-            int weakestQuiz = 0;
+            int weakestQuiz = -1;
 
-            foreach (object[] row in sample)
+            foreach (DataRow r in cohort.Rows)
             {
-                string name = (string)row[0];
-                string topic = (string)row[1];
-                int enrol = (int)row[2];
-                int done = (int)row[3];
-                int quiz = (int)row[4];
-                int rate = (int)Math.Round(done * 100.0 / enrol);
+                int courseId = Convert.ToInt32(r["course_id"]);
+                string name = r["title"].ToString();
+                string topic = r["category"] == DBNull.Value ? "" : r["category"].ToString();
+                int enrol = Convert.ToInt32(r["enrol"]);
+                int done = Convert.ToInt32(r["done"]);
+                int rate = (enrol == 0) ? 0 : (int)Math.Round(done * 100.0 / enrol);
+
+                int quiz = -1;   // -1 = no quiz scores for this course
+                if (quizByCourse.ContainsKey(courseId)) quiz = quizByCourse[courseId];
 
                 totalEnrol += enrol;
                 totalDone += done;
-                quizSum += quiz;
+                if (topic != "") cohortTopics.Add(topic);
 
-                // low scores get an orange bar (below 70% rate or below 74% quiz)
+                // low completion gets an orange bar (below 70%)
                 completionBars.Append(BarRow(name, rate, 100, rate + "%", rate < 70));
-                quizBars.Append(BarRow(topic, quiz, 100, quiz + "%", quiz < 74));
 
-                table.Append("<tr><td>" + name + "</td><td>" + topic + "</td><td>" + enrol.ToString("N0") +
-                             "</td><td>" + done.ToString("N0") + "</td><td>" + rate + "%</td><td>" + quiz + "%</td></tr>");
+                table.Append("<tr><td>" + Server.HtmlEncode(name) + "</td><td>" + OrDash(topic) + "</td><td>" + enrol.ToString("N0") +
+                             "</td><td>" + done.ToString("N0") + "</td><td>" + rate + "%</td><td>" +
+                             (quiz < 0 ? "—" : quiz + "%") + "</td></tr>");
 
                 if (rate < weakestRate)
                 {
                     weakestRate = rate;
                     weakest = name;
                     weakestQuiz = quiz;
+                    weakestTeacher = r["instructor"] == DBNull.Value ? "" : r["instructor"].ToString();
                 }
             }
 
-            double overallRate = totalDone * 100.0 / totalEnrol;
-            int avgQuiz = (int)Math.Round(quizSum / (double)sample.Length);
+            double overallRate = (totalEnrol == 0) ? 0 : totalDone * 100.0 / totalEnrol;
 
             lblEnrol.Text = totalEnrol.ToString("N0");
+            lblEnrolNote.Text = "Across " + cohort.Rows.Count + " reporting courses";
             lblDone.Text = totalDone.ToString("N0");
-            lblRate.Text = overallRate.ToString("0.0") + "%";
-            lblQuiz.Text = avgQuiz + "%";
+            lblRate.Text = overallRate.ToString("0.0", Inv) + "%";
 
-            table.Append("<tr class='total'><td>Reporting cohort</td><td>5 topics</td><td>" + totalEnrol.ToString("N0") +
-                         "</td><td>" + totalDone.ToString("N0") + "</td><td>" + overallRate.ToString("0.0") +
-                         "%</td><td>" + avgQuiz + "%</td></tr>");
+            if (cohort.Rows.Count == 0)
+            {
+                completionBars.Append("<div class='note'>No enrolments yet.</div>");
+                table.Append("<tr><td colspan='6' class='grey-text'>No enrolments yet.</td></tr>");
+            }
+            else
+            {
+                completionBars.Append("<div class='note'>Rates rounded to whole percentages · scale 0–100%.</div>");
+
+                table.Append("<tr class='total'><td>Reporting cohort</td><td>" + cohortTopics.Count + " topics</td><td>" + totalEnrol.ToString("N0") +
+                             "</td><td>" + totalDone.ToString("N0") + "</td><td>" + overallRate.ToString("0.0", Inv) +
+                             "%</td><td>" + (hasQuiz ? avgQuiz + "%" : "—") + "</td></tr>");
+            }
 
             litCompletionBars.Text = completionBars.ToString();
-            litQuizBars.Text = quizBars.ToString();
             litPerfTable.Text = table.ToString();
 
-            litFocus.Text = "<b>Focus area · " + weakest + "</b><br />" +
-                            weakestRate + "% completion and a " + weakestQuiz + "% quiz score. Review lesson pacing and quiz support.";
+            // ----- The yellow focus box -----
+            if (cohort.Rows.Count == 0)
+            {
+                litFocus.Text = "<b>Focus area</b><br />There are no enrolments yet, so there is nothing to review.";
+            }
+            else
+            {
+                string quizText = (weakestQuiz < 0) ? "" : " and a " + weakestQuiz + "% quiz score";
+                string teacherText = (weakestTeacher == "") ? "" : " with " + Server.HtmlEncode(weakestTeacher);
+
+                litFocus.Text = "<b>Focus area · " + Server.HtmlEncode(weakest) + "</b><br />" +
+                                weakestRate + "% completion" + quizText + ". Review lesson pacing and quiz support" + teacherText + ".";
+            }
+        }
+
+        // =====================================================
+        //  "WHO WAS ACTIVE?"
+        //  A user is ACTIVE when they did something in the last 30 days.
+        //  Every table below is checked, and a table is skipped if it
+        //  (or its date column) is not in the database.
+        // =====================================================
+        private string RecentActivitySql()
+        {
+            if (recentActivitySql != null) return recentActivitySql;
+
+            //                      table                 who             when
+            string[][] sources =
+            {
+                new string[] { "enrollment",         "user_id",   "enrolled_at"  },   // joined a course
+                new string[] { "lesson_progress",    "user_id",   "completed_at" },   // finished a lesson
+                new string[] { "quiz_score",         "user_id",   "done_time"    },   // took a quiz
+                new string[] { "discussion_posts",   "user_id",   "created_at"   },   // wrote a post
+                new string[] { "discussion_replies", "user_id",   "created_at"   },   // wrote a reply
+                new string[] { "messages",           "sender_id", "created_at"   }    // sent a message
+            };
+
+            List<string> parts = new List<string>();
+            foreach (string[] s in sources)
+            {
+                if (ColumnType(s[0], s[1]) != null && IsTimeType(ColumnType(s[0], s[2])))
+                {
+                    parts.Add("SELECT " + s[1] + " FROM public." + s[0] + " WHERE " + s[2] + " >= now() - interval '30 days'");
+                }
+            }
+
+            // Nothing found? Then nobody is active.
+            if (parts.Count == 0)
+                recentActivitySql = "SELECT user_id FROM public.users WHERE false";
+            else
+                recentActivitySql = string.Join(" UNION ", parts.ToArray());
+
+            return recentActivitySql;
+        }
+
+        // Asks the database: "what kind of column is table.column?"  (null = it does not exist)
+        private string ColumnType(string table, string column)
+        {
+            using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
+            using (NpgsqlCommand cmd = new NpgsqlCommand(
+                "SELECT data_type FROM information_schema.columns WHERE table_schema = 'public' AND table_name = @t AND column_name = @c", conn))
+            {
+                cmd.Parameters.AddWithValue("@t", table);
+                cmd.Parameters.AddWithValue("@c", column);
+                object result = cmd.ExecuteScalar();
+                return result == null ? null : result.ToString();
+            }
+        }
+
+        private bool IsTimeType(string type)
+        {
+            return type == "timestamp without time zone" || type == "timestamp with time zone" || type == "date";
+        }
+
+        private bool IsNumberType(string type)
+        {
+            return type == "integer" || type == "smallint" || type == "bigint" || type == "numeric" ||
+                   type == "real" || type == "double precision";
         }
 
         // =====================================================
         //  HELPERS  (small tools used again and again)
         // =====================================================
+
+        // 7 out of 10  ->  "70.0%"   (0 when there is nothing to divide by)
+        private string Percent(int part, int whole)
+        {
+            double value = (whole == 0) ? 0 : part * 100.0 / whole;
+            return value.ToString("0.0", Inv) + "%";
+        }
+
+        // Rounds a number UP to a "nice" one:  1284 -> 1500,  10218 -> 12000
+        // (so the bottom numbers of a chart look tidy)
+        private int NiceCeiling(int max)
+        {
+            if (max <= 0) return 1;
+
+            double[] steps = { 1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10 };
+            double magnitude = Math.Pow(10, Math.Floor(Math.Log10(max)));
+
+            foreach (double s in steps)
+            {
+                if (s * magnitude >= max) return (int)Math.Round(s * magnitude);
+            }
+            return (int)Math.Round(10 * magnitude);
+        }
+
+        // The gap between the grey lines of a chart (1, 2, 5, 10, 20, 50 ...). There are 4 gaps.
+        private int NiceStep(int biggest)
+        {
+            int[] niceSteps = { 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000 };
+            foreach (int s in niceSteps)
+            {
+                if (s * 4 >= biggest) return s;
+            }
+            return niceSteps[niceSteps.Length - 1];
+        }
 
         // Makes ONE horizontal bar:   label ======== value
         // fill width = value / max * 100 percent
@@ -309,12 +632,107 @@ namespace WAPP_EduCore.pages.Admin
 
             return "<div class='bar-row'>" +
                    "<div class='bar-label'>" + Server.HtmlEncode(label) + "</div>" +
-                   "<div class='bar-track'><div class='bar-fill" + color + "' style='width:" + percent.ToString("0.0") + "%'></div></div>" +
+                   "<div class='bar-track'><div class='bar-fill" + color + "' style='width:" + percent.ToString("0.0", Inv) + "%'></div></div>" +
                    "<div class='bar-value'>" + valueText + "</div>" +
                    "</div>";
         }
 
+        // The little numbers under a group of bars:  0   (half)   (max)
+        private string BarAxis(int max)
+        {
+            return "<div style='display:flex; justify-content:space-between; margin:2px 60px 0 170px; font-size:11px; color:#64748B;'>" +
+                   "<span>0</span><span>" + (max / 2).ToString("N0") + "</span><span>" + max.ToString("N0") + "</span></div>";
+        }
+
+        // Draws a column chart for the "courses per topic" table.
+        // The first column (the topic with the MOST courses) is the darkest blue.
+        private string BuildColumnChart(DataTable topics)
+        {
+            if (topics.Rows.Count == 0)
+                return "<div class='note'>No courses yet.</div>";
+
+            List<string> names = new List<string>();
+            List<int> values = new List<int>();
+            List<string> colors = new List<string>();
+
+            for (int i = 0; i < topics.Rows.Count; i++)
+            {
+                names.Add(topics.Rows[i]["category"].ToString());
+                values.Add(Convert.ToInt32(topics.Rows[i]["total"]));
+                colors.Add(i == 0 ? "#4F67CC" : "#8E9EE0");   // the winner is darker
+            }
+
+            // A sentence under the chart: which subject is the biggest?
+            string winner = Server.HtmlEncode(names[0]);
+            return DrawColumns(names, values, colors) +
+                   "<div class='note'><b>" + winner + "</b> has the most courses (" + values[0] + ").</div>";
+        }
+
+        // Draws a column chart (tall bars standing up) using SVG.
+        // grey lines + numbers on the left, a number on top of each bar, a name under each bar.
+        private string DrawColumns(List<string> names, List<int> values, List<string> colors)
+        {
+            // 1) Find the biggest number
+            int biggest = 1;
+            foreach (int v in values) biggest = Math.Max(biggest, v);
+
+            // 2) Choose the gap between the grey lines (about 4 lines)
+            int step = NiceStep(biggest);
+            int top = step * 4;   // the highest line of the chart
+
+            // 3) The size of the chart area inside the picture
+            double left = 40, right = 490, topY = 20, bottomY = 210;
+            double height = bottomY - topY;
+
+            StringBuilder svg = new StringBuilder();
+            svg.Append("<svg viewBox='0 0 500 250' width='100%'>");
+
+            // grey lines + numbers on the left (0, step, step*2 ...)
+            for (int i = 0; i <= 4; i++)
+            {
+                double y = bottomY - (height * i / 4.0);
+                string ys = y.ToString("0.0", Inv);
+                svg.Append("<line x1='" + left.ToString("0", Inv) + "' y1='" + ys + "' x2='" + right.ToString("0", Inv) + "' y2='" + ys + "' stroke='#E2E8F0' />");
+                svg.Append("<text x='32' y='" + (y + 4).ToString("0.0", Inv) + "' font-size='11' text-anchor='end' fill='#64748B'>" + (step * i) + "</text>");
+            }
+
+            // 4) One column for every item
+            int count = names.Count;
+            double slot = (right - left) / count;           // space for each column
+            double barWidth = Math.Min(56, slot * 0.6);     // the bar is a bit thinner than its space
+
+            for (int i = 0; i < count; i++)
+            {
+                string name = names[i];
+                int value = values[i];
+
+                double barHeight = value * height / top;
+                double x = left + slot * i + (slot - barWidth) / 2;
+                double y = bottomY - barHeight;
+                double middle = x + barWidth / 2;
+
+                // long names are cut short, so they do not overlap
+                string shortName = (name.Length > 12) ? name.Substring(0, 11) + "…" : name;
+
+                svg.Append("<rect x='" + x.ToString("0.0", Inv) + "' y='" + y.ToString("0.0", Inv) +
+                           "' width='" + barWidth.ToString("0.0", Inv) + "' height='" + barHeight.ToString("0.0", Inv) +
+                           "' rx='3' fill='" + colors[i] + "'><title>" + Server.HtmlEncode(name) + ": " + value + "</title></rect>");
+
+                // the number on top of the bar
+                svg.Append("<text x='" + middle.ToString("0.0", Inv) + "' y='" + (y - 6).ToString("0.0", Inv) +
+                           "' font-size='12' font-weight='700' text-anchor='middle' fill='#0F172A'>" + value + "</text>");
+
+                // the name under the bar
+                svg.Append("<text x='" + middle.ToString("0.0", Inv) + "' y='230' font-size='11' text-anchor='middle' fill='#64748B'>" +
+                           Server.HtmlEncode(shortName) + "</text>");
+            }
+
+            svg.Append("</svg>");
+            return svg.ToString();
+        }
+
         // Draws a simple line chart using SVG (a picture made from text)
+        // with grey lines and numbers on the left, like the Figma design
         private string BuildLineChart(DataTable months)
         {
             if (months.Rows.Count == 0)
@@ -324,9 +742,21 @@ namespace WAPP_EduCore.pages.Admin
             foreach (DataRow r in months.Rows)
                 maxValue = Math.Max(maxValue, Convert.ToInt32(r["total"]));
 
+            int step = NiceStep(maxValue);
+            int top = step * 4;   // the highest grey line
+
             int count = months.Rows.Count;
+            StringBuilder grid = new StringBuilder();     // grey lines + numbers on the left
             StringBuilder points = new StringBuilder();   // the line
             StringBuilder dots = new StringBuilder();     // dots + words
+
+            for (int i = 0; i <= 4; i++)
+            {
+                double gy = 180 - i * 35;
+                string gys = gy.ToString("0.0", Inv);
+                grid.Append("<line x1='50' y1='" + gys + "' x2='490' y2='" + gys + "' stroke='#E2E8F0' />");
+                grid.Append("<text x='42' y='" + (gy + 4).ToString("0.0", Inv) + "' font-size='11' text-anchor='end' fill='#64748B'>" + (step * i) + "</text>");
+            }
 
             for (int i = 0; i < count; i++)
             {
@@ -334,20 +764,20 @@ namespace WAPP_EduCore.pages.Admin
                 string name = months.Rows[i]["month_name"].ToString();
 
                 // x goes left to right, y goes up when the value is bigger
-                double x = (count == 1) ? 250 : 40 + i * (420.0 / (count - 1));
-                double y = 180 - (value * 140.0 / maxValue);
+                double x = (count == 1) ? 270 : 70 + i * (400.0 / (count - 1));
+                double y = 180 - (value * 140.0 / top);
 
-                string xs = x.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
-                string ys = y.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+                string xs = x.ToString("0.0", Inv);
+                string ys = y.ToString("0.0", Inv);
 
                 points.Append(xs + "," + ys + " ");
                 dots.Append("<circle cx='" + xs + "' cy='" + ys + "' r='4' fill='#4F67CC' />");
-                dots.Append("<text x='" + xs + "' y='" + (y - 10).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "' font-size='11' text-anchor='middle' fill='#4F67CC'>" + value + "</text>");
+                dots.Append("<text x='" + xs + "' y='" + (y - 10).ToString("0.0", Inv) + "' font-size='11' text-anchor='middle' fill='#4F67CC'>" + value + "</text>");
                 dots.Append("<text x='" + xs + "' y='205' font-size='11' text-anchor='middle' fill='#64748B'>" + name + "</text>");
             }
 
             return "<svg viewBox='0 0 500 220' width='100%'>" +
-                   "<line x1='30' y1='180' x2='480' y2='180' stroke='#E2E8F0' />" +
+                   grid +
                    "<polyline points='" + points + "' fill='none' stroke='#4F67CC' stroke-width='2' />" +
                    dots +
                    "</svg>";

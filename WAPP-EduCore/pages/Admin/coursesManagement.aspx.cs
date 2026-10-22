@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -17,6 +19,7 @@ namespace WAPP_EduCore.pages.Admin
         protected string AdminName = "Administrator";
         protected string AdminInitials = "AD";
 
+        private int adminId = 0;            // the id of the admin who is logged in
         private const int PageSize = 10;    // how many courses per page (change me!)
 
         // The page number we are on (0 = first page). It is remembered between clicks.
@@ -38,6 +41,11 @@ namespace WAPP_EduCore.pages.Admin
                       OR (@lessons = 'with'    AND COALESCE(l.n, 0) > 0)
                       OR (@lessons = 'without' AND COALESCE(l.n, 0) = 0)) ";
 
+        // The name of the "description" column in the courses table.
+        // We look for it in the database, because it may be called differently.
+        private string descriptionColumn = null;
+        private bool descriptionChecked = false;
+
 
         // =====================================================
         //  STEP 1: Page opens  ->  find out who the admin is
@@ -54,6 +62,11 @@ namespace WAPP_EduCore.pages.Admin
         // =====================================================
         protected void Page_PreRender(object sender, EventArgs e)
         {
+            // Show the Description boxes only if the table has a description column
+            bool hasDescription = (DescriptionColumn() != null);
+            pnlAddDesc.Visible = hasDescription;
+            pnlEditDesc.Visible = hasDescription;
+
             RefreshTopicList();   // topics in the dropdown + the suggestion list
             LoadStats();          // the 5 number boxes
             LoadCourses();        // the table
@@ -72,26 +85,28 @@ namespace WAPP_EduCore.pages.Admin
 
                 if (Session["user_id"] != null)
                 {
-                    cmd.CommandText = "SELECT full_name FROM public.users WHERE user_id = @id";
+                    cmd.CommandText = "SELECT user_id, full_name FROM public.users WHERE user_id = @id";
                     cmd.Parameters.AddWithValue("@id", Convert.ToInt32(Session["user_id"]));
                 }
                 else
                 {
-                    cmd.CommandText = "SELECT full_name FROM public.users WHERE role = 'Admin' ORDER BY user_id LIMIT 1";
+                    cmd.CommandText = "SELECT user_id, full_name FROM public.users WHERE role = 'Admin' ORDER BY user_id LIMIT 1";
                 }
 
-                object result = cmd.ExecuteScalar();
-
-                if (result != null)
+                using (NpgsqlDataReader reader = cmd.ExecuteReader())
                 {
-                    string fullName = result.ToString().Trim();
-                    AdminName = Server.HtmlEncode(fullName);
+                    if (reader.Read())
+                    {
+                        adminId = Convert.ToInt32(reader[0]);
+                        string fullName = reader[1].ToString().Trim();
+                        AdminName = Server.HtmlEncode(fullName);
 
-                    string[] words = fullName.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (words.Length == 1)
-                        AdminInitials = words[0].Substring(0, 1).ToUpper();
-                    else if (words.Length > 1)
-                        AdminInitials = (words[0].Substring(0, 1) + words[words.Length - 1].Substring(0, 1)).ToUpper();
+                        string[] words = fullName.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (words.Length == 1)
+                            AdminInitials = words[0].Substring(0, 1).ToUpper();
+                        else if (words.Length > 1)
+                            AdminInitials = (words[0].Substring(0, 1) + words[words.Length - 1].Substring(0, 1)).ToUpper();
+                    }
                 }
             }
         }
@@ -168,11 +183,17 @@ namespace WAPP_EduCore.pages.Admin
             // 3) Get only the 10 courses for this page
             //    (duration::text = show the duration as plain text, whatever type it is)
             //    (img = the picture link, but only if it looks like a real link)
+            //    (description = the description text, or empty when there is no such column)
+            string descriptionPart = (DescriptionColumn() == null)
+                ? "''"
+                : "COALESCE(c." + DescriptionColumn() + "::text, '')";
+
             DataTable table = new DataTable();
             string sql =
                 @"SELECT c.course_id, c.title, c.category, c.duration::text AS duration, c.created_at,
                          COALESCE(l.n, 0) AS lessons,
-                         CASE WHEN c.course_img::text ~ '^(https?://|/|~/)' THEN c.course_img::text ELSE '' END AS img"
+                         CASE WHEN c.course_img::text ~ '^(https?://|/|~/)' THEN c.course_img::text ELSE '' END AS img,
+                         " + descriptionPart + @" AS description"
                 + FromAndWhere +
                 @" ORDER BY c.course_id ASC
                    LIMIT @size OFFSET @skip";   // ASC = smallest first (1, 2, 3...)
@@ -230,6 +251,7 @@ namespace WAPP_EduCore.pages.Admin
             string title = r["title"].ToString();
             string topic = r["category"] == DBNull.Value ? "" : r["category"].ToString();
             string duration = r["duration"] == DBNull.Value ? "" : r["duration"].ToString();
+            string description = r["description"].ToString();
             int lessons = Convert.ToInt32(r["lessons"]);
 
             string img = r["img"].ToString();
@@ -242,6 +264,7 @@ namespace WAPP_EduCore.pages.Admin
             sb.Append(Attr("title", title));
             sb.Append(Attr("topic", topic));
             sb.Append(Attr("duration", duration));
+            sb.Append(Attr("description", description));
             sb.Append(Attr("lessons", lessons.ToString()));
             sb.Append(Attr("created", FormatDate(r["created_at"])));
             sb.Append(Attr("img", img));
@@ -303,6 +326,7 @@ namespace WAPP_EduCore.pages.Admin
             string title = txtEditTitle.Text.Trim();
             string topic = txtEditTopic.Text.Trim();
             string duration = txtEditDuration.Text.Trim();
+            string description = txtEditDescription.Text.Trim();
 
             if (title == "")
             {
@@ -311,14 +335,26 @@ namespace WAPP_EduCore.pages.Admin
                 return;
             }
 
+            // The command is built from small pieces, so the description is only
+            // saved when the table really has a description column.
+            string sql = "UPDATE public.courses SET title = @title, category = @category, duration = @duration";
+            List<NpgsqlParameter> parameters = new List<NpgsqlParameter>();
+            parameters.Add(new NpgsqlParameter("@title", title));
+            parameters.Add(new NpgsqlParameter("@category", topic == "" ? (object)DBNull.Value : topic));
+            parameters.Add(DurationParameter(duration));
+
+            if (DescriptionColumn() != null)
+            {
+                sql += ", " + DescriptionColumn() + " = @description";
+                parameters.Add(new NpgsqlParameter("@description", description));
+            }
+
+            sql += " WHERE course_id = @id";
+            parameters.Add(new NpgsqlParameter("@id", id));
+
             try
             {
-                RunSql("UPDATE public.courses SET title = @title, category = @category, duration = @duration WHERE course_id = @id",
-                    new NpgsqlParameter("@title", title),
-                    new NpgsqlParameter("@category", topic == "" ? (object)DBNull.Value : topic),
-                    DurationParameter(duration),
-                    new NpgsqlParameter("@id", id));
-
+                RunSql(sql, parameters.ToArray());
                 ShowMessage("Saved! \"" + title + "\" was updated.", true);
             }
             catch (Exception ex)
@@ -336,6 +372,7 @@ namespace WAPP_EduCore.pages.Admin
             string title = txtAddTitle.Text.Trim();
             string topic = txtAddTopic.Text.Trim();
             string duration = txtAddDuration.Text.Trim();
+            string description = txtAddDescription.Text.Trim();
 
             if (title == "")
             {
@@ -344,25 +381,158 @@ namespace WAPP_EduCore.pages.Admin
                 return;
             }
 
+            string imagePath = "";
+
             try
             {
-                RunSql("INSERT INTO public.courses (title, category, duration) VALUES (@title, @category, @duration)",
-                    new NpgsqlParameter("@title", title),
-                    new NpgsqlParameter("@category", topic == "" ? (object)DBNull.Value : topic),
-                    DurationParameter(duration));
+                // 1) Save the picture file (if the admin chose one)
+                imagePath = SaveCourseImage(fuAddImage);
+
+                // 2) Make lists of the columns we want to fill, and the values for them
+                List<string> columns = new List<string>();
+                List<string> values = new List<string>();
+                List<NpgsqlParameter> parameters = new List<NpgsqlParameter>();
+
+                columns.Add("title");
+                values.Add("@title");
+                parameters.Add(new NpgsqlParameter("@title", title));
+
+                columns.Add("category");
+                values.Add("@category");
+                parameters.Add(new NpgsqlParameter("@category", topic == "" ? (object)DBNull.Value : topic));
+
+                columns.Add("duration");
+                values.Add("@duration");
+                parameters.Add(DurationParameter(duration));
+
+                if (imagePath != "")
+                {
+                    columns.Add("course_img");
+                    values.Add("@img");
+                    parameters.Add(new NpgsqlParameter("@img", imagePath));
+                }
+
+                if (DescriptionColumn() != null)
+                {
+                    columns.Add(DescriptionColumn());
+                    values.Add("@description");
+                    parameters.Add(new NpgsqlParameter("@description", description));
+                }
+
+                // If the table also remembers WHO made the course, save the admin's id
+                if (adminId > 0 && ColumnExists("user_id"))
+                {
+                    columns.Add("user_id");
+                    values.Add("@userid");
+                    parameters.Add(new NpgsqlParameter("@userid", adminId));
+                }
+
+                // 3) Put it in the database
+                string sql = "INSERT INTO public.courses (" + string.Join(", ", columns.ToArray()) + ")" +
+                             " VALUES (" + string.Join(", ", values.ToArray()) + ")";
+                RunSql(sql, parameters.ToArray());
 
                 ShowMessage("Created! \"" + title + "\" was added to the catalogue.", true);
 
                 // clear the boxes
                 txtAddTitle.Text = "";
+                txtAddDescription.Text = "";
                 txtAddTopic.Text = "";
                 txtAddDuration.Text = "";
             }
             catch (Exception ex)
             {
-                lblAddError.Text = "Could not create the course: " + ex.Message;
+                // something went wrong: remove the picture we just saved, so no extra files stay behind
+                DeleteImageFile(imagePath);
+
+                lblAddError.Text = ex.Message.StartsWith("Please choose") || ex.Message.StartsWith("The picture")
+                    ? ex.Message
+                    : "Could not create the course: " + ex.Message;
                 ReopenPopup("addModal");
             }
+        }
+
+
+        // =====================================================
+        //  PICTURE FILES
+        // =====================================================
+
+        // Saves the chosen picture in the folder  images/courses
+        // and gives back the path to store in the database, like  ~/images/courses/abc123.png
+        // (gives back "" when no picture was chosen)
+        private string SaveCourseImage(FileUpload upload)
+        {
+            if (!upload.HasFile) return "";
+
+            string extension = Path.GetExtension(upload.FileName).ToLower();
+            string[] allowed = { ".png", ".jpg", ".jpeg", ".gif", ".webp" };
+
+            if (Array.IndexOf(allowed, extension) < 0)
+                throw new Exception("Please choose a picture file (png, jpg, gif or webp).");
+
+            if (upload.PostedFile.ContentLength > 3 * 1024 * 1024)
+                throw new Exception("The picture is too big. Please choose one under 3 MB.");
+
+            string folder = Server.MapPath("~/images/courses/");
+            Directory.CreateDirectory(folder);                       // make the folder if it is not there yet
+
+            string fileName = Guid.NewGuid().ToString("N") + extension;   // a random name, so two files never clash
+            upload.SaveAs(Path.Combine(folder, fileName));
+
+            return "~/images/courses/" + fileName;
+        }
+
+        // Deletes a picture file we saved (used when creating the course failed)
+        private void DeleteImageFile(string imagePath)
+        {
+            if (imagePath == "") return;
+
+            try
+            {
+                string fullPath = Server.MapPath(imagePath);
+                if (File.Exists(fullPath)) File.Delete(fullPath);
+            }
+            catch
+            {
+                // if it cannot be deleted, it is not a big problem
+            }
+        }
+
+
+        // =====================================================
+        //  FINDING COLUMNS IN THE courses TABLE
+        // =====================================================
+
+        // Does the courses table have a column with this name?
+        private bool ColumnExists(string name)
+        {
+            using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
+            using (NpgsqlCommand cmd = new NpgsqlCommand(
+                "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'courses' AND column_name = @name", conn))
+            {
+                cmd.Parameters.AddWithValue("@name", name);
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
+        // The name of the description column, or null when there is none
+        private string DescriptionColumn()
+        {
+            if (!descriptionChecked)
+            {
+                descriptionChecked = true;
+
+                string[] possibleNames = { "course_description", "description" };
+                foreach (string name in possibleNames)
+                {
+                    if (ColumnExists(name))
+                    {
+                        descriptionColumn = name;
+                        break;
+                    }
+                }
+            }
+            return descriptionColumn;
         }
 
 

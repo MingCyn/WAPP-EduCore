@@ -213,6 +213,24 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.TextBox txtEditTitle;
 
         /// <summary>
+        /// pnlEditDesc control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlEditDesc;
+
+        /// <summary>
+        /// txtEditDescription control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtEditDescription;
+
+        /// <summary>
         /// txtEditTopic control.
         /// </summary>
         /// <remarks>
@@ -240,6 +258,15 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.Button btnSaveEdit;
 
         /// <summary>
+        /// fuAddImage control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.FileUpload fuAddImage;
+
+        /// <summary>
         /// txtAddTitle control.
         /// </summary>
         /// <remarks>
@@ -247,6 +274,24 @@ namespace WAPP_EduCore.pages.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox txtAddTitle;
+
+        /// <summary>
+        /// pnlAddDesc control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlAddDesc;
+
+        /// <summary>
+        /// txtAddDescription control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtAddDescription;
 
         /// <summary>
         /// txtAddTopic control.
