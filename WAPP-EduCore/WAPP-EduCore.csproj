@@ -171,6 +171,7 @@
     <Content Include="pages\General\lesson.aspx" />
     <Content Include="pages\Shared\Sidebar.ascx" />
     <Content Include="pages\Student\calendar.aspx" />
+    <Content Include="pages\Student\certificates.aspx" />
     <Content Include="pages\Student\courseOverview.aspx" />
     <Content Include="pages\Student\messages.aspx" />
     <Content Include="pages\Student\myCourses.aspx" />
@@ -366,6 +367,13 @@
     </Compile>
     <Compile Include="pages\Student\calendar.aspx.designer.cs">
       <DependentUpon>calendar.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Student\certificates.aspx.cs">
+      <DependentUpon>certificates.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Student\certificates.aspx.designer.cs">
+      <DependentUpon>certificates.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Student\courseOverview.aspx.cs">
       <DependentUpon>courseOverview.aspx</DependentUpon>

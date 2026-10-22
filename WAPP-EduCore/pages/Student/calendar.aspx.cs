@@ -73,7 +73,8 @@ namespace WAPP_EduCore.pages.Student
             }
 
             BuildCalendar();
-            BindUpcoming();
+            BuildCalendar();
+            if (!IsPostBack) BindUpcoming();
         }
 
         // ---------- calendar (week, day or month) ----------
