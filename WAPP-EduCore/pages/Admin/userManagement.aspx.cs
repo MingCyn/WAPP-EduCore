@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Text;
@@ -222,12 +223,14 @@ namespace WAPP_EduCore.pages.Admin
             sb.Append("<td>" + roleText + "</td>");
             sb.Append("<td class='grey-text'>" + FormatDate(r["created_at"]) + "</td>");
 
-            // The 2 little icons: view and edit
+            // The 3 little icons: view, edit and delete
             sb.Append("<td>");
             sb.Append(IconButton("blue", "View", "openDetail(" + id + ")",
                 "<path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/>"));
             sb.Append(IconButton("", "Edit", "openEdit(" + id + ")",
                 "<path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z'/>"));
+            sb.Append(IconButton("red", "Delete", "openDelete(" + id + ")",
+                "<polyline points='3 6 5 6 21 6'/><path d='M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6'/><path d='M10 11v6'/><path d='M14 11v6'/><path d='M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2'/>"));
             sb.Append("</td>");
 
             sb.Append("</tr>");
@@ -281,9 +284,9 @@ namespace WAPP_EduCore.pages.Admin
             if (dobText != "")
             {
                 DateTime dob;
-                if (!DateTime.TryParse(dobText, out dob))
+                if (!DateTime.TryParseExact(dobText, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dob))
                 {
-                    ShowMessage("The date of birth is not valid.", false);
+                    ShowMessage("Please write the date of birth like 30/05/2012 (day/month/year).", false);
                     ReopenPopup("editModal");
                     return;
                 }
@@ -340,9 +343,9 @@ namespace WAPP_EduCore.pages.Admin
                 return;
             }
 
-            if (!DateTime.TryParse(dobText, out dob))
+            if (!DateTime.TryParseExact(dobText, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dob))
             {
-                lblAddError.Text = "The date of birth is not valid.";
+                lblAddError.Text = "Please write the date of birth like 30/05/2012 (day/month/year).";
                 ReopenPopup("addModal");
                 return;
             }
@@ -373,6 +376,119 @@ namespace WAPP_EduCore.pages.Admin
                     : "Could not add the user: " + ex.Message;
                 ReopenPopup("addModal");
             }
+        }
+
+
+        // ----- Delete popup: the admin clicked "Confirm" -----
+        protected void btnConfirmDelete_Click(object sender, EventArgs e)
+        {
+            int id;
+            if (!int.TryParse(hfDeleteId.Value, out id)) return;
+
+            // The admin must not delete their OWN account (they would be locked out)
+            if (id == adminId)
+            {
+                ShowMessage("You cannot delete your own account.", false);
+                return;
+            }
+
+            // These are the things that belong to a user. They are removed together with the user,
+            // otherwise the database says "this user is still used somewhere".
+            // Each line:  { the SQL,  the table.column it needs }   (a line is skipped if the table does not exist)
+            string[][] belongsToUser =
+            {
+                new string[] { "DELETE FROM public.discussion_replies WHERE post_id IN (SELECT post_id FROM public.discussion_posts WHERE user_id = @id)",
+                               "discussion_replies.post_id", "discussion_posts.post_id", "discussion_posts.user_id" },
+                new string[] { "DELETE FROM public.discussion_replies WHERE user_id = @id", "discussion_replies.user_id" },
+                new string[] { "DELETE FROM public.discussion_posts WHERE user_id = @id",   "discussion_posts.user_id" },
+                new string[] { "DELETE FROM public.messages WHERE sender_id = @id",         "messages.sender_id" },
+                new string[] { "DELETE FROM public.messages WHERE receiver_id = @id",       "messages.receiver_id" },
+                new string[] { "DELETE FROM public.calendar_events WHERE user_id = @id",    "calendar_events.user_id" },
+                new string[] { "DELETE FROM public.certificates WHERE user_id = @id",       "certificates.user_id" },
+                new string[] { "DELETE FROM public.enrollment WHERE user_id = @id",         "enrollment.user_id" },
+                new string[] { "DELETE FROM public.lesson_progress WHERE user_id = @id",    "lesson_progress.user_id" },
+                new string[] { "DELETE FROM public.quiz_score WHERE user_id = @id",         "quiz_score.user_id" },
+                new string[] { "DELETE FROM public.profile WHERE user_id = @id",            "profile.user_id" }
+            };
+
+            try
+            {
+                using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
+                {
+                    // 1) Is the user still there? (and what is the name, for the message)
+                    object found;
+                    using (NpgsqlCommand cmd = new NpgsqlCommand("SELECT full_name FROM public.users WHERE user_id = @id", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+                        found = cmd.ExecuteScalar();
+                    }
+
+                    if (found == null)
+                    {
+                        ShowMessage("That user was not found. Maybe it was already deleted.", false);
+                        return;
+                    }
+                    string name = found.ToString();
+
+                    // 2) Which of the lines above can we use? (only the tables that exist)
+                    List<string> usable = new List<string>();
+                    foreach (string[] line in belongsToUser)
+                    {
+                        bool allThere = true;
+                        for (int i = 1; i < line.Length; i++)
+                        {
+                            string[] parts = line[i].Split('.');
+                            if (!ColumnExists(conn, parts[0], parts[1])) allThere = false;
+                        }
+                        if (allThere) usable.Add(line[0]);
+                    }
+
+                    // 3) Delete everything together. All or nothing (a "transaction"):
+                    //    if one step fails, NOTHING is deleted.
+                    using (NpgsqlTransaction transaction = conn.BeginTransaction())
+                    {
+                        foreach (string sql in usable)
+                        {
+                            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@id", id);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+
+                        using (NpgsqlCommand cmd = new NpgsqlCommand("DELETE FROM public.users WHERE user_id = @id", conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@id", id);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();   // everything worked: save it for real
+                    }
+
+                    ShowMessage("Deleted! " + name + " was permanently removed.", true);
+                }
+            }
+            catch (PostgresException ex)
+            {
+                // 23503 = "another table still uses this user" (for example the courses a tutor made)
+                if (ex.SqlState == "23503")
+                    ShowMessage("This user cannot be deleted yet, because they are still used in the \"" + ex.TableName +
+                                "\" table (for example courses they created). Remove or change those first.", false);
+                else
+                    ShowMessage("Could not delete: " + ex.Message, false);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage("Could not delete: " + ex.Message, false);
+            }
+        }
+
+        // ----- Logout (the "Logout" option in the drop-down menu) -----
+        protected void lnkLogout_Click(object sender, EventArgs e)
+        {
+            Session.Clear();        // forget who was logged in
+            Session.Abandon();      // end the session
+            Response.Redirect("~/auth/login.aspx");   // go to the login page
         }
 
 
@@ -412,6 +528,18 @@ namespace WAPP_EduCore.pages.Admin
         {
             if (value == null || value == DBNull.Value) return "—";
             return Convert.ToDateTime(value).ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+        }
+
+        // Does this table have this column?
+        private bool ColumnExists(NpgsqlConnection conn, string table, string column)
+        {
+            using (NpgsqlCommand cmd = new NpgsqlCommand(
+                "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = @t AND column_name = @c", conn))
+            {
+                cmd.Parameters.AddWithValue("@t", table);
+                cmd.Parameters.AddWithValue("@c", column);
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
         }
 
         // 79.6%

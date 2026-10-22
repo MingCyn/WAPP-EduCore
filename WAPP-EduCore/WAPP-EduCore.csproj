@@ -159,6 +159,7 @@
     <Content Include="images\study.jpg" />
     <Content Include="pages\Admin\adminDashboard.aspx" />
     <Content Include="pages\Admin\adminReports.aspx" />
+    <Content Include="pages\Admin\adminSettings.aspx" />
     <Content Include="pages\Admin\userManagement.aspx" />
     <Content Include="pages\Admin\forumManagement.aspx" />
     <Content Include="pages\Admin\coursesManagement.aspx" />
@@ -287,6 +288,13 @@
     </Compile>
     <Compile Include="pages\Admin\adminReports.aspx.designer.cs">
       <DependentUpon>adminReports.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Admin\adminSettings.aspx.cs">
+      <DependentUpon>adminSettings.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Admin\adminSettings.aspx.designer.cs">
+      <DependentUpon>adminSettings.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Admin\userManagement.aspx.cs">
       <DependentUpon>userManagement.aspx</DependentUpon>

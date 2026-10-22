@@ -25,6 +25,7 @@
   19. MESSAGE BANNER ........ green / red message at the top
   20. POPUPS (MODALS) ....... detail, edit, confirm, add user
   21. DROPDOWN ARROW ........ moves the arrow away from the right edge
+  22. SIDEBAR ICONS ........ a little picture before every menu name
    ========================================================== */
 
 
@@ -414,10 +415,10 @@ table.data {
     font-size: 13px;
 }
 
-.input:focus {
-    outline: none;
-    border-color: var(--blue);   /* blue border when you click inside */
-}
+    .input:focus {
+        outline: none;
+        border-color: var(--blue); /* blue border when you click inside */
+    }
 
 .btn {
     height: 38px;
@@ -431,14 +432,14 @@ table.data {
     cursor: pointer;
 }
 
-.btn:hover {
-    background: #F8FAFF;
-}
+    .btn:hover {
+        background: #F8FAFF;
+    }
 
-.btn:disabled {
-    opacity: 0.45;            /* faded when it cannot be clicked */
-    cursor: not-allowed;
-}
+    .btn:disabled {
+        opacity: 0.45; /* faded when it cannot be clicked */
+        cursor: not-allowed;
+    }
 
 .btn-primary {
     background: var(--blue);
@@ -446,9 +447,9 @@ table.data {
     color: white;
 }
 
-.btn-primary:hover {
-    background: #3F55B5;
-}
+    .btn-primary:hover {
+        background: #3F55B5;
+    }
 
 .btn-danger {
     background: #DC2626;
@@ -456,16 +457,16 @@ table.data {
     color: white;
 }
 
-.btn-danger:hover {
-    background: #B91C1C;
-}
+    .btn-danger:hover {
+        background: #B91C1C;
+    }
 
 
 /* ==========================================================
    14. TOOLBAR  (search box + filters above a table)
    ========================================================== */
 .card.flush {
-    padding: 0;               /* a card with no inside space, so the table touches the edges */
+    padding: 0; /* a card with no inside space, so the table touches the edges */
     overflow: hidden;
 }
 
@@ -476,13 +477,13 @@ table.data {
     padding: 16px;
 }
 
-.toolbar .search-box {
-    width: 300px;
-}
+    .toolbar .search-box {
+        width: 300px;
+    }
 
-.toolbar .spacer {
-    flex: 1;                  /* pushes the "Add user" button to the far right */
-}
+    .toolbar .spacer {
+        flex: 1; /* pushes the "Add user" button to the far right */
+    }
 
 
 /* ==========================================================
@@ -495,9 +496,21 @@ table.data {
     font-size: 12px;
 }
 
-.badge.active   { background: #DCFCE7; color: #15803D; }   /* green  */
-.badge.inactive { background: #EEF2F6; color: var(--grey); } /* grey   */
-.badge.pending  { background: #FEF3C7; color: #B45309; }   /* yellow */
+    .badge.active {
+        background: #DCFCE7;
+        color: #15803D;
+    }
+    /* green  */
+    .badge.inactive {
+        background: #EEF2F6;
+        color: var(--grey);
+    }
+    /* grey   */
+    .badge.pending {
+        background: #FEF3C7;
+        color: #B45309;
+    }
+/* yellow */
 
 
 /* ==========================================================
@@ -507,9 +520,9 @@ table.data tr.clickable {
     cursor: pointer;
 }
 
-table.data tr.clickable:hover td {
-    background: #F8FAFF;      /* light blue when the mouse is over a row */
-}
+    table.data tr.clickable:hover td {
+        background: #F8FAFF; /* light blue when the mouse is over a row */
+    }
 
 .grey-text {
     color: var(--grey);
@@ -524,10 +537,21 @@ table.data tr.clickable:hover td {
     cursor: pointer;
 }
 
-.icon-btn:hover { opacity: 0.6; }
-.icon-btn.blue  { color: var(--blue); }
-.icon-btn.red   { color: #DC2626; }
-.icon-btn.green { color: #16A34A; }
+    .icon-btn:hover {
+        opacity: 0.6;
+    }
+
+    .icon-btn.blue {
+        color: var(--blue);
+    }
+
+    .icon-btn.red {
+        color: #DC2626;
+    }
+
+    .icon-btn.green {
+        color: #16A34A;
+    }
 
 
 /* ==========================================================
@@ -543,11 +567,11 @@ table.data tr.clickable:hover td {
     font-size: 12px;
 }
 
-.table-footer .btn {
-    height: 32px;
-    margin-left: 8px;
-    font-size: 12px;
-}
+    .table-footer .btn {
+        height: 32px;
+        margin-left: 8px;
+        font-size: 12px;
+    }
 
 
 /* ==========================================================
@@ -590,8 +614,17 @@ table.data tr.clickable:hover td {
     font-size: 13px;
 }
 
-.msg.ok    { background: #DCFCE7; border: 1px solid #86EFAC; color: #166534; }
-.msg.error { background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; }
+    .msg.ok {
+        background: #DCFCE7;
+        border: 1px solid #86EFAC;
+        color: #166534;
+    }
+
+    .msg.error {
+        background: #FEF2F2;
+        border: 1px solid #FECACA;
+        color: #B91C1C;
+    }
 
 
 /* ==========================================================
@@ -601,7 +634,7 @@ table.data tr.clickable:hover td {
    JavaScript adds the word "open" to show it.
    ========================================================== */
 .modal-back {
-    display: none;            /* hidden until JavaScript adds "open" */
+    display: none; /* hidden until JavaScript adds "open" */
     position: fixed;
     top: 0;
     left: 0;
@@ -614,9 +647,9 @@ table.data tr.clickable:hover td {
     z-index: 100;
 }
 
-.modal-back.open {
-    display: flex;
-}
+    .modal-back.open {
+        display: flex;
+    }
 
 .modal-box {
     width: 100%;
@@ -629,11 +662,11 @@ table.data tr.clickable:hover td {
     box-shadow: 0 20px 50px rgba(15, 27, 76, 0.25);
 }
 
-/* Red version used for "Deactivate / Reactivate?" */
-.modal-box.danger {
-    background: #FFF5F5;
-    border: 1px solid #FECACA;
-}
+    /* Red version used for "Deactivate / Reactivate?" */
+    .modal-box.danger {
+        background: #FFF5F5;
+        border: 1px solid #FECACA;
+    }
 
 .modal-head {
     display: flex;
@@ -642,10 +675,10 @@ table.data tr.clickable:hover td {
     margin-bottom: 14px;
 }
 
-.modal-head h3 {
-    margin: 0;
-    font-size: 18px;
-}
+    .modal-head h3 {
+        margin: 0;
+        font-size: 18px;
+    }
 
 .modal-title {
     margin: 0 0 4px 0;
@@ -660,8 +693,13 @@ table.data tr.clickable:hover td {
     line-height: 1.5;
 }
 
-.modal-box.danger .modal-title { color: #B91C1C; }
-.modal-box.danger .modal-text  { color: #B91C1C; }
+.modal-box.danger .modal-title {
+    color: #B91C1C;
+}
+
+.modal-box.danger .modal-text {
+    color: #B91C1C;
+}
 
 /* Grey box with small label + bold value */
 .info-box {
@@ -683,9 +721,9 @@ table.data tr.clickable:hover td {
     word-break: break-all;
 }
 
-.info-value:last-child {
-    margin-bottom: 0;
-}
+    .info-value:last-child {
+        margin-bottom: 0;
+    }
 
 .modal-buttons {
     display: flex;
@@ -698,16 +736,16 @@ table.data tr.clickable:hover td {
     margin-bottom: 14px;
 }
 
-.form-field label {
-    display: block;
-    margin-bottom: 6px;
-    color: var(--grey);
-    font-size: 12px;
-}
+    .form-field label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--grey);
+        font-size: 12px;
+    }
 
-.form-field .input {
-    width: 100%;
-}
+    .form-field .input {
+        width: 100%;
+    }
 
 .form-error {
     margin-bottom: 10px;
@@ -721,11 +759,61 @@ table.data tr.clickable:hover td {
    Applies to every dropdown that has class="input"
    ========================================================== */
 select.input {
-    appearance: none;                 /* hide the browser's own arrow */
+    appearance: none; /* hide the browser's own arrow */
     -webkit-appearance: none;
-    padding-right: 40px;              /* keep the text away from the arrow */
+    padding-right: 40px; /* keep the text away from the arrow */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 16px center;   /* 16px from the right edge. Make it bigger to move the arrow more to the left */
+    background-position: right 16px center; /* 16px from the right edge. Make it bigger to move the arrow more to the left */
     background-size: 14px;
 }
+
+
+/* ==========================================================
+   22. SIDEBAR ICONS  (a little picture before every menu name)
+   The picture is drawn with the same color as the text,
+   so it turns white by itself on the page you are on.
+   ========================================================== */
+.sidebar a.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* space between the icon and the name */
+}
+
+    .sidebar a.menu-item::before {
+        content: "";
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        background-color: currentColor; /* the icon uses the text color */
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+    }
+
+    /* Dashboard (4 squares) */
+    .sidebar a.menu-item[href="adminDashboard.aspx"]::before {
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7' height='7'/%3E%3Crect x='14' y='3' width='7' height='7'/%3E%3Crect x='14' y='14' width='7' height='7'/%3E%3Crect x='3' y='14' width='7' height='7'/%3E%3C/svg%3E");
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7' height='7'/%3E%3Crect x='14' y='3' width='7' height='7'/%3E%3Crect x='14' y='14' width='7' height='7'/%3E%3Crect x='3' y='14' width='7' height='7'/%3E%3C/svg%3E");
+    }
+
+    /* Users (people) */
+    .sidebar a.menu-item[href="userManagement.aspx"]::before {
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M23 21v-2a4 4 0 00-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 010 7.75'/%3E%3C/svg%3E");
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M23 21v-2a4 4 0 00-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 010 7.75'/%3E%3C/svg%3E");
+    }
+
+    /* Courses (open book) */
+    .sidebar a.menu-item[href="coursesManagement.aspx"]::before {
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z'/%3E%3C/svg%3E");
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z'/%3E%3C/svg%3E");
+    }
+
+    /* Reports (bar chart) */
+    .sidebar a.menu-item[href="adminReports.aspx"]::before {
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='20' x2='18' y2='10'/%3E%3Cline x1='12' y1='20' x2='12' y2='4'/%3E%3Cline x1='6' y1='20' x2='6' y2='14'/%3E%3C/svg%3E");
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='20' x2='18' y2='10'/%3E%3Cline x1='12' y1='20' x2='12' y2='4'/%3E%3Cline x1='6' y1='20' x2='6' y2='14'/%3E%3C/svg%3E");
+    }

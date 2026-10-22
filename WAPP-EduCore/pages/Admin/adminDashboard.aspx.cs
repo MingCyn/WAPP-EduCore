@@ -273,7 +273,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  ROW 3 - NEEDS ATTENTION (yellow box)
+        //  ROW 3 - NEEDS ATTENTION (yellow box, only courses without lessons)
         // =====================================================
         private void LoadNeedsAttention()
         {
@@ -282,17 +282,18 @@ namespace WAPP_EduCore.pages.Admin
                 @"SELECT COUNT(*) FROM public.courses c
                   WHERE NOT EXISTS (SELECT 1 FROM public.lesson l WHERE l.course_id = c.course_id)");
 
-            // Courses with no cover picture
-            int noImage = GetNumber(
-                "SELECT COUNT(*) FROM public.courses WHERE course_img IS NULL OR TRIM(course_img::text) = ''");
-
-            // Users who did not fill in their date of birth or gender
-            int incomplete = GetNumber(
-                "SELECT COUNT(*) FROM public.users WHERE dob IS NULL OR gender IS NULL OR TRIM(gender) = ''");
-
             lblNoLessons.Text = noLessons.ToString("N0");
-            lblNoImage.Text = noImage.ToString("N0");
-            lblIncomplete.Text = incomplete.ToString("N0");
+        }
+
+
+        // =====================================================
+        //  LOGOUT  (the "Logout" option in the drop-down menu)
+        // =====================================================
+        protected void lnkLogout_Click(object sender, EventArgs e)
+        {
+            Session.Clear();        // forget who was logged in
+            Session.Abandon();      // end the session
+            Response.Redirect("~/auth/login.aspx");   // go to the login page
         }
 
 

@@ -157,13 +157,43 @@
             display: grid;
             grid-template-columns: 1.15fr 1fr;
             gap: 18px;
-            align-items: start;
+            align-items: stretch;      /* both sides are as tall as the taller one */
+        }
+
+        /* The Recent Activity card: the list grows, the footer link stays at the bottom */
+        .activity-card {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .activity-list {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .activity-list .activity-item {
+            flex: 1;                   /* every event shares the free space */
         }
 
         .stack {
             display: flex;
             flex-direction: column;
             gap: 18px;
+        }
+
+        /* Quick Actions card takes the left-over height, its 3 rows share it */
+        .qa-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .qa-list {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         /* ---------- Recent Activity ---------- */
@@ -283,10 +313,10 @@
 
         /* ---------- Quick Actions ---------- */
         .qa-row {
+            flex: 1;
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 10px;
             padding: 12px 14px;
             background: #EEF2FF;
             border-radius: 8px;
@@ -309,7 +339,97 @@
             color: var(--grey);
             font-size: 11px;
         }
+
+        /* ---------- The avatar + drop-down menu (top right) ---------- */
+        .user-menu {
+            position: relative;
+        }
+
+        .user-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0;
+            background: none;
+            border: none;
+            color: var(--grey);
+            cursor: pointer;
+        }
+
+        .user-btn .avatar {
+            margin-left: 0;
+        }
+
+        .user-dropdown {
+            display: none;                 /* hidden until JavaScript adds "open" */
+            position: absolute;
+            right: 0;
+            top: 44px;
+            min-width: 180px;
+            padding: 6px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(15, 27, 76, 0.15);
+            z-index: 50;
+        }
+
+        .user-dropdown.open {
+            display: block;
+        }
+
+        .user-dropdown a {
+            display: block;
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .user-dropdown a:hover {
+            background: #F1F5F9;
+        }
+
+        .user-dropdown a.logout {
+            color: #DC2626;
+        }
+
+        /* ---------- Sidebar: a little icon before every menu name ---------- */
+        .sidebar a.menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;                  /* space between the icon and the name */
+        }
+
+        .menu-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            fill: none;
+            stroke: currentColor;       /* the icon has the same color as the name */
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
     </style>
+
+    <!-- ==================================================
+         JAVASCRIPT : opens / closes the drop-down menu
+         ================================================== -->
+    <script type="text/javascript">
+
+        // Click the avatar = show the menu (click again = hide it)
+        function toggleUserMenu(event) {
+            event.stopPropagation();   // so the click does not reach "document" below
+            document.getElementById('userDropdown').classList.toggle('open');
+        }
+
+        // Click anywhere else on the page = hide the menu
+        document.addEventListener('click', function () {
+            document.getElementById('userDropdown').classList.remove('open');
+        });
+    </script>
 </head>
 
 <body>
@@ -322,10 +442,22 @@
         <div class="sidebar">
             <img src="../../images/logo.png" alt="EduCore" class="logo" />
 
-            <a class="menu-item active" href="adminDashboard.aspx">Dashboard</a>
-            <a class="menu-item" href="userManagement.aspx">Users</a>
-            <a class="menu-item" href="coursesManagement.aspx">Courses</a>
-            <a class="menu-item" href="adminReports.aspx">Reports</a>
+            <a class="menu-item active" href="adminDashboard.aspx">
+                <svg class="menu-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
+                Dashboard
+            </a>
+            <a class="menu-item" href="userManagement.aspx">
+                <svg class="menu-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>
+                Users
+            </a>
+            <a class="menu-item" href="coursesManagement.aspx">
+                <svg class="menu-icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" /></svg>
+                Courses
+            </a>
+            <a class="menu-item" href="adminReports.aspx">
+                <svg class="menu-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
+                Reports
+            </a>
 
             <div class="me">
                 <%= AdminName %>
@@ -345,8 +477,16 @@
                     <h1>Admin Dashboard</h1>
                     <p>Platform overview</p>
                 </div>
-                <div>
-                    <span class="avatar"><%= AdminInitials %></span>
+                <div class="user-menu">
+                    <button type="button" class="user-btn" onclick="toggleUserMenu(event)" title="Account">
+                        <span class="avatar"><%= AdminInitials %></span>
+                    </button>
+
+                    <!-- The 2 options -->
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="adminSettings.aspx">Manage Account</a>
+                        <asp:LinkButton ID="lnkLogout" runat="server" CssClass="logout" CausesValidation="false" OnClick="lnkLogout_Click">Logout</asp:LinkButton>
+                    </div>
                 </div>
             </div>
 
@@ -460,7 +600,7 @@
                 <div class="dash-bottom">
 
                     <!-- ----- Recent Activity ----- -->
-                    <div class="card">
+                    <div class="card activity-card">
                         <div class="card-head">
                             <div>
                                 <h3>Recent Activity</h3>
@@ -469,7 +609,9 @@
                             <a class="view-link" href="userManagement.aspx">View all →</a>
                         </div>
 
-                        <asp:Literal ID="litActivity" runat="server"></asp:Literal>
+                        <div class="activity-list">
+                            <asp:Literal ID="litActivity" runat="server"></asp:Literal>
+                        </div>
 
                         <div class="activity-footer">
                             <a class="view-link" href="userManagement.aspx">View all users</a>
@@ -494,42 +636,25 @@
                                 </div>
                                 <a class="attention-btn" href="coursesManagement.aspx">Review courses</a>
                             </div>
-
-                            <div class="attention-row">
-                                <div class="attention-number"><asp:Label ID="lblNoImage" runat="server"></asp:Label></div>
-                                <div class="attention-text">
-                                    <div class="attention-name">Courses without an image</div>
-                                    <div class="attention-sub">Courses missing a cover picture</div>
-                                </div>
-                                <a class="attention-btn" href="coursesManagement.aspx">Review courses</a>
-                            </div>
-
-                            <div class="attention-row">
-                                <div class="attention-number"><asp:Label ID="lblIncomplete" runat="server"></asp:Label></div>
-                                <div class="attention-text">
-                                    <div class="attention-name">Incomplete profiles</div>
-                                    <div class="attention-sub">Users missing date of birth or gender</div>
-                                </div>
-                                <a class="attention-btn" href="userManagement.aspx">Review users</a>
-                            </div>
                         </div>
 
                         <!-- Quick Actions -->
-                        <div class="card">
+                        <div class="card qa-card">
                             <h3>Quick Actions</h3>
                             <p class="sub">Everyday administration, one step away</p>
+
+                            <div class="qa-list">
+                            <a class="qa-row" href="userManagement.aspx">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg>
+                                <span class="qa-name">Manage Users</span>
+                                <span class="qa-desc">Maintain access and account roles</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                            </a>
 
                             <a class="qa-row" href="coursesManagement.aspx">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" /></svg>
                                 <span class="qa-name">Review Courses</span>
                                 <span class="qa-desc">Check and update the course catalogue</span>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                            </a>
-
-                            <a class="qa-row" href="userManagement.aspx">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg>
-                                <span class="qa-name">Manage Users</span>
-                                <span class="qa-desc">Maintain access and account roles</span>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
                             </a>
 
@@ -539,6 +664,7 @@
                                 <span class="qa-desc">See user, course and learning numbers</span>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
                             </a>
+                            </div>
                         </div>
 
                     </div>
