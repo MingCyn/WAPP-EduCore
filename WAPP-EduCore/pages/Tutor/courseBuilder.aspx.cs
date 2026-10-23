@@ -274,7 +274,7 @@ namespace WAPP_EduCore.pages.Tutor
             if (hasVideo)
             {
                 Uri uri;
-                string source = Uri.TryCreate(lesson.VideoUrl, UriKind.Absolute, out uri) ? uri.Host : "Video";
+                string source = Uri.TryCreate(lesson.VideoUrl, UriKind.Absolute, out uri) ? uri.Host : "Uploaded video";
                 LitVideoSource.Text = Server.HtmlEncode(source);
             }
 
@@ -369,12 +369,6 @@ namespace WAPP_EduCore.pages.Tutor
             return null;
         }
 
-        private static string GetVideoUrl(string json)
-        {
-            Dictionary<string, object> video = FindBlock(ParseBlocks(json), "video");
-            return video == null ? "" : Str(video, "url", "");
-        }
-
         private static string Str(Dictionary<string, object> block, string key, string fallback)
         {
             object v;
@@ -428,7 +422,7 @@ namespace WAPP_EduCore.pages.Tutor
 
         protected string GetLessonIcon(object hasVideo)
         {
-            if (Convert.ToBoolean(hasVideo))
+            if ((bool)hasVideo)
                 return "<svg class=\"lesson-icon\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><rect x=\"1.5\" y=\"3.5\" width=\"9\" height=\"9\" rx=\"1.5\" /><path d=\"M10.5 7l4-2v6l-4-2z\" /></svg>";
             return "<svg class=\"lesson-icon\" viewBox=\"0 0 16 16\" fill=\"currentColor\"><path d=\"M3 1.5h6.5L13 5v9.5H3z\" /><path d=\"M9.5 1.5V5H13\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1\" /><path d=\"M5 8h6M5 10.5h6\" stroke=\"#fff\" stroke-width=\"1\" /></svg>";
         }
