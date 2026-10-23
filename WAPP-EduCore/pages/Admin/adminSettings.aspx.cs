@@ -118,10 +118,8 @@ namespace WAPP_EduCore.pages.Admin
                 if (user.Rows[0]["dob"] != DBNull.Value)
                     txtDob.Text = Convert.ToDateTime(user.Rows[0]["dob"]).ToString("yyyy-MM-dd", Inv);
 
-                // Choose the saved role in the dropdown (Student / Tutor / Admin)
-                string role = user.Rows[0]["role"] == DBNull.Value ? "" : user.Rows[0]["role"].ToString();
-                if (ddlRole.Items.FindByValue(role) != null)
-                    ddlRole.SelectedValue = role;
+                // The role is only SHOWN (the box is read-only, it cannot be changed)
+                txtRole.Text = user.Rows[0]["role"] == DBNull.Value ? "" : user.Rows[0]["role"].ToString();
             }
         }
 
@@ -133,7 +131,6 @@ namespace WAPP_EduCore.pages.Admin
         {
             string name = txtName.Text.Trim();
             string email = txtEmail.Text.Trim();
-            string role = ddlRole.SelectedValue;
 
             // ----- Check what the admin typed -----
             if (name == "")
@@ -158,15 +155,6 @@ namespace WAPP_EduCore.pages.Admin
                 return;
             }
 
-            // The admin must not take away their OWN Admin role (then nobody could manage the site)
-            string oldRole = Convert.ToString(GetValue("SELECT role FROM public.users WHERE user_id = @id",
-                new NpgsqlParameter("@id", adminId)));
-            if (oldRole == "Admin" && role != "Admin")
-            {
-                ShowMessage("You cannot remove your own Admin role.", false);
-                return;
-            }
-
             // The date of birth is optional. Empty = nothing saved.
             NpgsqlParameter dob = new NpgsqlParameter("@dob", NpgsqlDbType.Date);
             DateTime dobValue;
@@ -187,11 +175,10 @@ namespace WAPP_EduCore.pages.Admin
             // ----- Save -----
             try
             {
-                RunSql("UPDATE public.users SET full_name = @name, email = @email, dob = @dob, role = @role WHERE user_id = @id",
+                RunSql("UPDATE public.users SET full_name = @name, email = @email, dob = @dob WHERE user_id = @id",
                     new NpgsqlParameter("@name", name),
                     new NpgsqlParameter("@email", email),
                     dob,
-                    new NpgsqlParameter("@role", role),
                     new NpgsqlParameter("@id", adminId));
 
                 ShowMessage("Saved! Your account information was updated.", true);

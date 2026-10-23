@@ -60,7 +60,7 @@
         /* ---------- Two columns of white cards ---------- */
         .st-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);    /* left (Personal Information) : right (Account & Security) = 1 : 1.1. Make the 1.1 smaller to make the right side narrower */
+            grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);    /* left (Personal Information) : right (Account & Security) = 1.6 : 1. Make the 1.6 bigger to make the left side wider */
             gap: 22px;
         }
 
@@ -116,6 +116,13 @@
             background-repeat: no-repeat;
             background-position: right 16px center;
             background-size: 14px;
+        }
+
+        /* The Role box can only be read (it cannot be changed) */
+        .st-field input.readonly {
+            background: #F1F3F9;
+            color: #64748B;
+            cursor: not-allowed;
         }
 
         .st-field input:focus,
@@ -407,12 +414,8 @@
                             </div>
 
                             <div class="st-field">
-                                <label for="ddlRole">Role</label>
-                                <asp:DropDownList ID="ddlRole" runat="server">
-                                    <asp:ListItem Value="Student">Student</asp:ListItem>
-                                    <asp:ListItem Value="Tutor">Tutor</asp:ListItem>
-                                    <asp:ListItem Value="Admin">Admin</asp:ListItem>
-                                </asp:DropDownList>
+                                <label for="txtRole">Role</label>
+                                <asp:TextBox ID="txtRole" runat="server" ReadOnly="true" CssClass="readonly"></asp:TextBox>
                             </div>
                         </div>
                     </div>
