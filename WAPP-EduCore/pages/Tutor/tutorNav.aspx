@@ -7,7 +7,7 @@
     <nav class="nav-links">
         <a href="tutorDashboard.aspx" class="nav-link">Dashboard</a>
         <a href="courses.aspx" class="nav-link">My Courses</a>
-        <a href="students.aspx" class="nav-link">Students</a>
+        <a href="studentManagement.aspx" class="nav-link">Students</a>
         <a href="assessments.aspx" class="nav-link">Assessments</a>
         <a href="analytics.aspx" class="nav-link">Analytics</a>
         <a href="messages.aspx" class="nav-link">Messages</a>
