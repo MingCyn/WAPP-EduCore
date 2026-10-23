@@ -26,6 +26,9 @@ namespace WAPP_EduCore.pages.Admin
         // We remember the "who was active?" SQL, so we only build it once per page load
         private string recentActivitySql = null;
 
+        // The id of the admin who is looking at this page right now
+        private int adminId = 0;
+
         protected void Page_Load(object sender, EventArgs e)
         {
             LoadAdminInfo();   // runs every time the page opens
@@ -60,19 +63,27 @@ namespace WAPP_EduCore.pages.Admin
 
                 if (Session["user_id"] != null)
                 {
-                    cmd.CommandText = "SELECT full_name FROM public.users WHERE user_id = @id";
+                    cmd.CommandText = "SELECT full_name, user_id FROM public.users WHERE user_id = @id";
                     cmd.Parameters.AddWithValue("@id", Convert.ToInt32(Session["user_id"]));
                 }
                 else
                 {
-                    cmd.CommandText = "SELECT full_name FROM public.users WHERE role = 'Admin' ORDER BY user_id LIMIT 1";
+                    cmd.CommandText = "SELECT full_name, user_id FROM public.users WHERE role = 'Admin' ORDER BY user_id LIMIT 1";
                 }
 
-                object result = cmd.ExecuteScalar();
-
-                if (result != null)
+                string name = null;
+                using (NpgsqlDataReader reader = cmd.ExecuteReader())
                 {
-                    string fullName = result.ToString().Trim();
+                    if (reader.Read())
+                    {
+                        name = reader[0].ToString();
+                        adminId = Convert.ToInt32(reader[1]);
+                    }
+                }
+
+                if (name != null)
+                {
+                    string fullName = name.Trim();
                     AdminName = Server.HtmlEncode(fullName);
 
                     // Initials = first letter of the first word + first letter of the last word
@@ -83,6 +94,16 @@ namespace WAPP_EduCore.pages.Admin
                         AdminInitials = (words[0].Substring(0, 1) + words[words.Length - 1].Substring(0, 1)).ToUpper();
                 }
             }
+        }
+
+        // =====================================================
+        //  LOGOUT  (the "Logout" option in the drop-down menu)
+        // =====================================================
+        protected void lnkLogout_Click(object sender, EventArgs e)
+        {
+            Session.Clear();        // forget who was logged in
+            Session.Abandon();      // end the session
+            Response.Redirect("~/auth/login.aspx");   // go to the login page
         }
 
         // =====================================================
@@ -213,36 +234,43 @@ namespace WAPP_EduCore.pages.Admin
         // =====================================================
         private void LoadCoursesTab()
         {
-            // ----- The 5 number boxes -----
+            // ----- The 4 number boxes -----
             int total = GetNumber("SELECT COUNT(*) FROM public.courses");
             int topics = GetNumber("SELECT COUNT(DISTINCT category) FROM public.courses");
+
+            // A course belongs to a subject when the subject word is in its title or its topic
+            int biology = CountSubject("biology");
+            int chemistry = CountSubject("chemistry");
+            int physics = CountSubject("physics");
+
+            // (still needed for the ranking note at the bottom)
             int published = GetNumber("SELECT COUNT(*) FROM public.courses WHERE status::text ILIKE 'publish%'");
-            int pending = GetNumber("SELECT COUNT(*) FROM public.courses WHERE status::text ILIKE 'pending%' OR status::text ILIKE '%review%'");
-            int draft = GetNumber("SELECT COUNT(*) FROM public.courses WHERE status::text ILIKE 'draft%'");
-            int archived = GetNumber("SELECT COUNT(*) FROM public.courses WHERE status::text ILIKE 'archiv%'");
 
             lblTotalCourses.Text = total.ToString("N0");
             lblTotalNote.Text = "Across " + topics + " topics";
 
-            lblPublished.Text = published.ToString("N0");
-            lblPublishedNote.Text = Percent(published, total) + " of catalogue";
+            lblBiology.Text = biology.ToString("N0");
+            lblBiologyNote.Text = Percent(biology, total) + " of catalogue";
 
-            lblPending.Text = pending.ToString("N0");
-            lblPendingNote.Text = Percent(pending, total) + " of catalogue";
+            lblChemistry.Text = chemistry.ToString("N0");
+            lblChemistryNote.Text = Percent(chemistry, total) + " of catalogue";
 
-            lblDraft.Text = draft.ToString("N0");
-            lblDraftNote.Text = Percent(draft, total) + " of catalogue";
+            lblPhysics.Text = physics.ToString("N0");
+            lblPhysicsNote.Text = Percent(physics, total) + " of catalogue";
 
-            lblArchived.Text = archived.ToString("N0");
-            lblArchivedNote.Text = Percent(archived, total) + " of catalogue";
+            // ----- Column chart: how many LESSONS does each subject have? -----
+            int bioLessons = CountSubjectLessons("biology");
+            int chemLessons = CountSubjectLessons("chemistry");
+            int physLessons = CountSubjectLessons("physics");
 
-            // ----- Status chart (Draft, Pending Review, Published, Archived) -----
-            List<string> statusNames = new List<string> { "Draft", "Pending Review", "Published", "Archived" };
-            List<int> statusValues = new List<int> { draft, pending, published, archived };
-            List<string> statusColors = new List<string> { "#8E9EE0", "#E0A85A", "#4F67CC", "#CBD2F0" };
+            List<string> subjectNames = new List<string> { "Biology", "Chemistry", "Physics" };
+            List<int> subjectValues = new List<int> { bioLessons, chemLessons, physLessons };
+            List<string> subjectColors = new List<string> { "#4F67CC", "#8E9EE0", "#CBD2F0" };
 
-            litStatusChart.Text = DrawColumns(statusNames, statusValues, statusColors) +
-                                  "<div class='note'>" + pending.ToString("N0") + " courses are awaiting review before publication.</div>";
+            int allLessons = GetNumber("SELECT COUNT(*) FROM public.lesson");
+            litSubjectLessons.Text = DrawColumns(subjectNames, subjectValues, subjectColors) +
+                                     "<div class='note'>" + (bioLessons + chemLessons + physLessons).ToString("N0") + " of " +
+                                     allLessons.ToString("N0") + " lessons belong to these three subjects.</div>";
 
             // ----- Top 5 and lowest 5 published courses by enrolment -----
             DataTable top5 = GetTable(RankSql("DESC"));
@@ -309,6 +337,21 @@ namespace WAPP_EduCore.pages.Admin
 
             lblRankNote.Text = "Ranking covers " + published.ToString("N0") +
                                " published courses. Draft, pending-review and archived courses are excluded to compare live learning opportunities.";
+        }
+
+        // How many courses have this subject word in the title or the topic?
+        private int CountSubject(string subject)
+        {
+            return GetNumber("SELECT COUNT(*) FROM public.courses WHERE title ILIKE '%" + subject + "%' OR category ILIKE '%" + subject + "%'");
+        }
+
+        // How many lessons are inside the courses of this subject?
+        private int CountSubjectLessons(string subject)
+        {
+            return GetNumber(
+                @"SELECT COUNT(*) FROM public.lesson l
+                  JOIN public.courses c ON c.course_id = l.course_id
+                  WHERE c.title ILIKE '%" + subject + "%' OR c.category ILIKE '%" + subject + "%'");
         }
 
         // The SQL for "published courses, ranked by how many learners enrolled".
@@ -539,7 +582,9 @@ namespace WAPP_EduCore.pages.Admin
                 new string[] { "quiz_score",         "user_id",   "done_time"    },   // took a quiz
                 new string[] { "discussion_posts",   "user_id",   "created_at"   },   // wrote a post
                 new string[] { "discussion_replies", "user_id",   "created_at"   },   // wrote a reply
-                new string[] { "messages",           "sender_id", "created_at"   }    // sent a message
+                new string[] { "messages",           "sender_id", "created_at"   },   // sent a message
+                new string[] { "users",              "user_id",   "last_login"   },   // logged in (only if you add this column, see the note)
+                new string[] { "users",              "user_id",   "created_at"   }    // a brand-new account is not "inactive"
             };
 
             List<string> parts = new List<string>();
@@ -550,6 +595,12 @@ namespace WAPP_EduCore.pages.Admin
                     parts.Add("SELECT " + s[1] + " FROM public." + s[0] + " WHERE " + s[2] + " >= now() - interval '30 days'");
                 }
             }
+
+            // The admin who is looking at this page RIGHT NOW is obviously active.
+            // (Logging in is not saved anywhere in the database, so without this line
+            //  an admin who only looks at pages would always be shown as "inactive".)
+            if (adminId > 0)
+                parts.Add("SELECT " + adminId);
 
             // Nothing found? Then nobody is active.
             if (parts.Count == 0)

@@ -24,6 +24,15 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
+        /// lnkLogout control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton lnkLogout;
+
+        /// <summary>
         /// litMessage control.
         /// </summary>
         /// <remarks>
@@ -60,31 +69,58 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.Label lblTopics;
 
         /// <summary>
-        /// lblLessons control.
+        /// lblBiology control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblLessons;
+        protected global::System.Web.UI.WebControls.Label lblBiology;
 
         /// <summary>
-        /// lblNew control.
+        /// lblBiologyNote control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblNew;
+        protected global::System.Web.UI.WebControls.Label lblBiologyNote;
 
         /// <summary>
-        /// lblNoLessons control.
+        /// lblChemistry control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblNoLessons;
+        protected global::System.Web.UI.WebControls.Label lblChemistry;
+
+        /// <summary>
+        /// lblChemistryNote control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblChemistryNote;
+
+        /// <summary>
+        /// lblPhysics control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblPhysics;
+
+        /// <summary>
+        /// lblPhysicsNote control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblPhysicsNote;
 
         /// <summary>
         /// pnlToolbar control.
@@ -204,6 +240,15 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.HiddenField hfEditId;
 
         /// <summary>
+        /// fuEditImage control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.FileUpload fuEditImage;
+
+        /// <summary>
         /// txtEditTitle control.
         /// </summary>
         /// <remarks>
@@ -231,6 +276,15 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.TextBox txtEditDescription;
 
         /// <summary>
+        /// ddlEditLevel control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddlEditLevel;
+
+        /// <summary>
         /// txtEditTopic control.
         /// </summary>
         /// <remarks>
@@ -240,13 +294,22 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.TextBox txtEditTopic;
 
         /// <summary>
-        /// txtEditDuration control.
+        /// ddlEditWeeks control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtEditDuration;
+        protected global::System.Web.UI.WebControls.DropDownList ddlEditWeeks;
+
+        /// <summary>
+        /// ddlEditHours control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddlEditHours;
 
         /// <summary>
         /// btnSaveEdit control.
@@ -294,6 +357,15 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.TextBox txtAddDescription;
 
         /// <summary>
+        /// ddlAddLevel control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddlAddLevel;
+
+        /// <summary>
         /// txtAddTopic control.
         /// </summary>
         /// <remarks>
@@ -303,13 +375,22 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.TextBox txtAddTopic;
 
         /// <summary>
-        /// txtAddDuration control.
+        /// ddlAddWeeks control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtAddDuration;
+        protected global::System.Web.UI.WebControls.DropDownList ddlAddWeeks;
+
+        /// <summary>
+        /// ddlAddHours control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddlAddHours;
 
         /// <summary>
         /// lblAddError control.
@@ -328,5 +409,23 @@ namespace WAPP_EduCore.pages.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnAddCourse;
+
+        /// <summary>
+        /// hfDeleteId control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfDeleteId;
+
+        /// <summary>
+        /// btnConfirmDelete control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnConfirmDelete;
     }
 }

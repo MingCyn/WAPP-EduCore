@@ -24,6 +24,15 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
+        /// lnkLogout control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton lnkLogout;
+
+        /// <summary>
         /// lnkUsers control.
         /// </summary>
         /// <remarks>
@@ -222,85 +231,67 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.Label lblTotalNote;
 
         /// <summary>
-        /// lblPublished control.
+        /// lblBiology control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblPublished;
+        protected global::System.Web.UI.WebControls.Label lblBiology;
 
         /// <summary>
-        /// lblPublishedNote control.
+        /// lblBiologyNote control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblPublishedNote;
+        protected global::System.Web.UI.WebControls.Label lblBiologyNote;
 
         /// <summary>
-        /// lblPending control.
+        /// lblChemistry control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblPending;
+        protected global::System.Web.UI.WebControls.Label lblChemistry;
 
         /// <summary>
-        /// lblPendingNote control.
+        /// lblChemistryNote control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblPendingNote;
+        protected global::System.Web.UI.WebControls.Label lblChemistryNote;
 
         /// <summary>
-        /// lblDraft control.
+        /// lblPhysics control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblDraft;
+        protected global::System.Web.UI.WebControls.Label lblPhysics;
 
         /// <summary>
-        /// lblDraftNote control.
+        /// lblPhysicsNote control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblDraftNote;
+        protected global::System.Web.UI.WebControls.Label lblPhysicsNote;
 
         /// <summary>
-        /// lblArchived control.
+        /// litSubjectLessons control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblArchived;
-
-        /// <summary>
-        /// lblArchivedNote control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblArchivedNote;
-
-        /// <summary>
-        /// litStatusChart control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litStatusChart;
+        protected global::System.Web.UI.WebControls.Literal litSubjectLessons;
 
         /// <summary>
         /// litEnrolBars control.

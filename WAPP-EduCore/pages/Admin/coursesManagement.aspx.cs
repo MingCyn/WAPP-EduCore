@@ -146,18 +146,36 @@ namespace WAPP_EduCore.pages.Admin
         {
             int total = GetNumber("SELECT COUNT(*) FROM public.courses");
             int topics = GetNumber("SELECT COUNT(DISTINCT category) FROM public.courses");
-            int lessons = GetNumber("SELECT COUNT(*) FROM public.lesson");
-            int newThisMonth = GetNumber("SELECT COUNT(*) FROM public.courses WHERE created_at >= date_trunc('month', now())");
-            int noLessons = GetNumber(
-                @"SELECT COUNT(*) FROM public.courses c
-                  WHERE NOT EXISTS (SELECT 1 FROM public.lesson l WHERE l.course_id = c.course_id)");
+
+            // A course belongs to a subject when the subject is in its title or in its topic
+            int biology = CountSubject("biology");
+            int chemistry = CountSubject("chemistry");
+            int physics = CountSubject("physics");
 
             lblTotal.Text = total.ToString("N0");
             lblTotalNote.Text = "Across " + topics + " topics";
             lblTopics.Text = topics.ToString("N0");
-            lblLessons.Text = lessons.ToString("N0");
-            lblNew.Text = newThisMonth.ToString("N0");
-            lblNoLessons.Text = noLessons.ToString("N0");
+
+            lblBiology.Text = biology.ToString("N0");
+            lblBiologyNote.Text = Percent(biology, total) + " of all courses";
+
+            lblChemistry.Text = chemistry.ToString("N0");
+            lblChemistryNote.Text = Percent(chemistry, total) + " of all courses";
+
+            lblPhysics.Text = physics.ToString("N0");
+            lblPhysicsNote.Text = Percent(physics, total) + " of all courses";
+        }
+
+        // How many courses have this subject word in the title or the topic?
+        private int CountSubject(string subject)
+        {
+            using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
+            using (NpgsqlCommand cmd = new NpgsqlCommand(
+                "SELECT COUNT(*) FROM public.courses WHERE title ILIKE @word OR category ILIKE @word", conn))
+            {
+                cmd.Parameters.AddWithValue("@word", "%" + subject + "%");
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
         }
 
 
@@ -188,12 +206,16 @@ namespace WAPP_EduCore.pages.Admin
                 ? "''"
                 : "COALESCE(c." + DescriptionColumn() + "::text, '')";
 
+            // level = the course_level column (SPM / IGCSE), or empty when there is no such column
+            string levelPart = ColumnExists("course_level") ? "COALESCE(c.course_level::text, '')" : "''";
+
             DataTable table = new DataTable();
             string sql =
                 @"SELECT c.course_id, c.title, c.category, c.duration::text AS duration, c.created_at,
                          COALESCE(l.n, 0) AS lessons,
                          CASE WHEN c.course_img::text ~ '^(https?://|/|~/)' THEN c.course_img::text ELSE '' END AS img,
-                         " + descriptionPart + @" AS description"
+                         " + descriptionPart + @" AS description,
+                         " + levelPart + @" AS level"
                 + FromAndWhere +
                 @" ORDER BY c.course_id ASC
                    LIMIT @size OFFSET @skip";   // ASC = smallest first (1, 2, 3...)
@@ -265,6 +287,7 @@ namespace WAPP_EduCore.pages.Admin
             sb.Append(Attr("topic", topic));
             sb.Append(Attr("duration", duration));
             sb.Append(Attr("description", description));
+            sb.Append(Attr("level", r["level"].ToString()));
             sb.Append(Attr("lessons", lessons.ToString()));
             sb.Append(Attr("created", FormatDate(r["created_at"])));
             sb.Append(Attr("img", img));
@@ -284,12 +307,14 @@ namespace WAPP_EduCore.pages.Admin
 
             sb.Append("<td class='grey-text'>" + FormatDate(r["created_at"]) + "</td>");
 
-            // The 2 little icons: view and edit
+            // The 3 little icons: view, edit and delete
             sb.Append("<td>");
             sb.Append(IconButton("blue", "View", "openDetail(" + id + ")",
                 "<path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/>"));
             sb.Append(IconButton("", "Edit", "openEdit(" + id + ")",
                 "<path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z'/>"));
+            sb.Append(IconButton("red", "Delete", "openDelete(" + id + ")",
+                "<polyline points='3 6 5 6 21 6'/><path d='M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6'/><path d='M10 11v6'/><path d='M14 11v6'/><path d='M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2'/>"));
             sb.Append("</td>");
 
             sb.Append("</tr>");
@@ -323,25 +348,43 @@ namespace WAPP_EduCore.pages.Admin
             int id;
             if (!int.TryParse(hfEditId.Value, out id)) return;
 
-            string title = txtEditTitle.Text.Trim();
+            string name = txtEditTitle.Text.Trim();
             string topic = txtEditTopic.Text.Trim();
-            string duration = txtEditDuration.Text.Trim();
             string description = txtEditDescription.Text.Trim();
 
-            if (title == "")
+            if (name == "")
             {
-                ShowMessage("The course title cannot be empty.", false);
+                ShowMessage("The course name cannot be empty.", false);
+                ReopenPopup("editModal");
+                return;
+            }
+
+            // The title is saved like  "SPM Biology: Cell Physiology & Organization"
+            string title = BuildTitle(ddlEditLevel.SelectedValue, topic, name);
+
+            // The duration is saved like  "4 weeks (3 hrs/week)"
+            string duration;
+            string durationError;
+            if (!TryBuildDuration(ddlEditWeeks.SelectedValue, ddlEditHours.SelectedValue, out duration, out durationError))
+            {
+                ShowMessage(durationError, false);
                 ReopenPopup("editModal");
                 return;
             }
 
             // The command is built from small pieces, so the description is only
             // saved when the table really has a description column.
-            string sql = "UPDATE public.courses SET title = @title, category = @category, duration = @duration";
+            string sql = "UPDATE public.courses SET title = @title, category = @category";
             List<NpgsqlParameter> parameters = new List<NpgsqlParameter>();
             parameters.Add(new NpgsqlParameter("@title", title));
             parameters.Add(new NpgsqlParameter("@category", topic == "" ? (object)DBNull.Value : topic));
-            parameters.Add(DurationParameter(duration));
+
+            // Both duration boxes empty = keep the duration that is already saved
+            if (duration != "")
+            {
+                sql += ", duration = @duration";
+                parameters.Add(DurationParameter(duration));
+            }
 
             if (DescriptionColumn() != null)
             {
@@ -349,17 +392,49 @@ namespace WAPP_EduCore.pages.Admin
                 parameters.Add(new NpgsqlParameter("@description", description));
             }
 
-            sql += " WHERE course_id = @id";
-            parameters.Add(new NpgsqlParameter("@id", id));
+            // Save the SPM / IGCSE choice in the course_level column too
+            if (ColumnExists("course_level"))
+            {
+                sql += ", course_level = @level";
+                parameters.Add(new NpgsqlParameter("@level", ddlEditLevel.SelectedValue == "" ? (object)DBNull.Value : ddlEditLevel.SelectedValue));
+            }
+
+            // Remember WHEN it was changed
+            if (ColumnExists("updated_at"))
+                sql += ", updated_at = now()";
+
+            string newImage = "";       // the new picture (if the admin chose one)
+            string oldImage = "";       // the picture the course had before
 
             try
             {
+                // A new picture was chosen: save the file, then store its path
+                newImage = SaveCourseImage(fuEditImage);
+                if (newImage != "")
+                {
+                    oldImage = Convert.ToString(GetValueOrNull("SELECT course_img::text FROM public.courses WHERE course_id = @id", new NpgsqlParameter("@id", id)));
+                    sql += ", course_img = @img";
+                    parameters.Add(new NpgsqlParameter("@img", newImage));
+                }
+
+                sql += " WHERE course_id = @id";
+                parameters.Add(new NpgsqlParameter("@id", id));
+
                 RunSql(sql, parameters.ToArray());
+
+                // The old picture file is not needed any more (only files WE saved are deleted)
+                if (newImage != "" && oldImage.StartsWith("~/images/courses/"))
+                    DeleteImageFile(oldImage);
+
                 ShowMessage("Saved! \"" + title + "\" was updated.", true);
             }
             catch (Exception ex)
             {
-                ShowMessage("Could not save: " + ex.Message, false);
+                DeleteImageFile(newImage);   // saving failed: remove the new picture file again
+
+                ShowMessage(ex.Message.StartsWith("Please choose") || ex.Message.StartsWith("The picture")
+                    ? ex.Message
+                    : "Could not save: " + ex.Message, false);
                 ReopenPopup("editModal");
             }
         }
@@ -369,14 +444,26 @@ namespace WAPP_EduCore.pages.Admin
         {
             lblAddError.Text = "";
 
-            string title = txtAddTitle.Text.Trim();
+            string name = txtAddTitle.Text.Trim();
             string topic = txtAddTopic.Text.Trim();
-            string duration = txtAddDuration.Text.Trim();
             string description = txtAddDescription.Text.Trim();
 
-            if (title == "")
+            if (name == "")
             {
-                lblAddError.Text = "Please type a course title.";
+                lblAddError.Text = "Please type a course name.";
+                ReopenPopup("addModal");
+                return;
+            }
+
+            // The title is saved like  "SPM Biology: Cell Physiology & Organization"
+            string title = BuildTitle(ddlAddLevel.SelectedValue, topic, name);
+
+            // The duration is saved like  "4 weeks (3 hrs/week)"
+            string duration;
+            string durationError;
+            if (!TryBuildDuration(ddlAddWeeks.SelectedValue, ddlAddHours.SelectedValue, out duration, out durationError))
+            {
+                lblAddError.Text = durationError;
                 ReopenPopup("addModal");
                 return;
             }
@@ -401,6 +488,7 @@ namespace WAPP_EduCore.pages.Admin
                 values.Add("@category");
                 parameters.Add(new NpgsqlParameter("@category", topic == "" ? (object)DBNull.Value : topic));
 
+                // (no duration typed = nothing saved)
                 columns.Add("duration");
                 values.Add("@duration");
                 parameters.Add(DurationParameter(duration));
@@ -410,6 +498,14 @@ namespace WAPP_EduCore.pages.Admin
                     columns.Add("course_img");
                     values.Add("@img");
                     parameters.Add(new NpgsqlParameter("@img", imagePath));
+                }
+
+                // SPM / IGCSE also goes in the course_level column
+                if (ddlAddLevel.SelectedValue != "" && ColumnExists("course_level"))
+                {
+                    columns.Add("course_level");
+                    values.Add("@level");
+                    parameters.Add(new NpgsqlParameter("@level", ddlAddLevel.SelectedValue));
                 }
 
                 if (DescriptionColumn() != null)
@@ -438,7 +534,8 @@ namespace WAPP_EduCore.pages.Admin
                 txtAddTitle.Text = "";
                 txtAddDescription.Text = "";
                 txtAddTopic.Text = "";
-                txtAddDuration.Text = "";
+                ddlAddWeeks.SelectedIndex = 0;
+                ddlAddHours.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
@@ -450,6 +547,139 @@ namespace WAPP_EduCore.pages.Admin
                     : "Could not create the course: " + ex.Message;
                 ReopenPopup("addModal");
             }
+        }
+
+
+        // ----- Delete popup: the admin clicked "Confirm" -----
+        protected void btnConfirmDelete_Click(object sender, EventArgs e)
+        {
+            int id;
+            if (!int.TryParse(hfDeleteId.Value, out id)) return;
+
+            // "the lessons of this course" (used in many lines below)
+            string lessonsOfCourse = "(SELECT lesson_id FROM public.lesson WHERE course_id = @id)";
+
+            // "the discussion posts of this course" (the course itself, or one of its lessons)
+            string postsOfCourse = "(SELECT post_id FROM public.discussion_posts WHERE course_id = @id OR lesson_id IN " + lessonsOfCourse + ")";
+
+            // Everything that belongs to a course, from the INSIDE to the OUTSIDE.
+            // Each line:  { the SQL,  the table.column it needs }   (a line is skipped if the table does not exist)
+            string[][] belongsToCourse =
+            {
+                // quizzes and lessons can point to each other, so we break those links first
+                new string[] { "UPDATE public.quiz SET question_id = NULL WHERE lesson_id IN " + lessonsOfCourse,
+                               "quiz.question_id", "quiz.lesson_id", "lesson.lesson_id", "lesson.course_id" },
+                new string[] { "UPDATE public.lesson SET quiz_id = NULL WHERE course_id = @id",
+                               "lesson.quiz_id", "lesson.course_id" },
+
+                // discussions
+                new string[] { "DELETE FROM public.discussion_replies WHERE post_id IN " + postsOfCourse,
+                               "discussion_replies.post_id", "discussion_posts.post_id", "discussion_posts.course_id", "discussion_posts.lesson_id", "lesson.lesson_id", "lesson.course_id" },
+                new string[] { "DELETE FROM public.discussion_posts WHERE course_id = @id OR lesson_id IN " + lessonsOfCourse,
+                               "discussion_posts.course_id", "discussion_posts.lesson_id", "lesson.lesson_id", "lesson.course_id" },
+
+                // quizzes of the lessons: scores, questions, then the quiz itself
+                new string[] { "DELETE FROM public.quiz_score WHERE quiz_id IN (SELECT quiz_id FROM public.quiz WHERE lesson_id IN " + lessonsOfCourse + ")",
+                               "quiz_score.quiz_id", "quiz.quiz_id", "quiz.lesson_id", "lesson.lesson_id", "lesson.course_id" },
+                new string[] { "DELETE FROM public.quiz_questions WHERE quiz_id IN (SELECT quiz_id FROM public.quiz WHERE lesson_id IN " + lessonsOfCourse + ")",
+                               "quiz_questions.quiz_id", "quiz.quiz_id", "quiz.lesson_id", "lesson.lesson_id", "lesson.course_id" },
+                new string[] { "DELETE FROM public.quiz WHERE lesson_id IN " + lessonsOfCourse,
+                               "quiz.lesson_id", "lesson.lesson_id", "lesson.course_id" },
+
+                // the lessons: progress, then the lessons themselves
+                new string[] { "DELETE FROM public.lesson_progress WHERE lesson_id IN " + lessonsOfCourse,
+                               "lesson_progress.lesson_id", "lesson.lesson_id", "lesson.course_id" },
+                new string[] { "DELETE FROM public.lesson WHERE course_id = @id", "lesson.course_id" },
+
+                // the rest that points to the course
+                new string[] { "DELETE FROM public.enrollment WHERE course_id = @id",      "enrollment.course_id" },
+                new string[] { "DELETE FROM public.certificates WHERE course_id = @id",    "certificates.course_id" },
+                new string[] { "DELETE FROM public.calendar_events WHERE course_id = @id", "calendar_events.course_id" }
+            };
+
+            string imagePath = "";
+
+            try
+            {
+                string title;
+
+                using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
+                {
+                    // 1) Is the course still there? (and its title + picture, for later)
+                    using (NpgsqlCommand cmd = new NpgsqlCommand("SELECT title, course_img::text FROM public.courses WHERE course_id = @id", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                            {
+                                ShowMessage("That course was not found. Maybe it was already deleted.", false);
+                                return;
+                            }
+                            title = reader[0].ToString();
+                            imagePath = reader.IsDBNull(1) ? "" : reader[1].ToString();
+                        }
+                    }
+
+                    // 2) Which of the lines above can we use? (only the tables that exist)
+                    List<string> usable = new List<string>();
+                    foreach (string[] line in belongsToCourse)
+                    {
+                        bool allThere = true;
+                        for (int i = 1; i < line.Length; i++)
+                        {
+                            string[] parts = line[i].Split('.');
+                            if (!ColumnExists(conn, parts[0], parts[1])) allThere = false;
+                        }
+                        if (allThere) usable.Add(line[0]);
+                    }
+
+                    // 3) Delete everything together. All or nothing (a "transaction"):
+                    //    if one step fails, NOTHING is deleted.
+                    using (NpgsqlTransaction transaction = conn.BeginTransaction())
+                    {
+                        foreach (string sql in usable)
+                        {
+                            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@id", id);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+
+                        using (NpgsqlCommand cmd = new NpgsqlCommand("DELETE FROM public.courses WHERE course_id = @id", conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@id", id);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();   // everything worked: save it for real
+                    }
+                }
+
+                // 4) The picture file we saved for this course is not needed any more
+                if (imagePath.StartsWith("~/images/courses/"))
+                    DeleteImageFile(imagePath);
+
+                ShowMessage("Deleted! \"" + title + "\" was permanently removed, together with everything linked to it.", true);
+            }
+            catch (PostgresException ex)
+            {
+                ShowMessage("Could not delete: " + ex.Message +
+                            (string.IsNullOrEmpty(ex.TableName) ? "" : " (table: " + ex.TableName + ")"), false);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage("Could not delete: " + ex.Message, false);
+            }
+        }
+
+        // ----- Logout (the "Logout" option in the drop-down menu) -----
+        protected void lnkLogout_Click(object sender, EventArgs e)
+        {
+            Session.Clear();        // forget who was logged in
+            Session.Abandon();      // end the session
+            Response.Redirect("~/auth/login.aspx");   // go to the login page
         }
 
 
@@ -515,6 +745,18 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
+        // Does ANY table have this column? (used by the delete function)
+        private bool ColumnExists(NpgsqlConnection conn, string table, string column)
+        {
+            using (NpgsqlCommand cmd = new NpgsqlCommand(
+                "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = @t AND column_name = @c", conn))
+            {
+                cmd.Parameters.AddWithValue("@t", table);
+                cmd.Parameters.AddWithValue("@c", column);
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            }
+        }
+
         // The name of the description column, or null when there is none
         private string DescriptionColumn()
         {
@@ -539,6 +781,48 @@ namespace WAPP_EduCore.pages.Admin
         // =====================================================
         //  HELPERS  (small tools used again and again)
         // =====================================================
+
+        // Makes the title like:  SPM Biology: Cell Physiology & Organization
+        //   level = SPM or IGCSE,  topic = Biology,  name = Cell Physiology & Organization
+        private string BuildTitle(string level, string topic, string name)
+        {
+            if (level == "") return name;
+            return level + (topic != "" ? " " + topic : "") + ": " + name;
+        }
+
+        // Makes the duration like:  4 weeks (3 hrs/week)
+        // Both boxes empty  -> duration = ""  (nothing)
+        // Gives back false (and an error text) when something is wrong.
+        private bool TryBuildDuration(string weeksText, string hoursText, out string duration, out string error)
+        {
+            duration = "";
+            error = "";
+
+            weeksText = weeksText.Trim();
+            hoursText = hoursText.Trim();
+
+            if (weeksText == "" && hoursText == "") return true;
+
+            int weeks;
+            int hours;
+
+            if (!int.TryParse(weeksText, NumberStyles.None, CultureInfo.InvariantCulture, out weeks) || weeks < 1 || weeks > 24 ||
+                !int.TryParse(hoursText, NumberStyles.None, CultureInfo.InvariantCulture, out hours) || hours < 1 || hours > 24)
+            {
+                error = "Please type the duration as both the weeks and the hours per week (whole numbers from 1 to 24).";
+                return false;
+            }
+
+            duration = weeks + (weeks == 1 ? " week" : " weeks") + " (" + hours + " hrs/week)";
+            return true;
+        }
+
+        // 12.5%
+        private string Percent(int part, int whole)
+        {
+            double p = (whole == 0) ? 0 : part * 100.0 / whole;
+            return p.ToString("0.0", CultureInfo.InvariantCulture) + "%";
+        }
 
         // The duration column can be a number or text.
         // "Unknown" tells the database: "you decide how to read this".
@@ -581,6 +865,18 @@ namespace WAPP_EduCore.pages.Admin
         {
             if (value == null || value == DBNull.Value) return "—";
             return Convert.ToDateTime(value).ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+        }
+
+        // Asks the database for ONE value (gives back null when there is nothing)
+        private object GetValueOrNull(string sql, params NpgsqlParameter[] parameters)
+        {
+            using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
+            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddRange(parameters);
+                object result = cmd.ExecuteScalar();
+                return (result == DBNull.Value) ? null : result;
+            }
         }
 
         // Asks the database for ONE number (like a count)

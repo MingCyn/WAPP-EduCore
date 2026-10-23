@@ -55,7 +55,93 @@
             color: var(--grey);
             font-size: 12px;
         }
+
+        /* ---------- Sidebar: a little icon before every menu name ---------- */
+        .sidebar a.menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;                  /* space between the icon and the name */
+        }
+
+        .menu-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            fill: none;
+            stroke: currentColor;       /* the icon has the same color as the name */
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        /* ---------- The avatar + drop-down menu (top right) ---------- */
+        .user-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-btn {
+            display: flex;
+            align-items: center;
+            padding: 0;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .user-btn .avatar {
+            margin-left: 0;
+        }
+
+        .user-dropdown {
+            display: none;                 /* hidden until JavaScript adds "open" */
+            position: absolute;
+            right: 0;
+            top: 44px;
+            min-width: 180px;
+            padding: 6px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(15, 27, 76, 0.15);
+            z-index: 50;
+        }
+
+        .user-dropdown.open {
+            display: block;
+        }
+
+        .user-dropdown a {
+            display: block;
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .user-dropdown a:hover {
+            background: #F1F5F9;
+        }
+
+        .user-dropdown a.logout {
+            color: #DC2626;
+        }
+
     </style>
+
+    <script type="text/javascript">
+// ----- The drop-down menu at the top right -----
+function toggleUserMenu(event) {
+    event.stopPropagation();   // so the click does not reach "document" below
+    document.getElementById('userDropdown').classList.toggle('open');
+}
+
+document.addEventListener('click', function () {
+    document.getElementById('userDropdown').classList.remove('open');
+});
+</script>
 </head>
 
 <body>
@@ -68,10 +154,22 @@
         <div class="sidebar">
             <img src="../../images/logo.png" alt="EduCore" class="logo" />
 
-            <a class="menu-item" href="adminDashboard.aspx">Dashboard</a>
-            <a class="menu-item" href="userManagement.aspx">Users</a>
-            <a class="menu-item" href="coursesManagement.aspx">Courses</a>
-            <a class="menu-item active" href="adminReports.aspx">Reports</a>
+            <a class="menu-item" href="adminDashboard.aspx">
+                <svg class="menu-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
+                Dashboard
+            </a>
+            <a class="menu-item" href="userManagement.aspx">
+                <svg class="menu-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>
+                Users
+            </a>
+            <a class="menu-item" href="coursesManagement.aspx">
+                <svg class="menu-icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" /></svg>
+                Courses
+            </a>
+            <a class="menu-item active" href="adminReports.aspx">
+                <svg class="menu-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
+                Reports
+            </a>
 
             <div class="me">
                 <%= AdminName %>
@@ -91,9 +189,16 @@
                     <h1>Reports</h1>
                     <p>Review platform data by function</p>
                 </div>
-                <div>
-                    <span class="badge-admin">Administrator access only</span>
-                    <span class="avatar"><%= AdminInitials %></span>
+                <div class="user-menu">
+                    <button type="button" class="user-btn" onclick="toggleUserMenu(event)" title="Account">
+                        <span class="avatar"><%= AdminInitials %></span>
+                    </button>
+
+                    <!-- The 2 options -->
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="adminSettings.aspx">Manage Account</a>
+                        <asp:LinkButton ID="lnkLogout" runat="server" CssClass="logout" CausesValidation="false" OnClick="lnkLogout_Click">Logout</asp:LinkButton>
+                    </div>
                 </div>
             </div>
 
@@ -199,7 +304,7 @@
                             </table>
                         </div>
 
-                        <div class="note">Active users did something in the last 30 days (enrolled, finished a lesson, took a quiz, posted, replied or sent a message). Roles are mutually exclusive; totals include inactive accounts.</div>
+                        <div class="note">Active users did something in the last 30 days (logged in, enrolled, finished a lesson, took a quiz, posted, replied, sent a message, or created their account). The admin who is viewing this page counts as active. Roles are mutually exclusive; totals include inactive accounts.</div>
                     </div>
 
                 </asp:Panel>
@@ -214,13 +319,13 @@
                     <div class="title-row">
                         <div>
                             <h2 style="margin:0;">Course analytics</h2>
-                            <p class="sub">Catalogue status and enrolment across courses</p>
+                            <p class="sub">Subjects, lessons and enrolment across courses</p>
                         </div>
                         <asp:Label ID="lblSnapshotCourses" runat="server" CssClass="note"></asp:Label>
                     </div>
 
-                    <!-- 5 number boxes -->
-                    <div class="stat-row five">
+                    <!-- 4 number boxes -->
+                    <div class="stat-row four">
 
                         <div class="card">
                             <div class="stat-label stat-top">
@@ -233,38 +338,29 @@
 
                         <div class="card">
                             <div class="stat-label stat-top">
-                                <span>Published</span>
-                                <svg class="stat-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                                <span>Biology</span>
+                                <svg class="stat-icon" viewBox="0 0 24 24"><path d="M11 20A7 7 0 019.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" /><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" /></svg>
                             </div>
-                            <div class="stat-number"><asp:Label ID="lblPublished" runat="server"></asp:Label></div>
-                            <div class="stat-note"><asp:Label ID="lblPublishedNote" runat="server"></asp:Label></div>
+                            <div class="stat-number"><asp:Label ID="lblBiology" runat="server"></asp:Label></div>
+                            <div class="stat-note"><asp:Label ID="lblBiologyNote" runat="server"></asp:Label></div>
                         </div>
 
                         <div class="card">
                             <div class="stat-label stat-top">
-                                <span>Pending review</span>
-                                <svg class="stat-icon brown" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                <span>Chemistry</span>
+                                <svg class="stat-icon" viewBox="0 0 24 24"><path d="M10 2v7.527a2 2 0 01-.211.896L4.72 20.55a1 1 0 00.9 1.45h12.76a1 1 0 00.9-1.45l-5.069-10.127A2 2 0 0114 9.527V2" /><path d="M8.5 2h7" /><path d="M7 16h10" /></svg>
                             </div>
-                            <div class="stat-number"><asp:Label ID="lblPending" runat="server"></asp:Label></div>
-                            <div class="stat-note"><asp:Label ID="lblPendingNote" runat="server"></asp:Label></div>
+                            <div class="stat-number"><asp:Label ID="lblChemistry" runat="server"></asp:Label></div>
+                            <div class="stat-note"><asp:Label ID="lblChemistryNote" runat="server"></asp:Label></div>
                         </div>
 
                         <div class="card">
                             <div class="stat-label stat-top">
-                                <span>Draft</span>
-                                <svg class="stat-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                                <span>Physics</span>
+                                <svg class="stat-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1" /><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5z" /><path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5z" /></svg>
                             </div>
-                            <div class="stat-number"><asp:Label ID="lblDraft" runat="server"></asp:Label></div>
-                            <div class="stat-note"><asp:Label ID="lblDraftNote" runat="server"></asp:Label></div>
-                        </div>
-
-                        <div class="card">
-                            <div class="stat-label stat-top">
-                                <span>Archived</span>
-                                <svg class="stat-icon" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" /></svg>
-                            </div>
-                            <div class="stat-number"><asp:Label ID="lblArchived" runat="server"></asp:Label></div>
-                            <div class="stat-note"><asp:Label ID="lblArchivedNote" runat="server"></asp:Label></div>
+                            <div class="stat-number"><asp:Label ID="lblPhysics" runat="server"></asp:Label></div>
+                            <div class="stat-note"><asp:Label ID="lblPhysicsNote" runat="server"></asp:Label></div>
                         </div>
 
                     </div>
@@ -273,9 +369,9 @@
                     <div class="two-cols">
 
                         <div class="card">
-                            <h3>Status chart</h3>
-                            <p class="sub">All courses by publication status</p>
-                            <asp:Literal ID="litStatusChart" runat="server"></asp:Literal>
+                            <h3>Lessons by subject</h3>
+                            <p class="sub">Number of lessons in Biology, Chemistry and Physics courses</p>
+                            <asp:Literal ID="litSubjectLessons" runat="server"></asp:Literal>
                         </div>
 
                         <div class="card">
