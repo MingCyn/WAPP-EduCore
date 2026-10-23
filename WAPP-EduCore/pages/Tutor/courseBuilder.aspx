@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="courseBuilder.aspx.cs" Inherits="WAPP_EduCore.pages.Tutor.WebForm1" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="courseBuilder.aspx.cs" Inherits="WAPP_EduCore.pages.Tutor.courseBuilder" %>
 
 <!DOCTYPE html>
 
@@ -24,7 +24,7 @@
                     <div>
                         <h1 class="page-title">Course Builder</h1>
                         <p class="page-subtitle">
-                            <asp:Label ID="LblCourseName" runat="server" Text="Advanced Data Structures &amp; Algorithms" />
+                            <asp:Label ID="LblCourseName" runat="server" />
                             <button type="button" class="link-edit" onclick="openModal('modalCourseInfo')">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
                                 Edit course info
@@ -88,6 +88,7 @@
 
                         <div class="component-list">
 
+                            <!-- Video (block of type "video" in lessons.lesson_content) -->
                             <asp:Panel ID="PnlVideo" runat="server" CssClass="component-card" Visible="false">
                                 <div class="video-thumb"></div>
                                 <div class="component-body">
@@ -190,11 +191,11 @@
 
                     <div class="form-group">
                         <label class="form-label" for="TxtCourseTitle">Course title</label>
-                        <asp:TextBox ID="TxtCourseTitle" runat="server" CssClass="form-control" placeholder="e.g. Introduction to Python" Text="Advanced Data Structures &amp; Algorithms" />
+                        <asp:TextBox ID="TxtCourseTitle" runat="server" CssClass="form-control" placeholder="e.g. Introduction to Python" />
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="TxtCourseTopic">Topic</label>
-                        <asp:TextBox ID="TxtCourseTopic" runat="server" CssClass="form-control" placeholder="Pick one or type a new topic" list="topicList" Text="Computer Science" />
+                        <asp:TextBox ID="TxtCourseTopic" runat="server" CssClass="form-control" placeholder="Pick one or type a new topic" list="topicList" />
                         <datalist id="topicList">
                             <option value="Computer Science" />
                             <option value="Mathematics" />
@@ -204,7 +205,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="TxtCourseDuration">Duration (weeks)</label>
-                        <asp:TextBox ID="TxtCourseDuration" runat="server" CssClass="form-control" TextMode="Number" placeholder="e.g. 4" Text="8" />
+                        <asp:TextBox ID="TxtCourseDuration" runat="server" CssClass="form-control" TextMode="Number" placeholder="e.g. 4" />
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-cancel" onclick="closeModal('modalCourseInfo')">Cancel</button>
@@ -228,7 +229,7 @@
                     <label class="check-row"><asp:CheckBox ID="ChkModuleDraft" runat="server" Checked="true" /> Keep as draft until published</label>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-cancel" onclick="closeModal('modalAddModule')">Cancel</button>
-                        <asp:Button ID="BtnConfirmAddModule" runat="server" Text="Add module" CssClass="btn btn-accent" OnClick="BtnConfirmAddModule_Click" />
+                        <asp:Button ID="BtnConfirmAddModule" runat="server" OnClick="BtnConfirmAddModule_Click" Text="Add module" CssClass="btn btn-accent" />
                     </div>
                 </asp:Panel>
             </div>
@@ -238,7 +239,7 @@
                     <h3 class="modal-title" id="title_modalEditDetails">Edit lesson details</h3>
                     <div class="form-group">
                         <label class="form-label" for="TxtLessonTitle">Lesson title</label>
-                        <asp:TextBox ID="TxtLessonTitle" runat="server" CssClass="form-control" placeholder="e.g. Arrays and Linked Lists" Text="Arrays and Linked Lists" />
+                        <asp:TextBox ID="TxtLessonTitle" runat="server" CssClass="form-control" placeholder="e.g. Arrays and Linked Lists" />
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="TxtLessonDesc">Lesson summary</label>
@@ -250,6 +251,23 @@
                     </div>
                 </asp:Panel>
             </div>
+
+            <div class="modal-overlay" id="modalUploadVideo" aria-hidden="true">
+                <asp:Panel ID="PnlUploadVideo" runat="server" CssClass="modal" DefaultButton="BtnConfirmUpload" role="dialog" aria-modal="true" aria-labelledby="title_modalUploadVideo">
+                    <h3 class="modal-title" id="title_modalUploadVideo">Set lesson video</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="TxtVideoUrl">Video link</label>
+                        <asp:TextBox ID="TxtVideoUrl" runat="server" CssClass="form-control" placeholder="https://..." />
+                        <p class="form-hint">Paste a secure (https) link to the lesson video.</p>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-cancel" onclick="closeModal('modalUploadVideo')">Cancel</button>
+                        <asp:Button ID="BtnConfirmUpload" runat="server" OnClick="BtnConfirmUpload_Click" Text="Save video" CssClass="btn btn-accent" />
+                    </div>
+                </asp:Panel>
+            </div>
+
+
 
             <div class="modal-overlay" id="modalPublish" aria-hidden="true">
                 <asp:Panel ID="PnlPublish" runat="server" CssClass="modal" DefaultButton="BtnConfirmPublish" role="dialog" aria-modal="true" aria-labelledby="title_modalPublish">
@@ -270,7 +288,6 @@
 
     <%-- Highlight "My Courses" in the shared nav, since this page belongs to that section --%>
     <script>
-        // @ts-nocheck
         var lastFocus = null;
 
         function openModal(id) {

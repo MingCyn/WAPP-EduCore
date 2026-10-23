@@ -116,8 +116,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="About.aspx" />
+    <Content Include="auth\forgotPassword.aspx" />
     <Content Include="auth\login.aspx" />
     <Content Include="auth\signup.aspx" />
+    <Content Include="auth\verifyOtp.aspx" />
     <Content Include="Contact.aspx" />
     <Content Include="Content\admin.css" />
     <Content Include="Content\assessmentBuilder.css" />
@@ -241,6 +243,13 @@
       <DependentUpon>About.aspx</DependentUpon>
     </Compile>
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="auth\forgotPassword.aspx.cs">
+      <DependentUpon>forgotPassword.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="auth\forgotPassword.aspx.designer.cs">
+      <DependentUpon>forgotPassword.aspx</DependentUpon>
+    </Compile>
     <Compile Include="auth\login.aspx.cs">
       <DependentUpon>login.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -256,6 +265,13 @@
       <DependentUpon>signup.aspx</DependentUpon>
     </Compile>
     <Content Include="Content\quiz.css" />
+    <Compile Include="auth\verifyOtp.aspx.cs">
+      <DependentUpon>verifyOtp.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="auth\verifyOtp.aspx.designer.cs">
+      <DependentUpon>verifyOtp.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Data\Db.cs" />
     <Compile Include="Contact.aspx.cs">
       <DependentUpon>Contact.aspx</DependentUpon>
@@ -447,6 +463,9 @@
     <Compile Include="pages\Student\studentDashboard.aspx.designer.cs">
       <DependentUpon>studentDashboard.aspx</DependentUpon>
     </Compile>
+    <Compile Include="pages\Tutor\assessmentBuilder.aspx.designer.cs">
+      <DependentUpon>assessmentBuilder.aspx</DependentUpon>
+    </Compile>
     <Compile Include="pages\Tutor\courseBuilder.aspx.cs">
       <DependentUpon>courseBuilder.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -458,12 +477,12 @@
       <DependentUpon>assessmentBuilder.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="pages\Tutor\assessmentBuilder.aspx.designer.cs">
-      <DependentUpon>assessmentBuilder.aspx</DependentUpon>
-    </Compile>
     <Compile Include="pages\Tutor\courses.aspx.cs">
       <DependentUpon>courses.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Tutor\courses.aspx.designer.cs">
+      <DependentUpon>courses.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Tutor\studentPerformance.aspx.cs">
       <DependentUpon>studentPerformance.aspx</DependentUpon>

@@ -100,7 +100,7 @@
                                             </select>
                                         </div>
                                         <div class="ab-q-points">
-                                            <button type="button" class="ab-remove" title="Remove question" hidden>Remove</button>
+                                            <button type="button" class="ab-remove" title="Remove question" hidden="hidden">Remove</button>
                                             <span>Points:</span>
                                             <input type="text" name="points" class="ab-points" value="10" />
                                         </div>

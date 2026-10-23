@@ -13,7 +13,7 @@
         <a href="messages.aspx" class="nav-link">Messages</a>
     </nav>
     <div class="nav-profile">
-        <span class="profile-name">Dr. Robert Miller</span>
-        <img src="~/images/tutor-avatar.png" alt="Dr. Robert Miller" class="profile-avatar" runat="server" onerror="this.style.display='none'" />
+        <span class="profile-name"><%: DisplayName %></span>
+        <img id="ImgAvatar" src="~/images/tutor-avatar.png" alt="Tutor" class="profile-avatar" runat="server" onerror="this.style.display='none'" />
     </div>
 </header>

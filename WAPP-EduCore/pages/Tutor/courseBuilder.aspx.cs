@@ -10,7 +10,7 @@ using Npgsql;
 
 namespace WAPP_EduCore.pages.Tutor
 {
-    public partial class WebForm1 : System.Web.UI.Page
+    public partial class courseBuilder : System.Web.UI.Page
     {
         // ------------------------------------------------------------------
         // Database connection. Change ConnectionName to the name of your EXISTING
@@ -18,8 +18,21 @@ namespace WAPP_EduCore.pages.Tutor
         // ------------------------------------------------------------------
         private const string ConnectionName = "SupabasePostgres";
 
+        // Session key set by auth/login.aspx.cs (courses.user_id).
+        private const string SessionUserKey = "UserID";
+        private const string LoginPage = "~/auth/login.aspx";
+
+        // Exact table name in Supabase (singular).
+        private const string LessonsTable = "public.lesson";
+
+        private int userId;
+
+        private bool TryGetUserId(out int id)
+        {
+            return int.TryParse(Convert.ToString(Session[SessionUserKey]), out id) && id > 0;
+        }
+
         // Where to send the tutor if courseId is missing or the course does not exist.
-        // Point this at your course list page once it exists (e.g. "courses.aspx").
         private const string CourseListPage = "courses.aspx";
 
         private static NpgsqlConnection OpenConnection()
@@ -30,33 +43,39 @@ namespace WAPP_EduCore.pages.Tutor
         }
 
         // ------------------------------------------------------------------
-        // SQL. The lessons columns match your table. The courses column names
-        // (course_title, topic, duration) are ASSUMED - change them here to
-        // match your courses table.
+        // SQL. Column names match your courses and lesson tables.
+        // Every course query also checks user_id, so a tutor can only open or change their own courses.
         // ------------------------------------------------------------------
+
+        // Column ORDER matters: TryGetCourse reads title, category, duration by position.
         private const string SqlCourse =
-            "SELECT course_title, topic, duration FROM courses WHERE course_id = @cid";
+            "SELECT title, category, duration " +
+            "FROM courses WHERE course_id = @cid AND user_id = @uid";
 
         private const string SqlCourseUpdate =
-            "UPDATE courses SET course_title = @title, topic = @topic, duration = @duration WHERE course_id = @cid";
-
-        private const string SqlCourseInsert =
-            "INSERT INTO courses (course_title, topic, duration) VALUES (@title, @topic, @duration) RETURNING course_id";
-
-        private const string SqlLessonInsert =
-            "INSERT INTO lessons (course_id, lesson_title, lesson_description, created_at) " +
-            "VALUES (@cid, @title, @desc, NOW()) RETURNING lesson_id";
+            "UPDATE courses SET title = @title, category = @topic, duration = @duration, updated_at = now() " +
+            "WHERE course_id = @cid AND user_id = @uid";
 
         private const string SqlLessons =
             "SELECT lesson_id, lesson_title, lesson_content::text " +
-            "FROM lessons WHERE course_id = @cid ORDER BY created_at, lesson_id";
+            "FROM " + LessonsTable + " WHERE course_id = @cid ORDER BY created_at, lesson_id";
 
         private const string SqlLesson =
             "SELECT lesson_title, lesson_description, quiz_id, lesson_content::text, created_at " +
-            "FROM lessons WHERE lesson_id = @lid AND course_id = @cid";
+            "FROM " + LessonsTable + " WHERE lesson_id = @lid AND course_id = @cid";
 
         private const string SqlLessonDetailsUpdate =
-            "UPDATE lessons SET lesson_title = @title, lesson_description = @desc WHERE lesson_id = @lid AND course_id = @cid";
+            "UPDATE " + LessonsTable + " SET lesson_title = @title, lesson_description = @desc " +
+            "WHERE lesson_id = @lid AND course_id = @cid";
+
+        private const string SqlLessonContentLock =
+            "SELECT lesson_content::text FROM " + LessonsTable + " " +
+            "WHERE lesson_id = @lid AND course_id = @cid FOR UPDATE";
+
+        // If lesson_content is a plain text column (not json/jsonb), change "AS jsonb" to "AS text".
+        private const string SqlLessonContentUpdate =
+            "UPDATE " + LessonsTable + " SET lesson_content = CAST(@content AS jsonb) " +
+            "WHERE lesson_id = @lid AND course_id = @cid";
 
         // ------------------------------------------------------------------
         // Data shapes
@@ -87,52 +106,47 @@ namespace WAPP_EduCore.pages.Tutor
         // ------------------------------------------------------------------
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (Session["UserRole"] == null ||
-                !Session["UserRole"].ToString().Equals("Tutor", StringComparison.OrdinalIgnoreCase))
+            if (!TryGetUserId(out userId))
             {
-                Response.Redirect("../../auth/login.aspx", false);
-                Context.ApplicationInstance.CompleteRequest();
+                Response.Redirect(LoginPage);
                 return;
             }
 
-            // No courseId is create mode; an existing courseId is edit mode.
-            int.TryParse(Request.QueryString["courseId"], out courseId);
+            // Your course list page links here as: courseBuilder.aspx?courseId=1  (optionally &lessonId=5)
+            if (!int.TryParse(Request.QueryString["courseId"], out courseId))
+            {
+                Response.Redirect(CourseListPage);
+                return;
+            }
             int.TryParse(Request.QueryString["lessonId"], out lessonId);
 
             try
             {
-                if (courseId <= 0)
-                    PrepareCreateMode();
-                else
-                    LoadPage();
+                LoadPage();
+
+                // courses.aspx "Edit" button links here with &edit=1 -> open the course info pop-up straight away
+                if (!IsPostBack && Request.QueryString["edit"] == "1")
+                {
+                    ClientScript.RegisterStartupScript(GetType(), "openCourseInfo",
+                        "window.addEventListener('load', function () { openModal('modalCourseInfo'); });", true);
+                }
             }
-            catch (NpgsqlException)
+            catch (NpgsqlException ex)
             {
-                // Log the exception in your own logger; never show connection details to the user.
-                ShowMessage("We couldn't load this course right now. Please try again.", true);
+                // TEMPORARY while developing: show the real database error.
+                // Replace with the generic message before you deploy.
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                var pg = ex as PostgresException;
+                ShowMessage("DEBUG: " + (pg != null ? pg.MessageText : ex.Message), true);
                 PnlLessonView.Visible = false;
             }
-        }
-
-        private void PrepareCreateMode()
-        {
-            if (IsPostBack) return;
-
-            LblCourseName.Text = "Create a new course";
-            TxtCourseTitle.Text = "";
-            TxtCourseTopic.Text = "";
-            TxtCourseDuration.Text = "";
-            PnlNoLessons.Visible = true;
-            PnlLessonView.Visible = false;
-            PnlNoLesson.Visible = true;
-            ClientScript.RegisterStartupScript(GetType(), "openCourseInfo", "openModal('modalCourseInfo');", true);
         }
 
         private void LoadPage()
         {
             using (NpgsqlConnection conn = OpenConnection())
             {
-                // 1) Course
+                // 1) Course (must belong to the logged-in user)
                 string courseTitle, topic, duration;
                 if (!TryGetCourse(conn, out courseTitle, out topic, out duration))
                 {
@@ -173,11 +187,12 @@ namespace WAPP_EduCore.pages.Tutor
             using (var cmd = new NpgsqlCommand(SqlCourse, conn))
             {
                 cmd.Parameters.AddWithValue("cid", courseId);
+                cmd.Parameters.AddWithValue("uid", userId);
                 using (NpgsqlDataReader r = cmd.ExecuteReader())
                 {
                     if (!r.Read()) return false;
-                    title = Convert.ToString(r["course_title"]);
-                    topic = r.IsDBNull(1) ? "" : Convert.ToString(r["topic"]);
+                    title = r.IsDBNull(0) ? "" : Convert.ToString(r["title"]);
+                    topic = r.IsDBNull(1) ? "" : Convert.ToString(r["category"]);
                     duration = r.IsDBNull(2) ? "" : Convert.ToString(r["duration"]);
                     return true;
                 }
@@ -220,7 +235,7 @@ namespace WAPP_EduCore.pages.Tutor
                         Title = r.IsDBNull(0) ? "(Untitled lesson)" : r.GetString(0),
                         Description = r.IsDBNull(1) ? "" : r.GetString(1),
                         VideoUrl = GetVideoUrl(r.IsDBNull(3) ? "" : r.GetString(3)),
-                        QuizId = r.IsDBNull(2) ? (long?)null : r.GetInt64(2),
+                        QuizId = r.IsDBNull(2) ? (long?)null : Convert.ToInt64(r[2]),
                         ContentJson = r.IsDBNull(3) ? "" : r.GetString(3),
                         CreatedAt = r.GetDateTime(4)
                     };
@@ -252,6 +267,7 @@ namespace WAPP_EduCore.pages.Tutor
                 TxtVideoUrl.Text = lesson.VideoUrl;
             }
 
+            // video: stored as a block of type "video" inside lesson.lesson_content
             bool hasVideo = !string.IsNullOrWhiteSpace(lesson.VideoUrl);
             PnlVideo.Visible = hasVideo;
             BtnAddVideo.Visible = !hasVideo;
@@ -370,6 +386,31 @@ namespace WAPP_EduCore.pages.Tutor
             return fallback;
         }
 
+        // Like ParseBlocks, but tells the caller when existing content could NOT be read,
+        // so we never overwrite content we don't understand.
+        private static bool TryParseBlocks(string json, out List<Dictionary<string, object>> blocks)
+        {
+            blocks = new List<Dictionary<string, object>>();
+            if (string.IsNullOrWhiteSpace(json)) return true;     // empty = no blocks yet
+            try
+            {
+                var list = new JavaScriptSerializer().Deserialize<List<Dictionary<string, object>>>(json);
+                if (list == null) return false;
+                blocks = list;
+                return true;
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
+        }
+
+        private static string GetVideoUrl(string json)
+        {
+            Dictionary<string, object> video = FindBlock(ParseBlocks(json), "video");
+            return video == null ? "" : Str(video, "url", "");
+        }
+
         private static bool IsPublished(Dictionary<string, object> block)
         {
             object v;
@@ -409,92 +450,16 @@ namespace WAPP_EduCore.pages.Tutor
             }
 
             using (NpgsqlConnection conn = OpenConnection())
+            using (var cmd = new NpgsqlCommand(SqlCourseUpdate, conn))
             {
-                if (courseId <= 0)
-                {
-                    using (var cmd = new NpgsqlCommand(SqlCourseInsert, conn))
-                    {
-                        cmd.Parameters.AddWithValue("title", title);
-                        cmd.Parameters.AddWithValue("topic", topic.Length == 0 ? (object)DBNull.Value : topic);
-                        cmd.Parameters.AddWithValue("duration", weeks);
-                        courseId = Convert.ToInt32(cmd.ExecuteScalar());
-                    }
-
-                    Response.Redirect("courseBuilder.aspx?courseId=" + courseId, false);
-                    Context.ApplicationInstance.CompleteRequest();
-                    return;
-                }
-
-                using (var cmd = new NpgsqlCommand(SqlCourseUpdate, conn))
-                {
-                    cmd.Parameters.AddWithValue("title", title);
-                    cmd.Parameters.AddWithValue("topic", topic.Length == 0 ? (object)DBNull.Value : topic);
-                    cmd.Parameters.AddWithValue("duration", weeks);
-                    cmd.Parameters.AddWithValue("cid", courseId);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            Response.Redirect(Request.RawUrl);
-        }
-
-        protected void BtnConfirmUpload_Click(object sender, EventArgs e)
-        {
-            string url = TxtVideoUrl.Text.Trim();
-            Uri uri;
-            if (lessonId <= 0 || !Uri.TryCreate(url, UriKind.Absolute, out uri) || uri.Scheme != Uri.UriSchemeHttps)
-            {
-                ShowMessage("Please paste a valid https video link.", true);
-                return;
-            }
-
-            using (NpgsqlConnection conn = OpenConnection())
-            using (var cmd = new NpgsqlCommand("SELECT lesson_content::text FROM lessons WHERE lesson_id = @lid AND course_id = @cid", conn))
-            {
-                cmd.Parameters.AddWithValue("lid", lessonId);
-                cmd.Parameters.AddWithValue("cid", courseId);
-                string json = Convert.ToString(cmd.ExecuteScalar());
-                List<Dictionary<string, object>> blocks = ParseBlocks(json);
-                Dictionary<string, object> video = FindBlock(blocks, "video");
-                if (video == null)
-                {
-                    video = new Dictionary<string, object>();
-                    video["type"] = "video";
-                    blocks.Add(video);
-                }
-                video["url"] = url;
-
-                using (var update = new NpgsqlCommand("UPDATE lessons SET lesson_content = CAST(@content AS jsonb) WHERE lesson_id = @lid AND course_id = @cid", conn))
-                {
-                    update.Parameters.AddWithValue("content", new JavaScriptSerializer().Serialize(blocks));
-                    update.Parameters.AddWithValue("lid", lessonId);
-                    update.Parameters.AddWithValue("cid", courseId);
-                    update.ExecuteNonQuery();
-                }
-            }
-            Response.Redirect(Request.RawUrl);
-        }
-
-        protected void BtnConfirmAddModule_Click(object sender, EventArgs e)
-        {
-            string title = TxtModuleTitle.Text.Trim();
-            string description = TxtModuleDesc.Text.Trim();
-
-            if (courseId <= 0 || title.Length == 0)
-            {
-                ShowMessage("Please create the course and enter a lesson title.", true);
-                return;
-            }
-
-            using (NpgsqlConnection conn = OpenConnection())
-            using (var cmd = new NpgsqlCommand(SqlLessonInsert, conn))
-            {
-                cmd.Parameters.AddWithValue("cid", courseId);
                 cmd.Parameters.AddWithValue("title", title);
-                cmd.Parameters.AddWithValue("desc", description.Length == 0 ? (object)DBNull.Value : description);
-                lessonId = Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.Parameters.AddWithValue("topic", topic);
+                cmd.Parameters.AddWithValue("duration", weeks);   // adjust if your duration column is text
+                cmd.Parameters.AddWithValue("cid", courseId);
+                cmd.Parameters.AddWithValue("uid", userId);
+                cmd.ExecuteNonQuery();
             }
-
-            Response.Redirect("courseBuilder.aspx?courseId=" + courseId + "&lessonId=" + lessonId);
+            Response.Redirect(Request.RawUrl);
         }
 
         protected void BtnSaveDetails_Click(object sender, EventArgs e)
@@ -519,6 +484,69 @@ namespace WAPP_EduCore.pages.Tutor
                 cmd.ExecuteNonQuery();
             }
             Response.Redirect(Request.RawUrl);
+        }
+
+        protected void BtnConfirmUpload_Click(object sender, EventArgs e)
+        {
+            string url = TxtVideoUrl.Text.Trim();
+            Uri uri;
+            if (lessonId <= 0 || !Uri.TryCreate(url, UriKind.Absolute, out uri) || uri.Scheme != Uri.UriSchemeHttps)
+            {
+                ShowMessage("Please paste a valid https video link.", true);
+                return;
+            }
+
+            using (NpgsqlConnection conn = OpenConnection())
+            using (NpgsqlTransaction tx = conn.BeginTransaction())
+            {
+                // Lock the lesson row so two saves can't overwrite each other's changes.
+                string json;
+                using (var read = new NpgsqlCommand(SqlLessonContentLock, conn, tx))
+                {
+                    read.Parameters.AddWithValue("lid", lessonId);
+                    read.Parameters.AddWithValue("cid", courseId);
+                    object value = read.ExecuteScalar();
+                    if (value == null)
+                    {
+                        ShowMessage("This lesson could not be found.", true);
+                        return;                      // transaction is rolled back on dispose
+                    }
+                    json = value == DBNull.Value ? "" : Convert.ToString(value);
+                }
+
+                List<Dictionary<string, object>> blocks;
+                if (!TryParseBlocks(json, out blocks))
+                {
+                    ShowMessage("This lesson's content is in an unexpected format, so the video was not saved.", true);
+                    return;
+                }
+
+                // Update the existing video block, or add one at the top of the lesson.
+                Dictionary<string, object> video = FindBlock(blocks, "video");
+                if (video == null)
+                {
+                    video = new Dictionary<string, object>();
+                    video["type"] = "video";
+                    blocks.Insert(0, video);
+                }
+                video["url"] = url;
+
+                using (var write = new NpgsqlCommand(SqlLessonContentUpdate, conn, tx))
+                {
+                    write.Parameters.AddWithValue("content", new JavaScriptSerializer().Serialize(blocks));
+                    write.Parameters.AddWithValue("lid", lessonId);
+                    write.Parameters.AddWithValue("cid", courseId);
+                    write.ExecuteNonQuery();
+                }
+                tx.Commit();
+            }
+            Response.Redirect(Request.RawUrl);
+        }
+
+        // The course outline has no modules table yet, so this just explains that.
+        protected void BtnConfirmAddModule_Click(object sender, EventArgs e)
+        {
+            ShowMessage("Modules are not available yet. Lessons are listed in a single group for now.", true);
         }
 
         private void ShowMessage(string message, bool isError)

@@ -95,6 +95,7 @@
          JAVASCRIPT : controls the popups
          ================================================== -->
     <script type="text/javascript">
+        // @ts-nocheck
 
         var currentId = 0;   // the course we clicked on
 

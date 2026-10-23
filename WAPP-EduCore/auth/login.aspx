@@ -72,7 +72,7 @@
 
                     <!-- Footer Redirect -->
                     <div class="form-footer">
-                        New to estudio? <a href="signup.aspx" class="login-link">Create account</a>
+                        New to EduCore? <a href="signup.aspx" class="login-link">Create account</a>
                     </div>
                 </div>
             </div>

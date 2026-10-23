@@ -3,130 +3,380 @@
    Load AFTER dashboard.css and courseBuilder.css
    ========================================== */
 
-.cl-toolbar {
-    display: flex;
-    justify-content: space-between;
+:root {
+    --cc-navy: #2a4494;
+    --cc-navy-dark: #1f3377;
+}
+
+/* --- Header button with icon --- */
+.cc-create {
+    display: inline-flex;
     align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
+    gap: 10px;
+}
+
+    .cc-create svg {
+        width: 16px;
+        height: 16px;
+    }
+
+/* ==========================================
+   Empty state
+   ========================================== */
+.cc-empty-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 710px;
+    padding: 48px 24px;
+    background-color: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+}
+
+.cc-empty-art {
+    width: 180px;
+    height: 180px;
     margin-bottom: 24px;
 }
 
-.cl-search {
-    width: 340px;
-    max-width: 100%;
-    height: 44px;
+.cc-empty-title {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 12px;
+}
+
+.cc-empty-text {
+    max-width: 530px;
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: #6b7285;
+    margin-bottom: 26px;
+}
+
+.cc-empty-hint {
+    font-size: 12px;
+    color: #8a90a3;
+    margin-top: 24px;
+}
+
+/* ==========================================
+   Course list
+   ========================================== */
+
+/* --- Summary tiles --- */
+.cc-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+@media (max-width: 900px) {
+    .cc-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.cc-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 22px 24px;
+    background-color: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.cc-stat-num {
+    font-family: var(--serif);
+    font-size: 27px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+.cc-stat-label {
+    font-size: 14px;
+    color: #6b7285;
+}
+
+/* --- Filters / search / sort --- */
+.cc-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.cc-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.cc-chip {
+    height: 38px;
     padding: 0 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #4a5163;
+    background-color: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+    .cc-chip:hover {
+        background-color: #f4f5fc;
+    }
+
+    .cc-chip.active {
+        background-color: var(--cc-navy);
+        border-color: var(--cc-navy);
+        color: #ffffff;
+    }
+
+.cc-tools {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cc-search-wrap {
+    position: relative;
+    width: 245px;
+}
+
+    .cc-search-wrap svg {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        width: 16px;
+        height: 16px;
+        margin-top: -8px;
+        color: #4a5163;
+        pointer-events: none;
+    }
+
+.cc-search,
+.cc-sort {
+    height: 38px;
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     color: var(--ink);
     background-color: #ffffff;
-    border: 1px solid #e3e6ee;
-    border-radius: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
 }
 
-    .cl-search::placeholder {
-        color: #7b8194;
+.cc-search {
+    width: 100%;
+    padding: 0 12px 0 36px;
+}
+
+    .cc-search::placeholder {
+        color: #6b7285;
     }
 
-    .cl-search:focus {
+    .cc-search:focus,
+    .cc-sort:focus {
         outline: none;
         border-color: var(--accent);
         box-shadow: 0 0 0 3px rgba(74, 95, 200, 0.15);
     }
 
-.cl-count {
-    font-size: 13px;
-    color: var(--muted);
+.cc-sort {
+    width: 183px;
+    padding: 0 36px 0 14px;
+    font-weight: 600;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%230f1a3c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
 }
 
 /* --- Course cards --- */
-.cl-grid {
+.cc-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
 }
 
-.cl-card {
+.cc-card {
     display: flex;
     flex-direction: column;
-    gap: 12px;
     background-color: #ffffff;
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 22px;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+    padding: 20px;
 }
 
-    .cl-card:hover {
-        border-color: var(--accent);
-        box-shadow: 0 6px 18px rgba(15, 27, 69, 0.08);
-        transform: translateY(-1px);
-    }
-
-    .cl-card[hidden] {
+    .cc-card[hidden] {
         display: none;
     }
 
-.cl-top {
+/* Thumbnail (real image, or an illustrated placeholder) */
+.cc-thumb {
+    height: 146px;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+    .cc-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .cc-thumb svg {
+        width: 240px;
+        height: 80px;
+    }
+
+.cc-thumb-blue {
+    background-color: #e8eefc;
+}
+
+.cc-thumb-peach {
+    background-color: #fbead4;
+}
+
+.cc-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 24px;
+    margin-bottom: 14px;
 }
 
-.cl-topic {
+.cc-badge {
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    background-color: var(--stat-bg);
-    color: #8a5a14;
-    padding: 4px 10px;
+    padding: 4px 8px;
     border-radius: 4px;
 }
 
-.cl-id {
-    margin-left: auto;
-    font-size: 12px;
-    color: var(--muted);
+.cc-badge-published {
+    background-color: #e3f1e6;
+    color: #1f7a3d;
 }
 
-.cl-title {
+.cc-badge-pending {
+    background-color: #e8ecfb;
+    color: var(--cc-navy);
+}
+
+.cc-badge-draft {
+    background-color: #fbe9d2;
+    color: #8a5a14;
+}
+
+.cc-modules {
+    font-size: 12px;
+    color: #6b7285;
+}
+
+.cc-topic {
+    font-size: 12px;
+    color: #6b7285;
+    margin-bottom: 8px;
+}
+
+.cc-title {
     font-family: var(--serif);
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 600;
     line-height: 1.3;
     color: var(--ink);
+    min-height: 52px;
+    margin-bottom: 14px;
 }
 
-.cl-stats {
+.cc-enrolled {
     display: flex;
-    gap: 18px;
-    font-size: 13px;
-    color: var(--text);
-}
-
-.cl-foot {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: auto;
-    padding-top: 14px;
-    border-top: 1px solid #f0eeea;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 6px;
+}
+
+    .cc-enrolled svg {
+        width: 16px;
+        height: 16px;
+        color: var(--cc-navy);
+    }
+
+.cc-meta {
     font-size: 12px;
-    color: var(--muted);
+    color: #6b7285;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #ecebe8;
 }
 
-.cl-open {
-    font-size: 13px;
+.cc-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.cc-view,
+.cc-edit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 29px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--accent-link);
+    text-decoration: none;
+    border-radius: 4px;
 }
 
-.cl-empty {
+.cc-view {
+    flex: 1;
+    background-color: var(--cc-navy);
+    color: #ffffff;
+}
+
+    .cc-view:hover {
+        background-color: var(--cc-navy-dark);
+    }
+
+.cc-edit {
+    padding: 0 14px;
+    background-color: #ffffff;
+    color: var(--ink);
+    border: 1px solid var(--border);
+}
+
+    .cc-edit:hover {
+        background-color: #f7f6f4;
+    }
+
+    .cc-edit svg {
+        width: 14px;
+        height: 14px;
+        color: var(--cc-navy);
+    }
+
+.cc-nomatch {
     font-size: 14px;
     color: var(--muted);
     padding: 28px 20px;
@@ -136,6 +386,12 @@
     background-color: #faf9f7;
 }
 
-    .cl-empty[hidden] {
+    .cc-nomatch[hidden] {
         display: none;
     }
+
+.cc-footer {
+    font-size: 12px;
+    color: #6b7285;
+    margin-top: 28px;
+}
