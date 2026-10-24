@@ -42,7 +42,7 @@ namespace WAPP_EduCore.pages.Student
 
         private void LoadPage(long courseId)
         {
-            // ---------- course ----------
+            // ---------- course (published courses only) ----------
             string courseSql =
                 "SELECT c.course_id, c.title, c.course_description, c.duration, c.course_level, c.course_img, " +
                 "  COALESCE(u.full_name, 'TBA') AS instructor, " +
@@ -50,7 +50,7 @@ namespace WAPP_EduCore.pages.Student
                 "  EXISTS (SELECT 1 FROM enrollment e2 WHERE e2.course_id = c.course_id AND e2.user_id = @uid) AS is_enrolled " +
                 "FROM courses c " +
                 "LEFT JOIN users u ON u.user_id = c.user_id " +
-                "WHERE c.course_id = @cid";
+                "WHERE c.course_id = @cid AND lower(c.status) = 'published'";
 
             DataTable course = Db.Query(courseSql, new Dictionary<string, object>
             {
@@ -58,6 +58,7 @@ namespace WAPP_EduCore.pages.Student
                 { "@cid", courseId }
             });
 
+            // not found, or still a draft
             if (course.Rows.Count == 0)
             {
                 Response.Redirect("~/pages/Student/myCourses.aspx");
@@ -122,8 +123,11 @@ namespace WAPP_EduCore.pages.Student
             long courseId;
             if (!TryGetCourseId(out courseId)) return;
 
+            // only a published course can be joined
             Db.Execute(
-                "INSERT INTO enrollment (user_id, course_id) VALUES (@uid, @cid) " +
+                "INSERT INTO enrollment (user_id, course_id) " +
+                "SELECT @uid, c.course_id FROM courses c " +
+                "WHERE c.course_id = @cid AND lower(c.status) = 'published' " +
                 "ON CONFLICT (user_id, course_id) DO NOTHING",
                 new Dictionary<string, object> { { "@uid", UserId }, { "@cid", courseId } });
 
