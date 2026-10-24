@@ -33,6 +33,24 @@ namespace WAPP_EduCore.pages.Student
         protected global::WAPP_EduCore.pages.Shared.Sidebar Sidebar1;
 
         /// <summary>
+        /// litMiniInitials control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal litMiniInitials;
+
+        /// <summary>
+        /// lnkLogout control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton lnkLogout;
+
+        /// <summary>
         /// pnlMsg control.
         /// </summary>
         /// <remarks>
@@ -123,22 +141,13 @@ namespace WAPP_EduCore.pages.Student
         protected global::System.Web.UI.WebControls.TextBox txtDob;
 
         /// <summary>
-        /// txtPhone control.
+        /// txtRole control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtPhone;
-
-        /// <summary>
-        /// txtProgram control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtProgram;
+        protected global::System.Web.UI.WebControls.TextBox txtRole;
 
         /// <summary>
         /// pnlPwMsg control.
@@ -195,51 +204,6 @@ namespace WAPP_EduCore.pages.Student
         protected global::System.Web.UI.WebControls.Button btnPassword;
 
         /// <summary>
-        /// ddlStyle control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddlStyle;
-
-        /// <summary>
-        /// rngGoal control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlInputGenericControl rngGoal;
-
-        /// <summary>
-        /// chkContrast control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.CheckBox chkContrast;
-
-        /// <summary>
-        /// chkLarge control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.CheckBox chkLarge;
-
-        /// <summary>
-        /// chkMotion control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.CheckBox chkMotion;
-
-        /// <summary>
         /// btnCancel control.
         /// </summary>
         /// <remarks>
@@ -256,14 +220,5 @@ namespace WAPP_EduCore.pages.Student
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnSave;
-
-        /// <summary>
-        /// litA11y control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litA11y;
     }
 }
