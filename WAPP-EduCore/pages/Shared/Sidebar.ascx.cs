@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 
@@ -98,6 +99,17 @@ namespace WAPP_EduCore.pages.Shared
             string initials = parts[0].Substring(0, 1);
             if (parts.Length > 1) initials += parts[parts.Length - 1].Substring(0, 1);
             return initials.ToUpperInvariant();
+        }
+
+        // ---------- log out ----------
+
+        protected void btnLogout_Click(object sender, EventArgs e)
+        {
+            Session.Clear();
+            Session.Abandon();
+            FormsAuthentication.SignOut();   // harmless if you don't use forms authentication
+
+            Response.Redirect("~/auth/login.aspx");   // change this to wherever your login page actually is
         }
     }
 }

@@ -565,6 +565,13 @@ nav li {
 }
 
 /* Sidebar icons */
+/* Remove the placeholder box that admin.css draws before each menu item */
+.sidebar a.menu-item::before,
+.sidebar a.menu-item::after {
+    content: none;
+    display: none
+}
+
 .sidebar a.menu-item {
     display: flex;
     align-items: center;
@@ -1574,4 +1581,23 @@ nav li {
         text-overflow: ellipsis;
         white-space: nowrap;
         font-size: 14px
+    }
+
+/* Logout button under the user block */
+.sidebar .logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 14px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: rgba(255,255,255,.1);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none
+}
+
+    .sidebar .logout-btn:hover {
+        background: rgba(255,255,255,.2)
     }

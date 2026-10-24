@@ -17,4 +17,6 @@
             <small id="lblId" runat="server">Student ID: 00000</small>
         </div>
     </div>
+
+    <asp:LinkButton ID="btnLogout" runat="server" CssClass="logout-btn" OnClick="btnLogout_Click" CausesValidation="false">Log out</asp:LinkButton>
 </div>
