@@ -56,23 +56,33 @@
         @media(max-width:1000px){.st-grid{grid-template-columns:1fr}}
     </style>
     <script type="text/javascript">
-// drop-down menu at the top right
-function toggleUserMenu(event) {
+/** drop-down menu at the top right
+ * @param {Event} event */
+function stToggleMenu(event) {
     event.stopPropagation();
-    document.getElementById('userDropdown').classList.toggle('open');
+    var menu = document.getElementById('userDropdown');
+    if (menu) menu.classList.toggle('open');
 }
+
 document.addEventListener('click', function () {
-    var d = document.getElementById('userDropdown');
-    if (d) d.classList.remove('open');
+    var menu = document.getElementById('userDropdown');
+    if (menu) menu.classList.remove('open');
 });
 
-// the eye button: show or hide a password
-function togglePassword(boxId, button) {
-    var box = document.getElementById(boxId);
-    var showIt = (box.type == 'password');
+/** the eye button: show or hide a password
+ * @param {string} boxId
+ * @param {HTMLElement} button */
+function stTogglePassword(boxId, button) {
+    var box = /** @type {HTMLInputElement | null} */ (document.getElementById(boxId));
+    if (!box) return;
+
+    var showIt = (box.type === 'password');
     box.type = showIt ? 'text' : 'password';
-    button.querySelector('.eye-slash').style.display = showIt ? 'none' : 'block';
-    button.querySelector('.eye-open').style.display = showIt ? 'block' : 'none';
+
+    var slash = /** @type {HTMLElement | null} */ (button.querySelector('.eye-slash'));
+    var open = /** @type {HTMLElement | null} */ (button.querySelector('.eye-open'));
+    if (slash) slash.style.display = showIt ? 'none' : 'block';
+    if (open) open.style.display = showIt ? 'block' : 'none';
 }
 </script>
 </head>
@@ -89,7 +99,7 @@ function togglePassword(boxId, button) {
                     </div>
 
                     <div class="user-menu">
-                        <button type="button" class="user-btn" onclick="toggleUserMenu(event)" title="Account">
+                        <button type="button" class="user-btn" onclick="stToggleMenu(event)" title="Account">
                             <span class="st-mini-avatar"><asp:Literal ID="litMiniInitials" runat="server" Mode="Encode"></asp:Literal></span>
                         </button>
                         <div class="user-dropdown" id="userDropdown">
@@ -150,7 +160,7 @@ function togglePassword(boxId, button) {
                                 <label for="txtCurrentPw">Current Password</label>
                                 <div class="pw-wrap">
                                     <asp:TextBox ID="txtCurrentPw" runat="server" ClientIDMode="Static" TextMode="Password"></asp:TextBox>
-                                    <button type="button" class="pw-eye" onclick="togglePassword('txtCurrentPw', this)" title="Show / hide password">
+                                    <button type="button" class="pw-eye" onclick="stTogglePassword('txtCurrentPw', this)" title="Show / hide password">
                                         <svg class="eye-slash" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
                                         <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                                     </button>
@@ -161,7 +171,7 @@ function togglePassword(boxId, button) {
                                 <label for="txtNewPw">New Password</label>
                                 <div class="pw-wrap">
                                     <asp:TextBox ID="txtNewPw" runat="server" ClientIDMode="Static" TextMode="Password"></asp:TextBox>
-                                    <button type="button" class="pw-eye" onclick="togglePassword('txtNewPw', this)" title="Show / hide password">
+                                    <button type="button" class="pw-eye" onclick="stTogglePassword('txtNewPw', this)" title="Show / hide password">
                                         <svg class="eye-slash" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
                                         <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                                     </button>
@@ -173,7 +183,7 @@ function togglePassword(boxId, button) {
                                 <label for="txtConfirmPw">Confirm New Password</label>
                                 <div class="pw-wrap">
                                     <asp:TextBox ID="txtConfirmPw" runat="server" ClientIDMode="Static" TextMode="Password"></asp:TextBox>
-                                    <button type="button" class="pw-eye" onclick="togglePassword('txtConfirmPw', this)" title="Show / hide password">
+                                    <button type="button" class="pw-eye" onclick="stTogglePassword('txtConfirmPw', this)" title="Show / hide password">
                                         <svg class="eye-slash" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
                                         <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                                     </button>
