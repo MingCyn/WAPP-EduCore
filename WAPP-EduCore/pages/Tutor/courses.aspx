@@ -7,7 +7,6 @@
     <title>EduCore - My Courses</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet" />
     <link href="../../Content/dashboard.css" rel="stylesheet" type="text/css" />
-    <%-- courseBuilder.css supplies the shared nav tweaks, page header, .btn and pop-up styles --%>
     <link href="../../Content/courseBuilder.css?v=4" rel="stylesheet" type="text/css" />
     <link href="../../Content/courses.css?v=3" rel="stylesheet" type="text/css" />
 </head>
@@ -15,7 +14,7 @@
     <form id="form1" runat="server">
         <div class="dashboard-layout">
 
-            <%-- Shared nav: same include as the other tutor pages --%>
+            <%-- Shared nav --%>
             <% Server.Execute("tutorNav.aspx", false); %>
 
             <main class="dashboard-container">
@@ -27,7 +26,6 @@
                         <p class="page-subtitle">Manage your created courses</p>
                     </div>
                     <div class="page-actions">
-                        <%-- Creates a draft course, then redirects to courseBuilder.aspx --%>
                         <asp:LinkButton ID="BtnNewCourse" runat="server" CssClass="btn btn-primary cc-create" OnClick="BtnNewCourse_Click" CausesValidation="false">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
                             Create New Course
@@ -37,7 +35,7 @@
 
                 <asp:Label ID="LblStatus" runat="server" CssClass="page-status error" Visible="false" />
 
-                <%-- ================= STATE 1: tutor has no courses yet ================= --%>
+                <!-- STATE 1: Empty -->
                 <asp:Panel ID="PnlEmpty" runat="server" CssClass="cc-empty-card" Visible="false">
                     <svg class="cc-empty-art" viewBox="0 0 180 180" fill="none" aria-hidden="true">
                         <circle cx="85" cy="90" r="85" fill="#fbead4" />
@@ -58,17 +56,15 @@
                     <p class="cc-empty-hint">Your courses will appear here once you create them.</p>
                 </asp:Panel>
 
-                <%-- ================= STATE 2: tutor has courses ================= --%>
+                <!-- STATE 2: List -->
                 <asp:Panel ID="PnlList" runat="server" Visible="false">
 
-                    <!-- Summary tiles -->
                     <div class="cc-stats">
                         <div class="cc-stat"><span class="cc-stat-num"><%= TotalCount %></span><span class="cc-stat-label">Total courses</span></div>
                         <div class="cc-stat"><span class="cc-stat-num"><%= PublishedCount %></span><span class="cc-stat-label">Published</span></div>
                         <div class="cc-stat"><span class="cc-stat-num"><%= DraftCount %></span><span class="cc-stat-label">Draft</span></div>
                     </div>
 
-                    <!-- Filters, search, sort -->
                     <div class="cc-toolbar">
                         <div class="cc-chips">
                             <button type="button" class="cc-chip active" data-filter="all">All courses (<%= TotalCount %>)</button>
@@ -89,7 +85,6 @@
                         </div>
                     </div>
 
-                    <!-- Course cards -->
                     <div class="cc-grid" id="ccGrid">
                         <asp:Repeater ID="RptCourses" runat="server" OnItemCommand="RptCourses_ItemCommand">
                             <ItemTemplate>
@@ -149,7 +144,6 @@
 
     <script>
         // @ts-nocheck
-        // ---------- Filter / search / sort (only when the course list is shown) ----------
         (function () {
             var grid = document.getElementById('ccGrid');
             if (!grid) return;
@@ -199,10 +193,7 @@
             search.addEventListener('input', apply);
             sort.addEventListener('change', applySort);
         })();
-    </script>
 
-    <%-- Highlight "My Courses" in the shared nav --%>
-    <script>
         var navLink = document.querySelector('.nav-link[href="courses.aspx"]');
         if (navLink) navLink.classList.add('active');
     </script>

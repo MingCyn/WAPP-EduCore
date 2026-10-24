@@ -116,41 +116,38 @@ namespace WAPP_EduCore.pages.Tutor
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (Session["UserRole"] == null ||
+                !Session["UserRole"].ToString().Equals("Tutor", StringComparison.OrdinalIgnoreCase))
+            {
+                Response.Redirect(LoginPage, false);
+                Context.ApplicationInstance.CompleteRequest();
+                return;
+            }
+
             if (!TryGetUserId(out userId))
             {
-                Response.Redirect(LoginPage);
+                Response.Redirect(LoginPage, false);
+                Context.ApplicationInstance.CompleteRequest();
                 return;
             }
 
-            if (!int.TryParse(Request.QueryString["courseId"], out courseId))
-            {
-                Response.Redirect(CourseListPage);
-                return;
-            }
+            int.TryParse(Request.QueryString["courseId"], out courseId);
             int.TryParse(Request.QueryString["lessonId"], out lessonId);
 
-            if (!IsPostBack) FillDurationLists();
-
-            try
+            if (courseId <= 0)
             {
-                LoadPage();
-                if (!IsPostBack) ShowNoticeFromQuery();
+                Response.Redirect(CourseListPage, false);
+                Context.ApplicationInstance.CompleteRequest();
+                return;
+            }
 
-                if (!IsPostBack && Request.QueryString["edit"] == "1")
-                {
-                    ClientScript.RegisterStartupScript(GetType(), "openCourseInfo",
-                        "window.addEventListener('load', function () { openModal('modalCourseInfo'); });", true);
-                }
-            }
-            catch (NpgsqlException ex)
+            if (!IsPostBack)
             {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                var pg = ex as PostgresException;
-                string detail = pg != null ? pg.MessageText : ex.Message;
-                ShowMessage("We couldn't load this course right now." +
-                          (ShowDatabaseErrors ? " (" + detail + ")" : " Please try again."), true);
-                PnlLessonView.Visible = false;
+                FillDurationLists();
+                ShowNoticeFromQuery();
             }
+
+            LoadPage();
         }
 
         private void LoadPage()
@@ -316,9 +313,26 @@ namespace WAPP_EduCore.pages.Tutor
                 Uri uri;
                 string source = Uri.TryCreate(lesson.VideoUrl, UriKind.Absolute, out uri) ? uri.Host : "Uploaded video";
                 LitVideoSource.Text = Server.HtmlEncode(source);
+
+                string thumbSrc = "";
+                if (lesson.VideoUrl.Contains("youtube.com") || lesson.VideoUrl.Contains("youtu.be"))
+                {
+                    string vidId = ExtractYouTubeId(lesson.VideoUrl);
+                    if (!string.IsNullOrEmpty(vidId))
+                    {
+                        thumbSrc = "https://img.youtube.com/vi/" + vidId + "/hqdefault.jpg";
+                    }
+                }
+
+                if (string.IsNullOrEmpty(thumbSrc))
+                {
+                    thumbSrc = SafeImageUrl(lesson.VideoUrl);
+                }
+
+                // Assigns the URL directly to the ASP:Image control
+                ImgVideoThumb.ImageUrl = thumbSrc;
             }
 
-            // Parse blocks securely at the beginning
             List<Dictionary<string, object>> blocks = ParseBlocks(lesson.ContentJson);
             Dictionary<string, object> paragraphBlock = FindBlock(blocks, "paragraph");
             Dictionary<string, object> tableBlock = FindBlock(blocks, "table");
@@ -396,6 +410,41 @@ namespace WAPP_EduCore.pages.Tutor
 
             PnlDraftNotice.Visible = drafts.Count > 0;
             LitDraftList.Text = Server.HtmlEncode(string.Join(", ", drafts.ToArray()));
+        }
+
+        private string ExtractYouTubeId(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return "";
+            try
+            {
+                Uri uri = new Uri(url);
+                if (uri.Host.Contains("youtube.com"))
+                {
+                    var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                    return query["v"];
+                }
+                else if (uri.Host.Contains("youtu.be"))
+                {
+                    return uri.AbsolutePath.Trim('/');
+                }
+            }
+            catch { }
+            return "";
+        }
+
+        protected void BtnPreviewCourse_Click(object sender, EventArgs e)
+        {
+            int targetCourseId = 0;
+            if (int.TryParse(Request.QueryString["courseId"], out targetCourseId) && targetCourseId > 0)
+            {
+                Response.Redirect("../student/courseView.aspx?courseId=" + targetCourseId, false);
+                Context.ApplicationInstance.CompleteRequest();
+            }
+            else
+            {
+                Response.Redirect("courses.aspx", false);
+                Context.ApplicationInstance.CompleteRequest();
+            }
         }
 
         private static List<Dictionary<string, object>> ParseBlocks(string json)
@@ -1005,7 +1054,7 @@ namespace WAPP_EduCore.pages.Tutor
             if (missing.Count > 0)
             {
                 ShowMessage("Cannot publish yet. Please add: " + string.Join(", ", missing.ToArray()) +
-                            ". You can update the course details with \"Edit course info\".", true);
+                          ". You can update the course details with \"Edit course info\".", true);
                 return;
             }
 

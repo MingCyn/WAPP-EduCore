@@ -186,6 +186,15 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.Panel PnlVideo;
 
         /// <summary>
+        /// ImgVideoThumb control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Image ImgVideoThumb;
+
+        /// <summary>
         /// LitVideoSource control.
         /// </summary>
         /// <remarks>

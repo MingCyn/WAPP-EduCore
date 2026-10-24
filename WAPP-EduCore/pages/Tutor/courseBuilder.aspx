@@ -40,7 +40,7 @@
                         </p>
                     </div>
                     <div class="page-actions">
-                        <asp:Button ID="BtnPreviewCourse" runat="server" Text="Preview Course" CssClass="btn btn-outline" />
+                        <asp:Button ID="BtnPreviewCourse" runat="server" Text="Preview Course" CssClass="btn btn-outline" OnClick="BtnPreviewCourse_Click" />
                         <%-- Draft course: Publish. Published course: Unpublish (hidden/shown from the code-behind) --%>
                         <asp:Button ID="BtnPublishCourse" runat="server" OnClientClick="openModal('modalPublish'); return false;" Text="Publish Course" CssClass="btn btn-primary" />
                         <asp:Button ID="BtnUnpublish" runat="server" OnClientClick="openModal('modalUnpublish'); return false;" Text="Unpublish Course" CssClass="btn btn-outline" Visible="false" />
@@ -83,7 +83,7 @@
                             </div>
                         </div>
 
-                        <asp:Button ID="BtnAddModule" runat="server" OnClientClick="openModal('modalAddModule'); return false;" Text="+  Add New Lesson" CssClass="btn btn-muted btn-block" />
+                        <asp:Button ID="BtnAddModule" runat="server" OnClientClick="openModal('modalAddModule'); return false;" Text="+ Add New Lesson" CssClass="btn btn-muted btn-block" />
                     </aside>
 
                     <!-- Right: Lesson editor -->
@@ -104,19 +104,24 @@
 
                             <div class="component-list">
 
-                                <!-- Video (block of type "video" in lesson.lesson_content) -->
+                                <!-- Video -->
                                 <asp:Panel ID="PnlVideo" runat="server" CssClass="component-card" Visible="false">
-                                    <div class="video-thumb"></div>
+                                    <!-- Image Thumbnail Control -->
+                                    <div class="video-thumb-container">
+                                        <asp:Image ID="ImgVideoThumb" runat="server" CssClass="component-thumbnail" AlternateText="Video Thumbnail" />
+                                    </div>
+
                                     <div class="component-body">
                                         <h3 class="component-title">Lesson Video</h3>
-                                        <p class="component-meta">Video Component <span class="dot-sep">&bull;</span> <asp:Literal ID="LitVideoSource" runat="server" /></p>
+                                        <p class="component-meta">Video Component <span class="dot-sep">&bull;</span>
+                                            <asp:Literal ID="LitVideoSource" runat="server" /></p>
                                         <div class="component-actions">
                                             <asp:Button ID="BtnUploadVideo" runat="server" OnClientClick="openModal('modalUploadVideo'); return false;" Text="Replace Video" CssClass="btn btn-primary btn-sm" />
                                         </div>
                                     </div>
                                 </asp:Panel>
 
-                                <!-- Paragraph Component (block of type "paragraph" in lesson.lesson_content) -->
+                                <!-- Paragraph Component -->
                                 <asp:Panel ID="PnlParagraph" runat="server" CssClass="component-card" Visible="false">
                                     <div class="component-icon text">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -133,7 +138,7 @@
                                     </div>
                                 </asp:Panel>
 
-                                <!-- Table Component (block of type "table" in lesson.lesson_content) -->
+                                <!-- Table Component -->
                                 <asp:Panel ID="PnlTable" runat="server" CssClass="component-card" Visible="false">
                                     <div class="component-icon table">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -151,7 +156,7 @@
                                     </div>
                                 </asp:Panel>
 
-                                <!-- Interactive object (block of type "interactive" in lesson.lesson_content) -->
+                                <!-- Interactive object -->
                                 <asp:Panel ID="PnlInteractive" runat="server" CssClass="component-card" Visible="false">
                                     <div class="component-icon navy">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l5 5-5 5" /><path d="M13 18h6" /></svg>
@@ -165,7 +170,7 @@
                                     </div>
                                 </asp:Panel>
 
-                                <!-- Assessment (lesson.quiz_id) -->
+                                <!-- Assessment -->
                                 <asp:Panel ID="PnlAssessment" runat="server" CssClass="component-card" Visible="false">
                                     <div class="component-icon indigo">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7" /><circle cx="12" cy="17" r=".6" fill="currentColor" /></svg>
@@ -179,7 +184,7 @@
                                     </div>
                                 </asp:Panel>
 
-                                <!-- Virtual lab (block of type "lab" in lesson.lesson_content) -->
+                                <!-- Virtual lab -->
                                 <asp:Panel ID="PnlLab" runat="server" CssClass="component-card" Visible="false">
                                     <div class="component-icon amber">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5.5 9.5A1.5 1.5 0 0 0 5.8 21h12.4a1.5 1.5 0 0 0 1.3-2.5L14 9V3" /><path d="M7.5 15h9" /></svg>
@@ -193,12 +198,10 @@
                                     </div>
                                 </asp:Panel>
 
-                                <!-- Shown when the lesson has no components yet -->
                                 <asp:Panel ID="PnlEmpty" runat="server" CssClass="component-empty" Visible="false">
                                     This lesson has no components yet. Use the buttons below to add a video, assessment, interactive object or virtual lab.
                                 </asp:Panel>
 
-                                <!-- Add buttons: each one only appears if the lesson does not have that component -->
                                 <div id="DivAddRow" runat="server" class="component-add">
                                     <span>Add:</span>
                                     <button type="button" id="BtnAddVideo" runat="server" class="btn btn-outline btn-sm" onclick="openModal('modalUploadVideo')">+ Video</button>
@@ -211,7 +214,6 @@
 
                             </div>
 
-                            <%-- Only for DRAFT courses. A published course has no "Save as Draft" so it can never be hidden from enrolled students by accident. --%>
                             <asp:Panel ID="PnlDraftFooter" runat="server" CssClass="editor-footer">
                                 <asp:Button ID="BtnSaveDraft" runat="server" OnClick="BtnSaveDraft_Click" Text="Save as Draft" CssClass="btn btn-muted" />
                                 <asp:Button ID="BtnPublishModule" runat="server" OnClientClick="openModal('modalPublish'); return false;" Text="Publish Module Content" CssClass="btn btn-primary" />
@@ -224,9 +226,6 @@
         </div>
 
         <!-- ============ POP-UP DIALOGS ============ -->
-        <%-- No DefaultButton on any pop-up: pressing Enter must never save. Only the pop-up's own button saves. --%>
-
-        <%-- Edit course information: title, topic, level, duration (weeks + hours per week) and image --%>
         <div class="modal-overlay" id="modalCourseInfo" aria-hidden="true">
             <asp:Panel ID="PnlCourseInfo" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalCourseInfo">
                 <h3 class="modal-title" id="title_modalCourseInfo">Edit course information</h3>
@@ -255,7 +254,6 @@
                     </asp:DropDownList>
                 </div>
 
-                <%-- The week and hour choices are added in the code-behind (positive values only) --%>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="DdlCourseWeeks">Duration (weeks)</label>
@@ -294,7 +292,6 @@
             </asp:Panel>
         </div>
 
-        <%-- Add new lesson (creates a row in public.lesson with empty content) --%>
         <div class="modal-overlay" id="modalAddModule" aria-hidden="true">
             <asp:Panel ID="PnlAddModule" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalAddModule">
                 <h3 class="modal-title" id="title_modalAddModule">Add new lesson</h3>
@@ -347,7 +344,6 @@
             </asp:Panel>
         </div>
 
-        <%-- Modal: Add/Edit Paragraph --%>
         <div class="modal-overlay" id="modalEditParagraph" aria-hidden="true">
             <asp:Panel ID="PnlModalParagraph" runat="server" CssClass="modal" role="dialog" aria-modal="true">
                 <h3 class="modal-title">Add / Edit Paragraph Text</h3>
@@ -362,7 +358,6 @@
             </asp:Panel>
         </div>
 
-        <%-- Modal: Add/Edit Table --%>
         <div class="modal-overlay" id="modalEditTable" aria-hidden="true">
             <asp:Panel ID="PnlModalTable" runat="server" CssClass="modal" role="dialog" aria-modal="true">
                 <h3 class="modal-title">Add / Edit Data Table</h3>
@@ -382,7 +377,6 @@
             </asp:Panel>
         </div>
 
-        <%-- Publish (draft courses only) --%>
         <div class="modal-overlay" id="modalPublish" aria-hidden="true">
             <asp:Panel ID="PnlPublish" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalPublish">
                 <h3 class="modal-title" id="title_modalPublish">Publish this course?</h3>
@@ -399,7 +393,6 @@
             </asp:Panel>
         </div>
 
-        <%-- Unpublish (published courses only): a deliberate, separate step with a warning --%>
         <div class="modal-overlay" id="modalUnpublish" aria-hidden="true">
             <asp:Panel ID="PnlUnpublish" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalUnpublish">
                 <h3 class="modal-title" id="title_modalUnpublish">Unpublish this course?</h3>
@@ -435,36 +428,32 @@
             m.classList.remove('open');
             m.setAttribute('aria-hidden', 'true');
             if (!document.querySelector('.modal-overlay.open')) document.body.classList.remove('modal-open');
-            if (lastFocus) lastFocus.focus();
+            if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
         }
 
-        // Esc closes any open pop-up
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal-overlay.open').forEach(function (m) { closeModal(m.id); });
             }
         });
 
-        // Clicking the dimmed backdrop closes the pop-up
         document.querySelectorAll('.modal-overlay').forEach(function (o) {
             o.addEventListener('mousedown', function (e) { if (e.target === o) closeModal(o.id); });
         });
 
-        // Enter inside a pop-up must never submit the form: only the pop-up's own button saves.
         document.addEventListener('keydown', function (e) {
             if (e.key !== 'Enter') return;
-            var t = e.target;
+            var t = /** @type {HTMLInputElement | null} */ (e.target);
             if (!t || !t.closest || !t.closest('.modal')) return;
             var tag = t.tagName;
-            if (tag === 'TEXTAREA' || tag === 'BUTTON') return;                 // new lines / keyboard-click on buttons still work
+            if (tag === 'TEXTAREA' || tag === 'BUTTON') return;
             if (tag === 'INPUT' && (t.type === 'submit' || t.type === 'button')) return;
             e.preventDefault();
         });
 
-        // ---------- Course info pop-up: live duration text + image preview ----------
         (function () {
-            var weeks = document.getElementById('DdlCourseWeeks');
-            var hours = document.getElementById('DdlCourseHours');
+            var weeks = /** @type {HTMLSelectElement | null} */ (document.getElementById('DdlCourseWeeks'));
+            var hours = /** @type {HTMLSelectElement | null} */ (document.getElementById('DdlCourseHours'));
             var preview = document.getElementById('durationPreview');
 
             function updateDuration() {
@@ -478,35 +467,41 @@
             if (hours) hours.addEventListener('change', updateDuration);
             updateDuration();
 
-            var file = document.getElementById('FileCourseImg');
+            var file = /** @type {HTMLInputElement | null} */ (document.getElementById('FileCourseImg'));
             var nameEl = document.getElementById('courseImgName');
-            var img = document.getElementById('imgNewPreview');
+            var img = /** @type {HTMLImageElement | null} */ (document.getElementById('imgNewPreview'));
             var err = document.getElementById('courseInfoError');
-            if (!file) return;
+            if (!file || !nameEl || !img) return;
 
-            file.addEventListener('change', function () {
-                var f = file.files && file.files[0];
+            var fileInput = file, nameLabel = nameEl, preview2 = img;
+
+            fileInput.addEventListener('change', function () {
+                var f = fileInput.files && fileInput.files[0];
                 if (err) err.style.display = 'none';
                 if (!f) {
-                    nameEl.textContent = 'No new file selected';
-                    img.style.display = 'none';
+                    nameLabel.textContent = 'No new file selected';
+                    preview2.style.display = 'none';
                     return;
                 }
                 if (f.size > 2 * 1024 * 1024) {
-                    file.value = '';
-                    nameEl.textContent = 'No new file selected';
-                    img.style.display = 'none';
+                    fileInput.value = '';
+                    nameLabel.textContent = 'No new file selected';
+                    preview2.style.display = 'none';
                     if (err) { err.textContent = 'The image must be 2 MB or smaller.'; err.style.display = 'block'; }
                     return;
                 }
-                nameEl.textContent = f.name;
+                nameLabel.textContent = f.name;
                 var reader = new FileReader();
-                reader.onload = function (e) { img.src = e.target.result; img.style.display = 'block'; };
+                reader.onload = function (e) {
+                    if (e.target && typeof e.target.result === 'string') {
+                        preview2.src = e.target.result;
+                        preview2.style.display = 'block';
+                    }
+                };
                 reader.readAsDataURL(f);
             });
         })();
 
-        // Highlight "My Courses" in the shared nav, since this page belongs to that section
         var link = document.querySelector('.nav-link[href="courses.aspx"]');
         if (link) link.classList.add('active');
     </script>

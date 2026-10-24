@@ -10,19 +10,11 @@ namespace WAPP_EduCore.pages.Tutor
 {
     public partial class courses : System.Web.UI.Page
     {
-        // Change to the name of your EXISTING connection string in Web.config.
         private const string ConnectionName = "SupabasePostgres";
-
-        // Session keys set by auth/login.aspx.cs
         private const string SessionUserKey = "UserID";
         private const string SessionNameKey = "UserFullName";
         private const string LoginPage = "~/auth/login.aspx";
-
-        // Exact table name in Supabase (singular).
         private const string LessonsTable = "public.lesson";
-
-        // While developing, the real database error is shown inside the Create course pop-up
-        // and in the status box so problems are easy to diagnose. Set this to false before you deploy.
         private const bool ShowDatabaseErrors = true;
 
         private int userId;
@@ -32,15 +24,9 @@ namespace WAPP_EduCore.pages.Tutor
             return int.TryParse(Convert.ToString(Session[SessionUserKey]), out id) && id > 0;
         }
 
-        // Shown in the page footer. Filled from the login session in Page_Load.
         protected string TutorName = "";
-
-        // Totals for the summary tiles and filter chips (filled in LoadCourses)
         protected int TotalCount, PublishedCount, DraftCount;
 
-        // ------------------------------------------------------------------
-        // SQL queries
-        // ------------------------------------------------------------------
         private const string SqlCourses =
             "SELECT c.course_id, c.title, c.category, " +
             "       COALESCE(c.status, 'draft') AS status, " +
@@ -71,7 +57,7 @@ namespace WAPP_EduCore.pages.Tutor
             public string Title { get; set; }
             public string SortTitle { get; set; }
             public string Topic { get; set; }
-            public string StatusKey { get; set; }      // published | draft | pending
+            public string StatusKey { get; set; }
             public string StatusLabel { get; set; }
             public string StatusClass { get; set; }
             public string LessonsText { get; set; }
@@ -84,9 +70,6 @@ namespace WAPP_EduCore.pages.Tutor
             public long CreatedMs { get; set; }
         }
 
-        // ------------------------------------------------------------------
-        // Page load
-        // ------------------------------------------------------------------
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!TryGetUserId(out userId))
@@ -99,10 +82,10 @@ namespace WAPP_EduCore.pages.Tutor
 
             if (IsPostBack) return;
 
-            List<CourseRow> courses;
+            List<CourseRow> courseList;
             try
             {
-                courses = LoadCourses();
+                courseList = LoadCourses();
             }
             catch (Exception ex)
             {
@@ -112,7 +95,7 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            if (courses.Count == 0)
+            if (courseList.Count == 0)
             {
                 ShowDebugInfo();
                 PnlEmpty.Visible = true;
@@ -122,7 +105,7 @@ namespace WAPP_EduCore.pages.Tutor
             {
                 PnlEmpty.Visible = false;
                 PnlList.Visible = true;
-                RptCourses.DataSource = courses;
+                RptCourses.DataSource = courseList;
                 RptCourses.DataBind();
             }
         }
@@ -236,52 +219,6 @@ namespace WAPP_EduCore.pages.Tutor
             return map;
         }
 
-        // ------------------------------------------------------------------
-        // Repeater Command Handling (Delete Draft)
-        // ------------------------------------------------------------------
-        protected void RptCourses_ItemCommand(object source, RepeaterCommandEventArgs e)
-        {
-            if (e.CommandName == "DeleteDraft")
-            {
-                int courseId;
-                if (int.TryParse(e.CommandArgument.ToString(), out courseId))
-                {
-                    try
-                    {
-                        using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
-                        using (var cmd = new NpgsqlCommand(SqlDeleteDraft, conn))
-                        {
-                            cmd.Parameters.AddWithValue("cid", courseId);
-                            cmd.Parameters.AddWithValue("uid", userId);
-                            conn.Open();
-                            int rowsAffected = cmd.ExecuteNonQuery();
-
-                            if (rowsAffected > 0)
-                            {
-                                ShowMessage("Draft course successfully deleted.");
-                            }
-                            else
-                            {
-                                ShowMessage("Could not delete the course. Make sure it is still a draft and you own it.");
-                            }
-                        }
-                    }
-                    catch (NpgsqlException ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine(ex.ToString());
-                        var pg = ex as PostgresException;
-                        string detail = pg != null ? pg.MessageText : ex.Message;
-                        ShowMessage("Failed to delete draft." + (ShowDatabaseErrors ? " (" + detail + ")" : ""));
-                    }
-
-                    ReloadList();
-                }
-            }
-        }
-
-        // ------------------------------------------------------------------
-        // Presentation helpers
-        // ------------------------------------------------------------------
         private static void MapStatus(string raw, out string key, out string label, out string css)
         {
             switch ((raw ?? "").Trim().ToLowerInvariant().Replace(' ', '_'))
@@ -404,15 +341,39 @@ namespace WAPP_EduCore.pages.Tutor
             Response.Redirect("courseBuilder.aspx?courseId=" + newId + "&edit=1");
         }
 
+        protected void RptCourses_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            if (e.CommandName == "DeleteDraft")
+            {
+                int courseIdToDelete = Convert.ToInt32(e.CommandArgument);
+                try
+                {
+                    using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
+                    using (var cmd = new NpgsqlCommand(SqlDeleteDraft, conn))
+                    {
+                        cmd.Parameters.AddWithValue("cid", courseIdToDelete);
+                        cmd.Parameters.AddWithValue("uid", userId);
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+                    ReloadList();
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage("Could not delete draft: " + ex.Message);
+                }
+            }
+        }
+
         private void ReloadList()
         {
             try
             {
                 TotalCount = PublishedCount = DraftCount = 0;
-                List<CourseRow> courses = LoadCourses();
-                PnlEmpty.Visible = courses.Count == 0;
-                PnlList.Visible = courses.Count > 0;
-                RptCourses.DataSource = courses;
+                List<CourseRow> courseList = LoadCourses();
+                PnlEmpty.Visible = courseList.Count == 0;
+                PnlList.Visible = courseList.Count > 0;
+                RptCourses.DataSource = courseList;
                 RptCourses.DataBind();
             }
             catch (Exception ex)
@@ -429,7 +390,6 @@ namespace WAPP_EduCore.pages.Tutor
                 using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
                 {
                     conn.Open();
-
                     long mine, total;
                     using (var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM courses WHERE user_id = @uid", conn))
                     {
@@ -440,18 +400,7 @@ namespace WAPP_EduCore.pages.Tutor
                     {
                         total = Convert.ToInt64(cmd.ExecuteScalar());
                     }
-
-                    var ids = new List<string>();
-                    using (var cmd = new NpgsqlCommand("SELECT DISTINCT user_id FROM courses LIMIT 10", conn))
-                    using (var r = cmd.ExecuteReader())
-                    {
-                        while (r.Read()) ids.Add(r.IsDBNull(0) ? "NULL" : Convert.ToString(r[0]));
-                    }
-
-                    ShowMessage("DEBUG: session UserID=" + userId +
-                                " | courses for this user=" + mine +
-                                " | total courses=" + total +
-                                " | user_id values in table=[" + string.Join(", ", ids.ToArray()) + "]");
+                    ShowMessage("DEBUG: session UserID=" + userId + " | courses for this user=" + mine + " | total courses=" + total);
                 }
             }
             catch (Exception ex)
