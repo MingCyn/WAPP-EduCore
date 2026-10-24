@@ -49,7 +49,7 @@ namespace WAPP_EduCore.pages.Student
         {
             DataTable dt = Db.Query(
                 "SELECT DISTINCT course_level FROM courses " +
-                "WHERE course_level IS NOT NULL AND course_level <> '' ORDER BY course_level");
+                "WHERE lower(status) = 'published' AND course_level IS NOT NULL AND course_level <> '' ORDER BY course_level");
             rptLevels.DataSource = dt;
             rptLevels.DataBind();
             btnAllLevels.CssClass = SelectedLevel == "" ? "pill active" : "pill";
@@ -59,7 +59,7 @@ namespace WAPP_EduCore.pages.Student
         {
             DataTable dt = Db.Query(
                 "SELECT DISTINCT category FROM courses " +
-                "WHERE category IS NOT NULL AND category <> '' ORDER BY category");
+                "WHERE lower(status) = 'published' AND category IS NOT NULL AND category <> '' ORDER BY category");
             ddlCategory.Items.Clear();
             ddlCategory.Items.Add(new ListItem("Topic: All", ""));
             foreach (DataRow r in dt.Rows)
@@ -89,7 +89,7 @@ namespace WAPP_EduCore.pages.Student
                 "     WHERE l2.course_id = c.course_id AND lp.user_id = @uid AND lp.is_completed) AS done_lessons " +
                 "FROM courses c " +
                 "LEFT JOIN users u ON u.user_id = c.user_id " +
-                "WHERE (@level = '' OR c.course_level = @level) " +
+                "WHERE lower(c.status) = 'published' AND (@level = '' OR c.course_level = @level) " +
                 "  AND (@cat = '' OR c.category = @cat) " +
                 "  AND (@q = '' OR c.title ILIKE '%' || @q || '%' OR c.category ILIKE '%' || @q || '%') " +
                 "ORDER BY " + orderBy;
@@ -147,7 +147,8 @@ namespace WAPP_EduCore.pages.Student
                 }
 
                 Db.Execute(
-                    "INSERT INTO enrollment (user_id, course_id) VALUES (@uid, @cid) " +
+                    "INSERT INTO enrollment (user_id, course_id) " +
+                    "SELECT @uid, c.course_id FROM courses c WHERE c.course_id = @cid AND lower(c.status) = 'published' " +
                     "ON CONFLICT (user_id, course_id) DO NOTHING",
                     new Dictionary<string, object> { { "@uid", UserId }, { "@cid", courseId } });
 
