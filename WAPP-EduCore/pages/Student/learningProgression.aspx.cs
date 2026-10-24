@@ -113,6 +113,7 @@ namespace WAPP_EduCore.pages.Student
         }
 
         // ---------- showing the lesson ----------
+        // ---------- showing the lesson ----------
         private void Render()
         {
             DataRow cur = _lessons.Rows[_index];
@@ -133,21 +134,102 @@ namespace WAPP_EduCore.pages.Student
             litLessonTitle.Text = Convert.ToString(cur["lesson_title"]);
             litLessonDesc.Text = Convert.ToString(cur["lesson_description"]);
 
-            string content = Convert.ToString(cur["lesson_content"]);
-            if (string.IsNullOrWhiteSpace(content))
+            string jsonContent = Convert.ToString(cur["lesson_content"]);
+            string videoHtml = "";
+            string bodyContentHtml = "";
+
+            if (!string.IsNullOrWhiteSpace(jsonContent))
+            {
+                try
+                {
+                    var blocks = new JavaScriptSerializer().Deserialize<List<Dictionary<string, object>>>(jsonContent);
+                    if (blocks != null)
+                    {
+                        System.Text.StringBuilder contentBuilder = new System.Text.StringBuilder();
+
+                        foreach (var block in blocks)
+                        {
+                            if (block == null || !block.TryGetValue("type", out object typeObj)) continue;
+                            string type = Convert.ToString(typeObj).ToLowerInvariant();
+
+                            if (type == "video" && block.TryGetValue("url", out object urlObj))
+                            {
+                                string url = Convert.ToString(urlObj);
+                                string builtVideo = BuildVideoHtml(url);
+
+                                // Assign the first video to the dedicated top video player slot
+                                if (string.IsNullOrEmpty(videoHtml))
+                                {
+                                    videoHtml = builtVideo;
+                                }
+                                else
+                                {
+                                    contentBuilder.Append(builtVideo);
+                                }
+                            }
+                            else if (type == "paragraph" && block.TryGetValue("content", out object textObj))
+                            {
+                                string text = Convert.ToString(textObj);
+                                contentBuilder.AppendFormat("<p class=\"lesson-p\">{0}</p>", HttpUtility.HtmlEncode(text));
+                            }
+                            else if (type == "subheading" && block.TryGetValue("text", out object subObj))
+                            {
+                                string sub = Convert.ToString(subObj);
+                                contentBuilder.AppendFormat("<h3 class=\"lesson-subheading\">{0}</h3>", HttpUtility.HtmlEncode(sub));
+                            }
+                            else if (type == "list" && block.TryGetValue("items", out object itemsObj))
+                            {
+                                contentBuilder.Append("<ul class=\"lesson-list\">");
+                                if (itemsObj is System.Collections.IEnumerable listItems)
+                                {
+                                    foreach (var item in listItems)
+                                    {
+                                        contentBuilder.AppendFormat("<li>{0}</li>", HttpUtility.HtmlEncode(Convert.ToString(item)));
+                                    }
+                                }
+                                contentBuilder.Append("</ul>");
+                            }
+                            else if (type == "image" && block.TryGetValue("url", out object imgUrlObj))
+                            {
+                                string imgUrl = Convert.ToString(imgUrlObj);
+                                block.TryGetValue("caption", out object captionObj);
+                                string caption = captionObj != null ? Convert.ToString(captionObj) : "";
+
+                                contentBuilder.Append("<div class=\"lesson-image-wrapper\">");
+                                contentBuilder.AppendFormat("<img src=\"{0}\" alt=\"{1}\" class=\"lesson-img\" />",
+                                    HttpUtility.HtmlAttributeEncode(imgUrl), HttpUtility.HtmlAttributeEncode(caption));
+                                if (!string.IsNullOrEmpty(caption))
+                                {
+                                    contentBuilder.AppendFormat("<span class=\"lesson-caption\">{0}</span>", HttpUtility.HtmlEncode(caption));
+                                }
+                                contentBuilder.Append("</div>");
+                            }
+                        }
+
+                        bodyContentHtml = contentBuilder.ToString();
+                    }
+                }
+                catch (Exception)
+                {
+                    // Fallback if JSON deserialization fails
+                    bodyContentHtml = HttpUtility.HtmlEncode(jsonContent).Replace("\r\n", "<br />").Replace("\n", "<br />");
+                }
+            }
+
+            litVideo.Text = videoHtml;
+
+            if (string.IsNullOrWhiteSpace(bodyContentHtml))
             {
                 pnlContent.Visible = false;
+                litContent.Text = "";
             }
             else
             {
-                litContent.Text = HttpUtility.HtmlEncode(content)
-                    .Replace("\r\n", "<br />").Replace("\n", "<br />");
+                pnlContent.Visible = true;
+                litContent.Text = bodyContentHtml;
             }
 
-            string videoUrl = GetVideoUrl(content);
-            litVideo.Text = BuildVideoHtml(videoUrl);
-
-            // buttons
+            // Buttons & Navigation State
             bool isDone = Convert.ToBoolean(cur["done"]);
             btnComplete.Visible = !isDone;
             doneBox.Visible = isDone;
@@ -160,7 +242,7 @@ namespace WAPP_EduCore.pages.Student
             if (lnkNext.Visible)
                 lnkNext.NavigateUrl = LessonUrl(Convert.ToInt64(_lessons.Rows[_index + 1]["lesson_id"]));
 
-            // quiz of this lesson (works whichever table holds the link)
+            // Quiz Link
             long lessonQuizId = cur["quiz_id"] == DBNull.Value ? -1 : Convert.ToInt64(cur["quiz_id"]);
             DataTable qz = Db.Query(
                 "SELECT quiz_id FROM quiz WHERE lesson_id = @lid OR quiz_id = @qid ORDER BY quiz_id LIMIT 1",
@@ -169,18 +251,16 @@ namespace WAPP_EduCore.pages.Student
             if (lnkQuiz.Visible)
                 lnkQuiz.NavigateUrl = "~/pages/Student/assessment.aspx?quiz=" + Convert.ToInt64(qz.Rows[0]["quiz_id"]);
 
-            // syllabus list
+            // Syllabus List
             rptSyllabus.DataSource = _lessons;
             rptSyllabus.DataBind();
 
-            // tutor card
+            // Tutor Card Information
             string tutor = Convert.ToString(_course["tutor"]);
             string category = Convert.ToString(_course["category"]);
             litTutorName.Text = tutor;
             litTutorInitial.Text = tutor.Length > 0 ? tutor.Substring(0, 1).ToUpperInvariant() : "?";
-            litTutorRole.Text = string.IsNullOrWhiteSpace(category) ? "Tutor" : "Tutor \u00B7 " + category;
-
-            lnkDiscuss.NavigateUrl = "~/pages/Student/messages.aspx?lesson=" + _lessonId + "&tab=lesson";
+            litTutorRole.Text = string.IsNullOrWhiteSpace(category) ? "Tutor" : "Tutor \u00B7 " + category; lnkDiscuss.NavigateUrl = "~/pages/Student/messages.aspx?lesson=" + _lessonId + "&tab=lesson";
         }
 
         // ---------- mark as complete ----------

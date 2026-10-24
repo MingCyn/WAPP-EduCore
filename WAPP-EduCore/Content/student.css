@@ -1601,3 +1601,65 @@ nav li {
     .sidebar .logout-btn:hover {
         background: rgba(255,255,255,.2)
     }
+
+/* ===== JSON Lesson Content Styles ===== */
+
+.lv-content .lesson-subheading {
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111c3d;
+    margin-top: 24px;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ebe7e1;
+}
+
+    .lv-content .lesson-subheading:first-child {
+        margin-top: 0;
+    }
+
+.lv-content .lesson-p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #2c3548;
+    margin-bottom: 14px;
+}
+
+.lv-content .lesson-list {
+    margin: 10px 0 18px 20px;
+    padding-left: 10px;
+    list-style-type: disc;
+}
+
+    .lv-content .lesson-list li {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #333f54;
+        margin-bottom: 8px;
+    }
+
+.lv-content .lesson-image-wrapper {
+    margin: 20px 0;
+    text-align: center;
+    background: #faf8f5;
+    border: 1px solid #ebe7e1;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.lv-content .lesson-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    display: block;
+    margin: 0 auto;
+}
+
+.lv-content .lesson-caption {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6b7385;
+    font-style: italic;
+}
