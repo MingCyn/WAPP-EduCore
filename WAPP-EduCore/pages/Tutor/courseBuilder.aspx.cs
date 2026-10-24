@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
-using System.Text;
+using System.IO;
+using System.Text.RegularExpressions;
+using System.Web;
 using System.Web.Script.Serialization;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 using Npgsql;
 
@@ -24,6 +25,32 @@ namespace WAPP_EduCore.pages.Tutor
 
         // Exact table name in Supabase (singular).
         private const string LessonsTable = "public.lesson";
+
+        // While developing, the real database error is shown in the status box.
+        // Set this to false before you deploy.
+        private const bool ShowDatabaseErrors = true;
+
+        // A course created from "Create New Course" starts with this title.
+        // The title box is left empty for it so the tutor types a real one.
+        private const string DraftTitle = "Untitled course";
+
+        // ------------------------------------------------------------------
+        // Course info rules
+        // ------------------------------------------------------------------
+        // courses.status values. The student pages must only show courses where status = 'published'.
+        private const string StatusPublished = "published";
+        private const string StatusDraft = "draft";
+
+        private const int MaxWeeks = 52;                 // the Weeks drop-down offers 1 - 52
+        private const int MaxHoursPerWeek = 40;          // the Hours drop-down offers 1 - 40
+
+        // Course image upload: saved on the web server, the app-relative path goes into courses.course_img
+        private const string ImageFolder = "~/uploads/courses/";
+        private const int MaxImageBytes = 2 * 1024 * 1024;   // 2 MB
+
+        // "4 weeks (2 hrs/week)"  <- the format stored in courses.duration
+        private static readonly Regex DurationPattern = new Regex(
+            @"^\s*(\d+)\s*weeks?\s*\(\s*(\d+)\s*hrs?\s*/\s*week\s*\)\s*$", RegexOptions.IgnoreCase);
 
         private int userId;
 
@@ -47,14 +74,19 @@ namespace WAPP_EduCore.pages.Tutor
         // Every course query also checks user_id, so a tutor can only open or change their own courses.
         // ------------------------------------------------------------------
 
-        // Column ORDER matters: TryGetCourse reads title, category, duration by position.
+        // Column ORDER matters: TryGetCourse reads these by position.
         private const string SqlCourse =
-            "SELECT title, category, duration " +
+            "SELECT title, category, duration, course_level, course_img, status " +
             "FROM courses WHERE course_id = @cid AND user_id = @uid";
 
+        // course_img is only replaced when a new image was uploaded (NULL keeps the current one).
         private const string SqlCourseUpdate =
-            "UPDATE courses SET title = @title, category = @topic, duration = @duration, updated_at = now() " +
+            "UPDATE courses SET title = @title, category = @topic, duration = @duration, course_level = @level, " +
+            "course_img = COALESCE(CAST(@img AS text), course_img), updated_at = now() " +
             "WHERE course_id = @cid AND user_id = @uid";
+
+        private const string SqlCourseStatusUpdate =
+            "UPDATE courses SET status = @status, updated_at = now() WHERE course_id = @cid AND user_id = @uid";
 
         private const string SqlLessons =
             "SELECT lesson_id, lesson_title, lesson_content::text " +
@@ -64,6 +96,13 @@ namespace WAPP_EduCore.pages.Tutor
             "SELECT lesson_title, lesson_description, quiz_id, lesson_content::text, created_at " +
             "FROM " + LessonsTable + " WHERE lesson_id = @lid AND course_id = @cid";
 
+        // New lesson: empty content ([]), and only if the course belongs to the logged-in tutor.
+        private const string SqlLessonInsert =
+            "INSERT INTO " + LessonsTable + " (course_id, lesson_title, lesson_description, lesson_content) " +
+            "SELECT CAST(@cid AS bigint), @title, CAST(@desc AS text), CAST('[]' AS jsonb) " +
+            "WHERE EXISTS (SELECT 1 FROM courses WHERE course_id = @cid AND user_id = @uid) " +
+            "RETURNING lesson_id";
+
         private const string SqlLessonDetailsUpdate =
             "UPDATE " + LessonsTable + " SET lesson_title = @title, lesson_description = @desc " +
             "WHERE lesson_id = @lid AND course_id = @cid";
@@ -72,7 +111,7 @@ namespace WAPP_EduCore.pages.Tutor
             "SELECT lesson_content::text FROM " + LessonsTable + " " +
             "WHERE lesson_id = @lid AND course_id = @cid FOR UPDATE";
 
-        // If lesson_content is a plain text column (not json/jsonb), change "AS jsonb" to "AS text".
+        // lesson_content is jsonb in your table.
         private const string SqlLessonContentUpdate =
             "UPDATE " + LessonsTable + " SET lesson_content = CAST(@content AS jsonb) " +
             "WHERE lesson_id = @lid AND course_id = @cid";
@@ -101,6 +140,12 @@ namespace WAPP_EduCore.pages.Tutor
         private int courseId;
         private int lessonId;
 
+        private string currentImage = "";      // courses.course_img as loaded for this request
+
+        // Course values as loaded at the start of this request
+        private string loadedTitle = "", loadedTopic = "", loadedLevel = "", loadedDuration = "", loadedImage = "", courseStatus = "";
+        private int lessonCount;
+
         // ------------------------------------------------------------------
         // Page load
         // ------------------------------------------------------------------
@@ -112,7 +157,7 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            // Your course list page links here as: courseBuilder.aspx?courseId=1  (optionally &lessonId=5)
+            // The course list links here as: courseBuilder.aspx?courseId=1  (optionally &lessonId=5)
             if (!int.TryParse(Request.QueryString["courseId"], out courseId))
             {
                 Response.Redirect(CourseListPage);
@@ -120,11 +165,16 @@ namespace WAPP_EduCore.pages.Tutor
             }
             int.TryParse(Request.QueryString["lessonId"], out lessonId);
 
+            // Week / hour choices (positive numbers only). Added once; kept in view state afterwards.
+            if (!IsPostBack) FillDurationLists();
+
             try
             {
                 LoadPage();
+                if (!IsPostBack) ShowNoticeFromQuery();
 
-                // courses.aspx "Edit" button links here with &edit=1 -> open the course info pop-up straight away
+                // courses.aspx "Edit" and "Create New Course" link here with &edit=1
+                // -> open the course info pop-up straight away
                 if (!IsPostBack && Request.QueryString["edit"] == "1")
                 {
                     ClientScript.RegisterStartupScript(GetType(), "openCourseInfo",
@@ -133,11 +183,11 @@ namespace WAPP_EduCore.pages.Tutor
             }
             catch (NpgsqlException ex)
             {
-                // TEMPORARY while developing: show the real database error.
-                // Replace with the generic message before you deploy.
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 var pg = ex as PostgresException;
-                ShowMessage("DEBUG: " + (pg != null ? pg.MessageText : ex.Message), true);
+                string detail = pg != null ? pg.MessageText : ex.Message;
+                ShowMessage("We couldn't load this course right now." +
+                            (ShowDatabaseErrors ? " (" + detail + ")" : " Please try again."), true);
                 PnlLessonView.Visible = false;
             }
         }
@@ -147,22 +197,41 @@ namespace WAPP_EduCore.pages.Tutor
             using (NpgsqlConnection conn = OpenConnection())
             {
                 // 1) Course (must belong to the logged-in user)
-                string courseTitle, topic, duration;
-                if (!TryGetCourse(conn, out courseTitle, out topic, out duration))
+                string courseTitle, topic, duration, level, image, status;
+                if (!TryGetCourse(conn, out courseTitle, out topic, out duration, out level, out image, out status))
                 {
                     Response.Redirect(CourseListPage);
                     return;
                 }
+                currentImage = image;
+                loadedTitle = courseTitle;
+                loadedTopic = topic;
+                loadedLevel = level;
+                loadedDuration = duration;
+                loadedImage = image;
+                courseStatus = status;
+                LitPublishLesson.Text = Server.HtmlEncode(string.IsNullOrWhiteSpace(courseTitle) ? "this course" : courseTitle);
+                ApplyStatusUi(status);
                 LblCourseName.Text = Server.HtmlEncode(courseTitle);
+                ShowCurrentImage(image);
+
                 if (!IsPostBack)
                 {
-                    TxtCourseTitle.Text = courseTitle;
+                    // A brand-new course still has the placeholder title: leave the box empty.
+                    TxtCourseTitle.Text = courseTitle == DraftTitle ? "" : courseTitle;
                     TxtCourseTopic.Text = topic;
-                    TxtCourseDuration.Text = duration;
+
+                    // "4 weeks (2 hrs/week)" -> Weeks = 4, Hours = 2
+                    string weeks, hours;
+                    ParseDuration(duration, out weeks, out hours);
+                    SelectIfPresent(DdlCourseWeeks, weeks);
+                    SelectIfPresent(DdlCourseHours, hours);
+                    SelectIfPresent(DdlCourseLevel, (level ?? "").Trim().ToUpperInvariant());
                 }
 
                 // 2) Outline (all lessons of the course)
                 List<LessonRow> lessons = GetLessons(conn);
+                lessonCount = lessons.Count;
                 if (lessonId <= 0 && lessons.Count > 0) lessonId = lessons[0].LessonId;
                 foreach (LessonRow l in lessons) l.IsActive = (l.LessonId == lessonId);
 
@@ -181,9 +250,10 @@ namespace WAPP_EduCore.pages.Tutor
         // ------------------------------------------------------------------
         // Queries
         // ------------------------------------------------------------------
-        private bool TryGetCourse(NpgsqlConnection conn, out string title, out string topic, out string duration)
+        private bool TryGetCourse(NpgsqlConnection conn, out string title, out string topic, out string duration,
+                                  out string level, out string image, out string status)
         {
-            title = topic = duration = "";
+            title = topic = duration = level = image = status = "";
             using (var cmd = new NpgsqlCommand(SqlCourse, conn))
             {
                 cmd.Parameters.AddWithValue("cid", courseId);
@@ -191,9 +261,12 @@ namespace WAPP_EduCore.pages.Tutor
                 using (NpgsqlDataReader r = cmd.ExecuteReader())
                 {
                     if (!r.Read()) return false;
-                    title = r.IsDBNull(0) ? "" : Convert.ToString(r["title"]);
-                    topic = r.IsDBNull(1) ? "" : Convert.ToString(r["category"]);
-                    duration = r.IsDBNull(2) ? "" : Convert.ToString(r["duration"]);
+                    title = r.IsDBNull(0) ? "" : Convert.ToString(r[0]);
+                    topic = r.IsDBNull(1) ? "" : Convert.ToString(r[1]);
+                    duration = r.IsDBNull(2) ? "" : Convert.ToString(r[2]);
+                    level = r.IsDBNull(3) ? "" : Convert.ToString(r[3]);
+                    image = r.IsDBNull(4) ? "" : Convert.ToString(r[4]);
+                    status = r.IsDBNull(5) ? "" : Convert.ToString(r[5]);
                     return true;
                 }
             }
@@ -335,7 +408,6 @@ namespace WAPP_EduCore.pages.Tutor
             DivAddRow.Visible = !(hasVideo && hasQuiz && interactive != null && lab != null);
 
             // publish pop-up
-            LitPublishLesson.Text = Server.HtmlEncode(lesson.Title);
             PnlDraftNotice.Visible = drafts.Count > 0;
             LitDraftList.Text = Server.HtmlEncode(string.Join(", ", drafts.ToArray()));
         }
@@ -428,6 +500,171 @@ namespace WAPP_EduCore.pages.Tutor
         }
 
         // ------------------------------------------------------------------
+        // Course info helpers: duration text, drop-downs and the course image
+        // ------------------------------------------------------------------
+
+        // Positive values only, so a negative or zero duration can never be chosen.
+        private void FillDurationLists()
+        {
+            for (int w = 1; w <= MaxWeeks; w++)
+                DdlCourseWeeks.Items.Add(new ListItem(w + (w == 1 ? " week" : " weeks"), w.ToString(CultureInfo.InvariantCulture)));
+
+            for (int h = 1; h <= MaxHoursPerWeek; h++)
+                DdlCourseHours.Items.Add(new ListItem(h + (h == 1 ? " hour" : " hours") + " per week", h.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        // 4, 2  ->  "4 weeks (2 hrs/week)"
+        private static string FormatDuration(int weeks, int hoursPerWeek)
+        {
+            return weeks + (weeks == 1 ? " week" : " weeks") +
+                   " (" + hoursPerWeek + (hoursPerWeek == 1 ? " hr" : " hrs") + "/week)";
+        }
+
+        // "4 weeks (2 hrs/week)" -> weeks "4", hours "2". A plain number (older data, e.g. "8") fills weeks only.
+        private static void ParseDuration(string text, out string weeks, out string hours)
+        {
+            weeks = hours = "";
+            if (string.IsNullOrWhiteSpace(text)) return;
+
+            Match m = DurationPattern.Match(text);
+            if (m.Success)
+            {
+                weeks = m.Groups[1].Value;
+                hours = m.Groups[2].Value;
+                return;
+            }
+
+            int plain;
+            if (int.TryParse(text.Trim(), out plain) && plain > 0) weeks = plain.ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static void SelectIfPresent(DropDownList list, string value)
+        {
+            if (string.IsNullOrEmpty(value)) return;
+            ListItem item = list.Items.FindByValue(value);
+            if (item != null)
+            {
+                list.ClearSelection();
+                item.Selected = true;
+            }
+        }
+
+        // Shows the current course image above the upload box (only safe locations are shown).
+        private void ShowCurrentImage(string path)
+        {
+            string url = SafeImageUrl(path);
+            ImgCourseCurrent.Visible = url.Length > 0;
+            if (url.Length > 0) ImgCourseCurrent.Src = url;
+        }
+
+        private string SafeImageUrl(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return "";
+            if (path.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase)) return ResolveUrl(path);
+
+            Uri uri;
+            if (Uri.TryCreate(path, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps) return uri.AbsoluteUri;
+            return "";
+        }
+
+        // Checks the file's real content (not its name) and returns the matching extension, or null.
+        private static string DetectImageExtension(byte[] head, int length)
+        {
+            if (length >= 3 && head[0] == 0xFF && head[1] == 0xD8 && head[2] == 0xFF) return ".jpg";
+
+            if (length >= 8 && head[0] == 0x89 && head[1] == 0x50 && head[2] == 0x4E && head[3] == 0x47 &&
+                head[4] == 0x0D && head[5] == 0x0A && head[6] == 0x1A && head[7] == 0x0A) return ".png";
+
+            if (length >= 12 && head[0] == (byte)'R' && head[1] == (byte)'I' && head[2] == (byte)'F' && head[3] == (byte)'F' &&
+                head[8] == (byte)'W' && head[9] == (byte)'E' && head[10] == (byte)'B' && head[11] == (byte)'P') return ".webp";
+
+            return null;
+        }
+
+        // Saves the chosen image (if any). Returns true when there is nothing to save or it saved fine.
+        private bool TrySaveCourseImage(out string savedPath, out string error)
+        {
+            savedPath = null;
+            error = null;
+
+            HttpPostedFile file = FileCourseImg.PostedFile;
+            if (file == null || file.ContentLength == 0) return true;      // no new image chosen
+
+            if (file.ContentLength > MaxImageBytes)
+            {
+                error = "The image must be 2 MB or smaller.";
+                return false;
+            }
+
+            var head = new byte[12];
+            int read = file.InputStream.Read(head, 0, head.Length);
+            file.InputStream.Position = 0;
+
+            string extension = DetectImageExtension(head, read);
+            if (extension == null)
+            {
+                error = "Please choose a JPG, PNG or WEBP image.";
+                return false;
+            }
+
+            try
+            {
+                string folder = Server.MapPath(ImageFolder);
+                Directory.CreateDirectory(folder);
+
+                // The uploaded file name is never used: a generated name avoids clashes and path tricks.
+                string fileName = courseId + "-" + Guid.NewGuid().ToString("N") + extension;
+                file.SaveAs(Path.Combine(folder, fileName));
+                savedPath = ImageFolder + fileName;
+                return true;
+            }
+            catch (IOException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                error = "The image could not be saved on the server.";
+                return false;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                error = "The server is not allowed to save images in " + ImageFolder + " (check the folder permissions).";
+                return false;
+            }
+        }
+
+        // Deletes an image file we saved earlier. Only files inside our upload folder are ever touched.
+        private void DeleteStoredImage(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path) || !path.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase)) return;
+            try
+            {
+                string folder = Path.GetFullPath(Server.MapPath(ImageFolder));
+                string full = Path.GetFullPath(Server.MapPath(path));
+                if (full.StartsWith(folder, StringComparison.OrdinalIgnoreCase) && File.Exists(full)) File.Delete(full);
+            }
+            catch (Exception ex)
+            {
+                if (ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException)
+                    System.Diagnostics.Debug.WriteLine(ex.ToString());      // an old file left behind is harmless
+                else
+                    throw;
+            }
+        }
+
+        // Shows an error INSIDE the course info pop-up and opens it again.
+        // (A file chosen before the error has to be chosen again - browsers clear it on reload.)
+        private void ReopenCourseInfoDialog(string message)
+        {
+            string script =
+                "window.addEventListener('load', function () {" +
+                "  var box = document.getElementById('courseInfoError');" +
+                "  if (box) { box.textContent = " + new JavaScriptSerializer().Serialize(message) + "; box.style.display = 'block'; }" +
+                "  openModal('modalCourseInfo');" +
+                "});";
+            ClientScript.RegisterStartupScript(GetType(), "courseInfoError", script, true);
+        }
+
+        // ------------------------------------------------------------------
         // Pop-up save handlers (each updates the database, then reloads the page
         // so what you see is exactly what was saved)
         // ------------------------------------------------------------------
@@ -435,25 +672,79 @@ namespace WAPP_EduCore.pages.Tutor
         {
             string title = TxtCourseTitle.Text.Trim();
             string topic = TxtCourseTopic.Text.Trim();
-            int weeks;
+            string level = DdlCourseLevel.SelectedValue;
+            int weeks, hours;
 
-            if (title.Length == 0 || !int.TryParse(TxtCourseDuration.Text, out weeks) || weeks <= 0)
+            if (title.Length == 0)
             {
-                ShowMessage("Please enter a course title and a duration in weeks.", true);
+                ReopenCourseInfoDialog("Please enter a course title.");
+                return;
+            }
+            if (level != "IGCSE" && level != "SPM")
+            {
+                ReopenCourseInfoDialog("Please choose a course level (IGCSE or SPM).");
+                return;
+            }
+            if (!int.TryParse(DdlCourseWeeks.SelectedValue, out weeks) || weeks < 1 || weeks > MaxWeeks)
+            {
+                ReopenCourseInfoDialog("Please choose how many weeks the course runs.");
+                return;
+            }
+            if (!int.TryParse(DdlCourseHours.SelectedValue, out hours) || hours < 1 || hours > MaxHoursPerWeek)
+            {
+                ReopenCourseInfoDialog("Please choose how many hours per week the course needs.");
                 return;
             }
 
-            using (NpgsqlConnection conn = OpenConnection())
-            using (var cmd = new NpgsqlCommand(SqlCourseUpdate, conn))
+            // Optional new course image
+            string newImage, imageError;
+            if (!TrySaveCourseImage(out newImage, out imageError))
             {
-                cmd.Parameters.AddWithValue("title", title);
-                cmd.Parameters.AddWithValue("topic", topic);
-                cmd.Parameters.AddWithValue("duration", weeks);   // adjust if your duration column is text
-                cmd.Parameters.AddWithValue("cid", courseId);
-                cmd.Parameters.AddWithValue("uid", userId);
-                cmd.ExecuteNonQuery();
+                ReopenCourseInfoDialog(imageError);
+                return;
             }
-            Response.Redirect(Request.RawUrl);
+
+            string duration = FormatDuration(weeks, hours);       // e.g. "4 weeks (2 hrs/week)"
+
+            try
+            {
+                int rows;
+                using (NpgsqlConnection conn = OpenConnection())
+                using (var cmd = new NpgsqlCommand(SqlCourseUpdate, conn))
+                {
+                    cmd.Parameters.AddWithValue("title", title);
+                    cmd.Parameters.AddWithValue("topic", topic);
+                    cmd.Parameters.AddWithValue("duration", duration);
+                    cmd.Parameters.AddWithValue("level", level);
+                    cmd.Parameters.AddWithValue("img", newImage == null ? (object)DBNull.Value : newImage);
+                    cmd.Parameters.AddWithValue("cid", courseId);
+                    cmd.Parameters.AddWithValue("uid", userId);
+                    rows = cmd.ExecuteNonQuery();
+                }
+
+                if (rows == 0)
+                {
+                    DeleteStoredImage(newImage);                  // nothing was saved: don't leave the new file behind
+                    ReopenCourseInfoDialog("This course could not be found.");
+                    return;
+                }
+            }
+            catch (NpgsqlException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                DeleteStoredImage(newImage);
+
+                var pg = ex as PostgresException;
+                string detail = pg != null ? pg.MessageText : ex.Message;
+                ReopenCourseInfoDialog("We couldn't save the course." + (ShowDatabaseErrors ? " (" + detail + ")" : " Please try again."));
+                return;
+            }
+
+            // A new image replaced the old one: remove the old file
+            if (newImage != null) DeleteStoredImage(currentImage);
+
+            // Drop "&edit=1" so the course info pop-up doesn't reopen after saving.
+            Response.Redirect("courseBuilder.aspx?courseId=" + courseId + (lessonId > 0 ? "&lessonId=" + lessonId : ""));
         }
 
         protected void BtnSaveDetails_Click(object sender, EventArgs e)
@@ -537,10 +828,167 @@ namespace WAPP_EduCore.pages.Tutor
             Response.Redirect(Request.RawUrl);
         }
 
-        // The course outline has no modules table yet, so this just explains that.
+        // "Add New Lesson": creates an empty lesson (lesson_content = []) and opens it in the editor.
         protected void BtnConfirmAddModule_Click(object sender, EventArgs e)
         {
-            ShowMessage("Modules are not available yet. Lessons are listed in a single group for now.", true);
+            string title = TxtModuleTitle.Text.Trim();
+            string desc = TxtModuleDesc.Text.Trim();
+
+            if (title.Length == 0)
+            {
+                ShowMessage("Please enter a lesson title.", true);
+                return;
+            }
+
+            object newLessonId;
+            try
+            {
+                using (NpgsqlConnection conn = OpenConnection())
+                using (var cmd = new NpgsqlCommand(SqlLessonInsert, conn))
+                {
+                    cmd.Parameters.AddWithValue("cid", courseId);
+                    cmd.Parameters.AddWithValue("uid", userId);
+                    cmd.Parameters.AddWithValue("title", title);
+                    cmd.Parameters.AddWithValue("desc", desc.Length == 0 ? (object)DBNull.Value : desc);
+                    newLessonId = cmd.ExecuteScalar();
+                }
+            }
+            catch (NpgsqlException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                var pg = ex as PostgresException;
+                string detail = pg != null ? pg.MessageText : ex.Message;
+                ShowMessage("We couldn't add the lesson." + (ShowDatabaseErrors ? " (" + detail + ")" : " Please try again."), true);
+                return;
+            }
+
+            if (newLessonId == null)
+            {
+                ShowMessage("This course could not be found.", true);
+                return;
+            }
+
+            // Open the new lesson straight away
+            Response.Redirect("courseBuilder.aspx?courseId=" + courseId + "&lessonId=" + newLessonId);
+        }
+
+        // ------------------------------------------------------------------
+        // Publishing: the draft / published state is just courses.status in the SAME table.
+        // ------------------------------------------------------------------
+        private static string NormalizeStatus(string status)
+        {
+            string s = (status ?? "").Trim().ToLowerInvariant().Replace(' ', '_');
+            if (s == StatusPublished) return StatusPublished;
+            if (s == "pending_review" || s == "pending") return "pending_review";
+            return StatusDraft;
+        }
+
+        // Status badge next to the course name, and the publish buttons
+        private void ApplyStatusUi(string status)
+        {
+            string key = NormalizeStatus(status);
+            bool published = key == StatusPublished;
+
+            LblCourseStatus.Text = published ? "Published" : key == "pending_review" ? "Pending review" : "Draft";
+            LblCourseStatus.CssClass = "status-pill " + (published ? "published" : key == "pending_review" ? "pending" : "draft");
+
+            BtnPublishCourse.Text = published ? "Published" : "Publish Course";
+            BtnPublishCourse.Enabled = !published;
+            BtnPublishModule.Text = published ? "Published" : "Publish Module Content";
+            BtnPublishModule.Enabled = !published;
+        }
+
+        // Message shown after a publish / draft change (the page is reloaded with ?notice=...)
+        private void ShowNoticeFromQuery()
+        {
+            string notice = Request.QueryString["notice"];
+            if (notice == "published")
+                ShowMessage("Course published. Students can now see it.", false);
+            else if (notice == "draft")
+                ShowMessage("Course saved as a draft. It is hidden from students.", false);
+        }
+
+        private string BuilderUrl(string notice)
+        {
+            return "courseBuilder.aspx?courseId=" + courseId +
+                   (lessonId > 0 ? "&lessonId=" + lessonId : "") +
+                   "&notice=" + notice;
+        }
+
+        private bool SetCourseStatus(string newStatus)
+        {
+            try
+            {
+                int rows;
+                using (NpgsqlConnection conn = OpenConnection())
+                using (var cmd = new NpgsqlCommand(SqlCourseStatusUpdate, conn))
+                {
+                    cmd.Parameters.AddWithValue("status", newStatus);
+                    cmd.Parameters.AddWithValue("cid", courseId);
+                    cmd.Parameters.AddWithValue("uid", userId);
+                    rows = cmd.ExecuteNonQuery();
+                }
+
+                if (rows == 0)
+                {
+                    ShowMessage("This course could not be found.", true);
+                    return false;
+                }
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                var pg = ex as PostgresException;
+                string detail = pg != null ? pg.MessageText : ex.Message;
+                ShowMessage("We couldn't update the course status." + (ShowDatabaseErrors ? " (" + detail + ")" : " Please try again."), true);
+                return false;
+            }
+        }
+
+        // "Publish now" in the pop-up (opened by Publish Course and Publish Module Content)
+        protected void BtnConfirmPublish_Click(object sender, EventArgs e)
+        {
+            // Validator: ensure all required course columns and lessons are filled before publishing
+            var missing = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(loadedTitle) || loadedTitle == DraftTitle)
+                missing.Add("a course title");
+
+            if (string.IsNullOrWhiteSpace(loadedTopic))
+                missing.Add("a course topic/category");
+
+            if (string.IsNullOrWhiteSpace(loadedLevel))
+                missing.Add("a course level (IGCSE or SPM)");
+
+            if (string.IsNullOrWhiteSpace(loadedDuration))
+                missing.Add("the course duration");
+
+            if (string.IsNullOrWhiteSpace(loadedImage))
+                missing.Add("a course image thumbnail");
+
+            if (lessonCount == 0)
+                missing.Add("at least one lesson in the course syllabus");
+
+            // If anything is missing, block publication and list what is required
+            if (missing.Count > 0)
+            {
+                // Close the modal via client script or show an explicit error message
+                ShowMessage("Cannot publish course. Please provide: " + string.Join(", ", missing.ToArray()) +
+                            ". (You can update course info via 'Edit course info'.)", true);
+                return;
+            }
+
+            // All validations passed, proceed to publish
+            if (!SetCourseStatus(StatusPublished)) return;
+            Response.Redirect(BuilderUrl("published"));
+        }
+
+        // "Save as Draft": hides the course from students again
+        protected void BtnSaveDraft_Click(object sender, EventArgs e)
+        {
+            if (!SetCourseStatus(StatusDraft)) return;
+            Response.Redirect(BuilderUrl("draft"));
         }
 
         private void ShowMessage(string message, bool isError)

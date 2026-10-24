@@ -27,10 +27,11 @@
                         <p class="page-subtitle">Manage your created courses</p>
                     </div>
                     <div class="page-actions">
-                        <button type="button" class="btn btn-primary cc-create" onclick="openModal('modalCreateCourse')">
+                        <%-- Creates a draft course, then redirects to courseBuilder.aspx --%>
+                        <asp:LinkButton ID="BtnNewCourse" runat="server" CssClass="btn btn-primary cc-create" OnClick="BtnNewCourse_Click" CausesValidation="false">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
                             Create New Course
-                        </button>
+                        </asp:LinkButton>
                     </div>
                 </div>
 
@@ -50,10 +51,10 @@
                     </svg>
                     <h2 class="cc-empty-title">No courses created yet</h2>
                     <p class="cc-empty-text">Your next great course starts here. Open the course builder to add your course details, organize lessons and share your expertise with students.</p>
-                    <button type="button" class="btn btn-primary cc-create" onclick="openModal('modalCreateCourse')">
+                    <asp:LinkButton ID="BtnNewCourseEmpty" runat="server" CssClass="btn btn-primary cc-create" OnClick="BtnNewCourse_Click" CausesValidation="false">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
                         Get Started
-                    </button>
+                    </asp:LinkButton>
                     <p class="cc-empty-hint">Your courses will appear here once you create them.</p>
                 </asp:Panel>
 
@@ -65,7 +66,6 @@
                         <div class="cc-stat"><span class="cc-stat-num"><%= TotalCount %></span><span class="cc-stat-label">Total courses</span></div>
                         <div class="cc-stat"><span class="cc-stat-num"><%= PublishedCount %></span><span class="cc-stat-label">Published</span></div>
                         <div class="cc-stat"><span class="cc-stat-num"><%= DraftCount %></span><span class="cc-stat-label">Draft</span></div>
-                        <div class="cc-stat"><span class="cc-stat-num"><%= PendingCount %></span><span class="cc-stat-label">Pending review</span></div>
                     </div>
 
                     <!-- Filters, search, sort -->
@@ -74,7 +74,6 @@
                             <button type="button" class="cc-chip active" data-filter="all">All courses (<%= TotalCount %>)</button>
                             <button type="button" class="cc-chip" data-filter="published">Published (<%= PublishedCount %>)</button>
                             <button type="button" class="cc-chip" data-filter="draft">Draft (<%= DraftCount %>)</button>
-                            <button type="button" class="cc-chip" data-filter="pending">Pending Review (<%= PendingCount %>)</button>
                         </div>
                         <div class="cc-tools">
                             <div class="cc-search-wrap">
@@ -139,66 +138,10 @@
 
             </main>
         </div>
-
-        <!-- Create course pop-up -->
-        <div class="modal-overlay" id="modalCreateCourse" aria-hidden="true">
-            <asp:Panel ID="PnlCreateCourse" runat="server" CssClass="modal" DefaultButton="BtnCreateCourse" role="dialog" aria-modal="true" aria-labelledby="title_modalCreateCourse">
-                <h3 class="modal-title" id="title_modalCreateCourse">Create course</h3>
-                <div id="createError" class="page-status error" style="display:none"></div>
-                <div class="form-group">
-                    <label class="form-label" for="TxtNewTitle">Course title</label>
-                    <asp:TextBox ID="TxtNewTitle" runat="server" CssClass="form-control" placeholder="e.g. Introduction to Python" MaxLength="150" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="TxtNewTopic">Topic</label>
-                    <asp:TextBox ID="TxtNewTopic" runat="server" CssClass="form-control" placeholder="Pick one or type a new topic" list="topicList" MaxLength="80" />
-                    <datalist id="topicList">
-                        <option value="Computer Science" />
-                        <option value="Mathematics" />
-                        <option value="Biology" />
-                        <option value="Physics" />
-                    </datalist>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="TxtNewDuration">Duration (weeks)</label>
-                    <asp:TextBox ID="TxtNewDuration" runat="server" CssClass="form-control" TextMode="Number" placeholder="e.g. 4" />
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalCreateCourse')">Cancel</button>
-                    <asp:Button ID="BtnCreateCourse" runat="server" Text="Create course" CssClass="btn btn-accent" OnClick="BtnCreateCourse_Click" />
-                </div>
-            </asp:Panel>
-        </div>
     </form>
 
     <script>
         // @ts-nocheck
-        // ---------- Pop-up ----------
-        function openModal(id) {
-            var m = document.getElementById(id);
-            if (!m) return;
-            m.classList.add('open');
-            m.setAttribute('aria-hidden', 'false');
-            document.body.classList.add('modal-open');
-            var first = m.querySelector('input:not([type=hidden]), select, textarea');
-            if (first) setTimeout(function () { first.focus(); }, 50);
-        }
-        function closeModal(id) {
-            var m = document.getElementById(id);
-            if (!m) return;
-            m.classList.remove('open');
-            m.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('modal-open');
-        }
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.modal-overlay.open').forEach(function (m) { closeModal(m.id); });
-            }
-        });
-        document.querySelectorAll('.modal-overlay').forEach(function (o) {
-            o.addEventListener('mousedown', function (e) { if (e.target === o) closeModal(o.id); });
-        });
-
         // ---------- Filter / search / sort (only when the course list is shown) ----------
         (function () {
             var grid = document.getElementById('ccGrid');

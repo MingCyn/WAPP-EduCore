@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.Web;
-using System.Web.Script.Serialization;
 using System.Web.UI.WebControls;
 using Npgsql;
 
@@ -37,7 +36,7 @@ namespace WAPP_EduCore.pages.Tutor
         protected string TutorName = "";
 
         // Totals for the summary tiles and filter chips (filled in LoadCourses)
-        protected int TotalCount, PublishedCount, DraftCount, PendingCount;
+        protected int TotalCount, PublishedCount, DraftCount;
 
         // ------------------------------------------------------------------
         // SQL - only the signed-in tutor's courses are listed (c.user_id = @uid).
@@ -46,7 +45,7 @@ namespace WAPP_EduCore.pages.Tutor
         private const string SqlCourses =
             "SELECT c.course_id, c.title, c.category, " +
             "       COALESCE(c.status, 'draft') AS status, " +
-            "       COALESCE(c.thumbnail_url, c.course_img) AS thumb, " +
+            "       COALESCE(NULLIF(c.course_img, ''), NULLIF(c.thumbnail_url, ''), '') AS thumb, " +
             "       COALESCE(c.created_at, NOW()) AS created_at, " +
             "       COALESCE(c.updated_at, c.created_at, NOW()) AS updated_at, " +
             "       (SELECT COUNT(*) FROM " + LessonsTable + " l WHERE l.course_id = c.course_id) AS lesson_count " +
@@ -62,9 +61,10 @@ namespace WAPP_EduCore.pages.Tutor
         // Creates the course and records who owns it (user_id).
         // If your courses table has other NOT NULL columns without a default
         // (for example course_description or course_level), add them here too.
-        private const string SqlCreateCourse =
+        // Creates an empty draft owned by the logged-in tutor; the details are filled in inside the builder.
+        private const string SqlCreateDraft =
             "INSERT INTO courses (title, category, duration, user_id, status, created_at, updated_at) " +
-            "VALUES (@title, @topic, @duration, @uid, 'draft', NOW(), NOW()) RETURNING course_id";
+            "VALUES ('Untitled course', '', 1, @uid, 'draft', NOW(), NOW()) RETURNING course_id";
 
         private const string SqlUserName =
             "SELECT full_name FROM public.users WHERE user_id = @uid";
@@ -204,7 +204,7 @@ namespace WAPP_EduCore.pages.Tutor
                             Enrolled = students,
                             EnrolledText = students == 1 ? "1 enrolled student" : students + " enrolled students",
                             MetaText = BuildMeta(key, updated),
-                            ThumbHtml = BuildThumb(thumb, id, title, topic),
+                            ThumbHtml = BuildThumb(thumb, id, title, topic), // <-- Keep this one
                             SearchText = (title + " " + topic).ToLowerInvariant(),
                             UpdatedMs = ToUnixMs(updated),
                             CreatedMs = ToUnixMs(created)
@@ -212,7 +212,6 @@ namespace WAPP_EduCore.pages.Tutor
 
                         TotalCount++;
                         if (key == "published") PublishedCount++;
-                        else if (key == "pending") PendingCount++;
                         else DraftCount++;
                     }
                 }
@@ -256,9 +255,6 @@ namespace WAPP_EduCore.pages.Tutor
             {
                 case "published":
                     key = "published"; label = "Published"; css = "cc-badge-published"; break;
-                case "pending_review":
-                case "pending":
-                    key = "pending"; label = "Pending Review"; css = "cc-badge-pending"; break;
                 default:
                     key = "draft"; label = "Draft"; css = "cc-badge-draft"; break;
             }
@@ -291,14 +287,24 @@ namespace WAPP_EduCore.pages.Tutor
         }
 
         // Real thumbnail if thumbnail_url is a valid https link, otherwise an illustrated placeholder.
-        private static string BuildThumb(string url, int id, string title, string topic)
+        // Updated BuildThumb to support local server uploads and https links
+        private string BuildThumb(string url, int id, string title, string topic)
         {
+            // 1. Check if it's a valid local server upload (e.g. starting with ~/ or /uploads/)
+            if (!string.IsNullOrWhiteSpace(url) && (url.StartsWith("~/", StringComparison.Ordinal) || url.StartsWith("/uploads/", StringComparison.Ordinal)))
+            {
+                string resolvedUrl = ResolveUrl(url);
+                return "<div class=\"cc-thumb\"><img src=\"" + HttpUtility.HtmlAttributeEncode(resolvedUrl) + "\" alt=\"\" /></div>";
+            }
+
+            // 2. Check if it's an absolute https link
             Uri uri;
             if (!string.IsNullOrWhiteSpace(url) && Uri.TryCreate(url, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps)
             {
                 return "<div class=\"cc-thumb\"><img src=\"" + HttpUtility.HtmlAttributeEncode(url) + "\" alt=\"\" /></div>";
             }
 
+            // 3. Fallback to illustrated placeholder if no valid image exists
             string text = (title + " " + topic).ToLowerInvariant();
             int variant;
             if (text.Contains("web") || text.Contains("program") || text.Contains("code")) variant = 0;
@@ -347,61 +353,31 @@ namespace WAPP_EduCore.pages.Tutor
         // ------------------------------------------------------------------
         // Create course pop-up -> insert the course, then open it in the course builder
         // ------------------------------------------------------------------
-        protected void BtnCreateCourse_Click(object sender, EventArgs e)
+        protected void BtnNewCourse_Click(object sender, EventArgs e)
         {
-            string title = TxtNewTitle.Text.Trim();
-            string topic = TxtNewTopic.Text.Trim();
-            int weeks;
-
-            if (title.Length == 0 || !int.TryParse(TxtNewDuration.Text, out weeks) || weeks <= 0)
-            {
-                ReopenCreateDialog("Please enter a course title and a duration in weeks.");
-                return;
-            }
-
             int newId;
             try
             {
                 using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
+                using (var cmd = new NpgsqlCommand(SqlCreateDraft, conn))
                 {
+                    cmd.Parameters.AddWithValue("uid", userId);
                     conn.Open();
-                    using (var cmd = new NpgsqlCommand(SqlCreateCourse, conn))
-                    {
-                        cmd.Parameters.AddWithValue("title", title);
-                        cmd.Parameters.AddWithValue("topic", topic);
-                        cmd.Parameters.AddWithValue("duration", weeks);   // adjust if your duration column is text
-                        cmd.Parameters.AddWithValue("uid", userId);
-                        newId = Convert.ToInt32(cmd.ExecuteScalar());
-                    }
+                    newId = Convert.ToInt32(cmd.ExecuteScalar());
                 }
             }
             catch (NpgsqlException ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-
                 var pg = ex as PostgresException;
                 string detail = pg != null ? pg.MessageText : ex.Message;
-                ReopenCreateDialog("We couldn't create the course." + (ShowDatabaseErrors ? " (" + detail + ")" : " Please try again."));
+                ReloadList();   // a postback skips the list loading in Page_Load, so rebuild the page first
+                ShowMessage("We couldn't create the course." + (ShowDatabaseErrors ? " (" + detail + ")" : " Please try again."));
                 return;
             }
 
-            // Success: go straight to the course builder for the new course
-            Response.Redirect("courseBuilder.aspx?courseId=" + newId);
-        }
-
-        // Shows an error INSIDE the Create course pop-up and opens it again,
-        // keeping whatever the tutor already typed.
-        private void ReopenCreateDialog(string message)
-        {
-            ReloadList();
-
-            string script =
-                "window.addEventListener('load', function () {" +
-                "  var box = document.getElementById('createError');" +
-                "  if (box) { box.textContent = " + new JavaScriptSerializer().Serialize(message) + "; box.style.display = 'block'; }" +
-                "  openModal('modalCreateCourse');" +
-                "});";
-            ClientScript.RegisterStartupScript(GetType(), "createCourseError", script, true);
+            // edit=1 makes the builder open its "Edit course information" pop-up right away
+            Response.Redirect("courseBuilder.aspx?courseId=" + newId + "&edit=1");
         }
 
         // After a failed pop-up submit the page is rebuilt, so load the list again.
@@ -409,7 +385,7 @@ namespace WAPP_EduCore.pages.Tutor
         {
             try
             {
-                TotalCount = PublishedCount = DraftCount = PendingCount = 0;
+                TotalCount = PublishedCount = DraftCount = 0;
                 List<CourseRow> courses = LoadCourses();
                 PnlEmpty.Visible = courses.Count == 0;
                 PnlList.Visible = courses.Count > 0;
