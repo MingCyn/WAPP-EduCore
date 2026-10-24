@@ -2,6 +2,7 @@
    Loaded AFTER admin.css, so rules here override it. Do not edit admin.css for student pages. */
 
 /* CHANGED: font moved from * to body so headings can use a different font */
+@import url('student.css');
 * {
     box-sizing: border-box;
     margin: 0;
@@ -54,6 +55,43 @@ input, select, button, textarea {
 
         .sidebar .me small {
             color: #9aa6c8
+        }
+
+    .sidebar-guest-box {
+        margin-top: auto;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,.15);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .sidebar .guest-msg {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #cdd8f3;
+    }
+
+    .sidebar .sidebar-login-btn {
+        display: inline-block;
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #1e3270;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        border: 1px solid rgba(255,255,255,.35);
+        transition: all .2s ease;
+    }
+
+        .sidebar .sidebar-login-btn:hover {
+            background: #eef2ff;
+            color: #14285f;
+            border-color: rgba(255,255,255,.6);
         }
 
 .brand {

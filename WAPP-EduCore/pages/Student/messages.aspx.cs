@@ -34,29 +34,31 @@ namespace WAPP_EduCore.pages.Student
         private long _lessonCourseId, _lessonNo;
         private string _lessonTitle = "";
 
+        private bool IsGuest { get { return Session["UserID"] == null; } }
         private long UserId { get { return Convert.ToInt64(Session["UserID"]); } }
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (Session["UserID"] == null)
-            {
-                Response.Redirect("~/auth/login.aspx");
-                return;
-            }
-
             long.TryParse(Request.QueryString["lesson"], out _lessonId);
             long.TryParse(Request.QueryString["post"], out _postId);
 
-            _enrolled = Db.Query(
-                "SELECT c.course_id, c.title FROM courses c " +
-                "JOIN enrollment e ON e.course_id = c.course_id WHERE e.user_id = @uid ORDER BY c.title",
-                new Dictionary<string, object> { { "@uid", UserId } });
-
-            if (_enrolled.Rows.Count == 0)
+            if (IsGuest)
             {
-                pnlForum.Visible = false;
-                pnlNoCourses.Visible = true;
-                return;
+                _enrolled = new DataTable();
+            }
+            else
+            {
+                _enrolled = Db.Query(
+                    "SELECT c.course_id, c.title FROM courses c " +
+                    "JOIN enrollment e ON e.course_id = c.course_id WHERE e.user_id = @uid ORDER BY c.title",
+                    new Dictionary<string, object> { { "@uid", UserId } });
+
+                if (_enrolled.Rows.Count == 0)
+                {
+                    pnlForum.Visible = false;
+                    pnlNoCourses.Visible = true;
+                    return;
+                }
             }
 
             if (_lessonId > 0) LoadLessonContext();
@@ -69,7 +71,11 @@ namespace WAPP_EduCore.pages.Student
 
             if (!IsPostBack)
             {
-                foreach (DataRow r in _enrolled.Rows)
+                DataTable courseSource = IsGuest
+                    ? Db.Query("SELECT course_id, title FROM courses ORDER BY title")
+                    : _enrolled;
+
+                foreach (DataRow r in courseSource.Rows)
                     ddlCourse.Items.Add(new ListItem(Convert.ToString(r["title"]), Convert.ToString(r["course_id"])));
             }
             pnlCoursePick.Visible = _lessonId == 0;
@@ -83,12 +89,20 @@ namespace WAPP_EduCore.pages.Student
         // ---------- lesson context (opened from the lesson page) ----------
         private void LoadLessonContext()
         {
-            DataTable t = Db.Query(
+            string sql =
                 "SELECT l.course_id, l.lesson_title, " +
                 "  (SELECT COUNT(*) FROM lesson l2 WHERE l2.course_id = l.course_id AND l2.lesson_id <= l.lesson_id) AS lesson_no " +
-                "FROM lesson l WHERE l.lesson_id = @lid " +
-                "AND l.course_id IN (SELECT course_id FROM enrollment WHERE user_id = @uid)",
-                new Dictionary<string, object> { { "@lid", _lessonId }, { "@uid", UserId } });
+                "FROM lesson l WHERE l.lesson_id = @lid";
+
+            var prm = new Dictionary<string, object> { { "@lid", _lessonId } };
+
+            if (!IsGuest)
+            {
+                sql += " AND l.course_id IN (SELECT course_id FROM enrollment WHERE user_id = @uid)";
+                prm["@uid"] = UserId;
+            }
+
+            DataTable t = Db.Query(sql, prm);
 
             if (t.Rows.Count == 0) { _lessonId = 0; return; }
 
@@ -167,8 +181,15 @@ namespace WAPP_EduCore.pages.Student
 
         private List<Post> LoadPosts()
         {
-            var where = new StringBuilder("p.course_id IN (SELECT course_id FROM enrollment WHERE user_id = @uid)");
-            var prm = new Dictionary<string, object> { { "@uid", UserId } };
+            var where = new StringBuilder("1=1");
+            var prm = new Dictionary<string, object>();
+
+            if (!IsGuest)
+            {
+                where.Clear();
+                where.Append("p.course_id IN (SELECT course_id FROM enrollment WHERE user_id = @uid)");
+                prm["@uid"] = UserId;
+            }
 
             if (_tab == "lesson")
             {
@@ -254,8 +275,19 @@ namespace WAPP_EduCore.pages.Student
         // ---------- active participants ----------
         private void BuildPeople()
         {
-            string scope = "p.course_id IN (SELECT course_id FROM enrollment WHERE user_id = @uid)";
-            var prm = new Dictionary<string, object> { { "@uid", UserId } };
+            string scope;
+            var prm = new Dictionary<string, object>();
+
+            if (IsGuest)
+            {
+                scope = "1=1";
+            }
+            else
+            {
+                scope = "p.course_id IN (SELECT course_id FROM enrollment WHERE user_id = @uid)";
+                prm["@uid"] = UserId;
+            }
+
             if (_lessonId > 0)
             {
                 scope += " AND p.course_id = @cid";
@@ -294,6 +326,12 @@ namespace WAPP_EduCore.pages.Student
         // ---------- posting ----------
         protected void btnPost_Click(object sender, EventArgs e)
         {
+            if (IsGuest)
+            {
+                Response.Redirect("~/Auth/login.aspx");
+                return;
+            }
+
             string title = txtTitle.Text.Trim();
             string content = txtContent.Text.Trim();
 
@@ -339,6 +377,12 @@ namespace WAPP_EduCore.pages.Student
 
         protected void btnReply_Click(object sender, EventArgs e)
         {
+            if (IsGuest)
+            {
+                Response.Redirect("~/Auth/login.aspx");
+                return;
+            }
+
             if (_postId <= 0) return;
 
             string text = txtReply.Text.Trim();

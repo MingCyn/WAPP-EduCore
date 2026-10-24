@@ -5,6 +5,7 @@ using System.IO;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
 
 namespace WAPP_EduCore.pages.Shared
 {
@@ -14,11 +15,16 @@ namespace WAPP_EduCore.pages.Shared
         protected HtmlGenericControl lblName;
         protected HtmlGenericControl lblId;
         protected HtmlGenericControl lblInitials;
+        protected HtmlAnchor lnkDashboard;
+        protected Panel pnlLoggedIn;
+        protected Panel pnlGuest;
+        protected LinkButton btnLogout;
+        //protected HtmlAnchor lnkCalendar, lnkMessages, lnkGrades, lnkCertificates, lnkSettings;
 
         protected void Page_Load(object sender, EventArgs e)
         {
             MarkActivePage();
-            LoadStudent();
+            CheckLoginState();
         }
 
         // ---------- active menu item ----------
@@ -30,7 +36,6 @@ namespace WAPP_EduCore.pages.Shared
                 string currentFile = Path.GetFileName(
                     Request.AppRelativeCurrentExecutionFilePath ?? string.Empty).ToLowerInvariant();
 
-                // These pages belong to "My Courses", so keep that item highlighted
                 if (currentFile == "courseoverview.aspx" || currentFile == "assessment.aspx" || currentFile == "learningprogression.aspx")
                     currentFile = "mycourses.aspx";
 
@@ -61,16 +66,33 @@ namespace WAPP_EduCore.pages.Shared
             }
         }
 
-        // ---------- logged-in student ----------
+        // ---------- check session & toggle panels ----------
+
+        private void CheckLoginState()
+        {
+            if (Session["UserID"] == null)
+            {
+                // Guest mode
+                if (pnlLoggedIn != null) pnlLoggedIn.Visible = false;
+                if (pnlGuest != null) pnlGuest.Visible = true;
+                if (lnkDashboard != null) lnkDashboard.HRef = ResolveUrl("~/Default.aspx");
+            }
+            else
+            {
+                // Logged-in mode
+                if (pnlLoggedIn != null) pnlLoggedIn.Visible = true;
+                if (pnlGuest != null) pnlGuest.Visible = false;
+                if (lnkDashboard != null) lnkDashboard.HRef = ResolveUrl("~/pages/Student/studentDashboard.aspx");
+                LoadStudent();
+            }
+        }
 
         private void LoadStudent()
         {
             try
             {
-                if (Session["UserID"] == null) return;
                 long userId = Convert.ToInt64(Session["UserID"]);
 
-                // login.aspx.cs already saves the name here
                 string name = Session["UserFullName"] as string;
                 if (string.IsNullOrEmpty(name))
                 {
@@ -87,10 +109,9 @@ namespace WAPP_EduCore.pages.Shared
                 if (lblId != null) lblId.InnerText = "Student ID: " + userId;
                 if (lblInitials != null) lblInitials.InnerText = InitialsOf(name);
             }
-            catch { /* keep the placeholder text if anything fails */ }
+            catch { /* keep placeholder text if anything fails */ }
         }
 
-        // "Priya Sharma" -> "PS"
         private static string InitialsOf(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return "?";
@@ -107,9 +128,9 @@ namespace WAPP_EduCore.pages.Shared
         {
             Session.Clear();
             Session.Abandon();
-            FormsAuthentication.SignOut();   // harmless if you don't use forms authentication
+            FormsAuthentication.SignOut();
 
-            Response.Redirect("~/auth/login.aspx");   // change this to wherever your login page actually is
+            Response.Redirect("~/auth/login.aspx");
         }
     }
 }

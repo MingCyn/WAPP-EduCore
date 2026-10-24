@@ -77,9 +77,9 @@
                                 <div class="footer">
                                     <span class="students"><%#: Eval("student_count") %> students</span>
                                     <asp:Button runat="server" CssClass="btn"
-                                        CommandName='<%# Convert.ToBoolean(Eval("is_enrolled")) ? "view" : "enroll" %>'
-                                        CommandArgument='<%# Eval("course_id") %>'
-                                        Text='<%# Convert.ToBoolean(Eval("is_enrolled")) ? "View Course" : "Enroll" %>' />
+                                    CommandName='<%# (IsGuest || Convert.ToBoolean(Eval("is_enrolled"))) ? "view" : "enroll" %>'
+                                    CommandArgument='<%# Eval("course_id") %>'
+                                    Text='<%# (IsGuest || Convert.ToBoolean(Eval("is_enrolled"))) ? "View Course" : "Enroll" %>' />
                                 </div>
                             </div>
                         </ItemTemplate>

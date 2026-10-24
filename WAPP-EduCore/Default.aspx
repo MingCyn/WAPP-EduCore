@@ -92,15 +92,15 @@
                 <p>Hand-picked programs to fast-track your science skills.</p>
             </div>
             <%-- Updated: Links to the full course directory --%>
-            <a href="pages/General/coursesDirectory.aspx" class="view-all">View all courses &rarr;</a>
+            <a href="pages/Student/myCourses.aspx" class="view-all">View all courses &rarr;</a>
         </div>
         
         <!-- Repeater starts here -->
         <div class="courses-grid-4">
             <asp:Repeater ID="RepeaterCourses" runat="server">
                 <ItemTemplate>
-                    <%-- Wrapped the card inside an anchor tag linking to courseOverview with the specific course ID --%>
-                    <a href="pages/General/courseOverview.aspx?id=<%# Eval("course_id") %>" class="course-card-link" style="text-decoration: none; color: inherit; display: block;">
+                    <%-- Wrapped the card inside an anchor tag lin<a href="Default.aspx">Default.aspx</a>king to courseOverview with the specific course ID --%>
+                    <a href="pages/Student/courseOverview.aspx?id=<%# Eval("course_id") %>" class="course-card-link" style="text-decoration: none; color: inherit; display: block;">
                         <article class="course-card">
                             <div class="course-thumb" style="background-image: url('<%# Eval("course_img") %>'); background-size: cover; background-position: center;"></div>
                             <div class="course-body">

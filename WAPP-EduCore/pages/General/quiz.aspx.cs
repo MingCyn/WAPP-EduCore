@@ -20,7 +20,7 @@ namespace WAPP_EduCore.pages.General
 
         // Session keys checked to decide whether the visitor is signed in.
         // Change these to whatever your login page stores.
-        private static readonly string[] UserIdSessionKeys = { "UserId", "user_id", "userId" };
+        private static readonly string[] UserIdSessionKeys = { "UserID", "UserId", "user_id", "userId" };
 
         // ------------------------------------------------------------------
 

@@ -119,7 +119,11 @@ function closeAdd() { document.getElementById('addModal').classList.remove('open
                                 </ItemTemplate>
                             </asp:Repeater>
                         </div>
+                        <% if (Session["UserID"] == null) { %>
+                        <a href="<%= ResolveUrl("~/Auth/login.aspx") %>" class="cl-add">+ Add Event</a>
+                        <% } else { %>
                         <a href="#" class="cl-add" onclick="openAdd(); return false;">+ Add Event</a>
+                        <% } %>
                     </div>
                 </div>
             </main>

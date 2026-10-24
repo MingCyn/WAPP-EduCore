@@ -45,16 +45,11 @@ namespace WAPP_EduCore.pages.Student
         private DateTime _anchor;
         private DateTime _today;
 
+        private bool IsGuest { get { return Session["UserID"] == null; } }
         private long UserId { get { return Convert.ToInt64(Session["UserID"]); } }
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (Session["UserID"] == null)
-            {
-                Response.Redirect("~/auth/login.aspx");
-                return;
-            }
-
             _today = DateTime.UtcNow.AddHours(UtcOffsetHours).Date;
 
             string v = (Request.QueryString["view"] ?? "week").ToLowerInvariant();
@@ -69,7 +64,8 @@ namespace WAPP_EduCore.pages.Student
                 txtDate.Text = _anchor.ToString("yyyy-MM-dd", Inv);
                 txtStart.Text = "09:00";
                 txtEnd.Text = "10:00";
-                LoadCourseList();
+                if (!IsGuest)
+                    LoadCourseList();
             }
 
             BuildCalendar();
@@ -134,7 +130,7 @@ namespace WAPP_EduCore.pages.Student
 
             try
             {
-                List<Ev> evs = LoadEvents(rangeStart, rangeEnd);
+                List<Ev> evs = IsGuest ? new List<Ev>() : LoadEvents(rangeStart, rangeEnd);
                 litGrid.Text = _view == "month"
                     ? BuildMonth(rangeStart, weeks, evs)
                     : BuildTimeGrid(rangeStart, _view == "day" ? 1 : 7, evs);
@@ -149,6 +145,8 @@ namespace WAPP_EduCore.pages.Student
 
         private List<Ev> LoadEvents(DateTime rangeStart, DateTime rangeEnd)
         {
+            if (IsGuest) return new List<Ev>();
+
             DateTime fromUtc = DateTime.SpecifyKind(rangeStart.AddHours(-UtcOffsetHours), DateTimeKind.Utc);
             DateTime toUtc = DateTime.SpecifyKind(rangeEnd.AddHours(-UtcOffsetHours), DateTimeKind.Utc);
 
@@ -157,7 +155,12 @@ namespace WAPP_EduCore.pages.Student
                 "FROM calendar_events e LEFT JOIN courses c ON c.course_id = e.course_id " +
                 "WHERE e.user_id = @uid AND e.start_time >= @from AND e.start_time < @to " +
                 "ORDER BY e.start_time",
-                new Dictionary<string, object> { { "@uid", UserId }, { "@from", fromUtc }, { "@to", toUtc } });
+                new Dictionary<string, object>
+                {
+                    { "@uid", UserId },
+                    { "@from", fromUtc },
+                    { "@to", toUtc }
+                });
 
             var list = new List<Ev>();
             foreach (DataRow r in t.Rows)
@@ -302,6 +305,15 @@ namespace WAPP_EduCore.pages.Student
         private void BindUpcoming()
         {
             var items = new List<UpItem>();
+
+            if (IsGuest)
+            {
+                rptUpcoming.DataSource = items;
+                rptUpcoming.DataBind();
+                pnlNoUpcoming.Visible = true;
+                return;
+            }
+
             try
             {
                 DataTable t = Db.Query(
@@ -333,6 +345,12 @@ namespace WAPP_EduCore.pages.Student
         {
             if (e.CommandName != "delete") return;
 
+            if (IsGuest)
+            {
+                Response.Redirect("~/Auth/login.aspx");
+                return;
+            }
+
             long id;
             if (long.TryParse(Convert.ToString(e.CommandArgument), out id))
             {
@@ -361,6 +379,12 @@ namespace WAPP_EduCore.pages.Student
 
         protected void btnAdd_Click(object sender, EventArgs e)
         {
+            if (IsGuest)
+            {
+                Response.Redirect("~/Auth/login.aspx");
+                return;
+            }
+
             string title = txtTitle.Text.Trim();
             if (title.Length == 0) { FormError("Please enter an event title."); return; }
 

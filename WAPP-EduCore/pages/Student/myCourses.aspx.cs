@@ -11,7 +11,18 @@ namespace WAPP_EduCore.pages.Student
     {
         private long UserId
         {
-            get { return Convert.ToInt64(Session["UserId"]); }
+            get
+            {
+                if (Session["UserId"] != null)
+                    return Convert.ToInt64(Session["UserId"]);
+                return 0; // Guest user ID fallback
+
+            }
+        }
+
+        protected bool IsGuest
+        {
+            get { return Session["UserId"] == null; }
         }
 
         private string SelectedLevel
@@ -22,11 +33,7 @@ namespace WAPP_EduCore.pages.Student
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (Session["UserId"] == null)
-            {
-                Response.Redirect("~/auth/login.aspx");
-                return;
-            }
+            // Removed the strict redirect check so guests can browse courses!
 
             if (!IsPostBack)
             {
@@ -85,7 +92,7 @@ namespace WAPP_EduCore.pages.Student
                 "WHERE (@level = '' OR c.course_level = @level) " +
                 "  AND (@cat = '' OR c.category = @cat) " +
                 "  AND (@q = '' OR c.title ILIKE '%' || @q || '%' OR c.category ILIKE '%' || @q || '%') " +
-                "ORDER BY " + orderBy;   // orderBy is whitelisted above, never user text
+                "ORDER BY " + orderBy;
 
             DataTable dt = Db.Query(sql, new Dictionary<string, object>
             {
@@ -125,8 +132,20 @@ namespace WAPP_EduCore.pages.Student
         {
             long courseId = Convert.ToInt64(e.CommandArgument);
 
-            if (e.CommandName == "enroll")
+            if (e.CommandName == "view")
             {
+                // guests and students can both view
+                Response.Redirect("~/pages/Student/courseOverview.aspx?id=" + courseId);
+            }
+            else if (e.CommandName == "enroll")
+            {
+                // enrolling needs an account, nothing is saved for guests
+                if (IsGuest)
+                {
+                    Response.Redirect("~/Auth/login.aspx");
+                    return;
+                }
+
                 Db.Execute(
                     "INSERT INTO enrollment (user_id, course_id) VALUES (@uid, @cid) " +
                     "ON CONFLICT (user_id, course_id) DO NOTHING",
@@ -135,11 +154,6 @@ namespace WAPP_EduCore.pages.Student
                 lblMessage.Text = "You are now enrolled.";
                 lblMessage.Visible = true;
                 LoadCourses();
-            }
-            else if (e.CommandName == "view")
-            {
-                // Page we build next (lessons of this course
-                Response.Redirect("~/pages/Student/courseOverview.aspx?id=" + courseId);
             }
         }
 

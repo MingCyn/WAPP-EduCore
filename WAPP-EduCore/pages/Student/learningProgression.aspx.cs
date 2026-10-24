@@ -16,15 +16,12 @@ namespace WAPP_EduCore.pages.Student
         private DataTable _lessons;
         private DataRow _course;
 
-        private long UserId { get { return Convert.ToInt64(Session["UserID"]); } }
-
+        private bool IsGuest { get { return Session["UserID"] == null; } }
+        private long UserId { get { return IsGuest ? 0 : Convert.ToInt64(Session["UserID"]); } }
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (Session["UserID"] == null)
-            {
-                Response.Redirect("~/auth/login.aspx");
-                return;
-            }
+            // guests may view any course; students must be enrolled
+            if (Session["UserID"] == null) { Response.Redirect("~/auth/login.aspx"); return; }
 
             if (!long.TryParse(Request.QueryString["course"], out _courseId))
             {
@@ -230,9 +227,10 @@ namespace WAPP_EduCore.pages.Student
             }
 
             // Buttons & Navigation State
-            bool isDone = Convert.ToBoolean(cur["done"]);
-            btnComplete.Visible = !isDone;
+            bool isDone = !IsGuest && Convert.ToBoolean(cur["done"]);
+            btnComplete.Visible = !IsGuest && !isDone;   // guests cannot save progress
             doneBox.Visible = isDone;
+            lnkDiscuss.Visible = !IsGuest;               // discussion needs an account
 
             lnkPrev.Visible = _index > 0;
             if (lnkPrev.Visible)
@@ -260,12 +258,19 @@ namespace WAPP_EduCore.pages.Student
             string category = Convert.ToString(_course["category"]);
             litTutorName.Text = tutor;
             litTutorInitial.Text = tutor.Length > 0 ? tutor.Substring(0, 1).ToUpperInvariant() : "?";
-            litTutorRole.Text = string.IsNullOrWhiteSpace(category) ? "Tutor" : "Tutor \u00B7 " + category; lnkDiscuss.NavigateUrl = "~/pages/Student/messages.aspx?lesson=" + _lessonId + "&tab=lesson";
+            litTutorRole.Text = string.IsNullOrWhiteSpace(category) ? "Tutor" : "Tutor \u00B7 " + category;
+            lnkDiscuss.NavigateUrl = "~/pages/Student/messages.aspx?lesson=" + _lessonId + "&tab=lesson";
         }
 
         // ---------- mark as complete ----------
         protected void btnComplete_Click(object sender, EventArgs e)
         {
+            if (IsGuest)
+            {
+                Response.Redirect("~/auth/login.aspx");
+                return;
+            }
+
             Db.Execute(
                 "INSERT INTO lesson_progress (user_id, lesson_id, is_completed, completed_at) " +
                 "VALUES (@uid, @lid, true, now()) " +

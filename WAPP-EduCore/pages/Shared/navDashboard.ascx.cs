@@ -18,17 +18,17 @@ namespace WAPP_EduCore
 
         protected bool IsLoggedIn
         {
-            get { return Session["user_id"] != null; }
+            get { return Session["UserID"] != null || Session["user_id"] != null; }
         }
 
         protected string DisplayName
         {
-            get { return Convert.ToString(Session["full_name"]) ?? ""; }
+            get { return Convert.ToString(Session["UserFullName"] ?? Session["full_name"]) ?? ""; }
         }
 
         protected string Role
         {
-            get { return Convert.ToString(Session["role"]) ?? ""; }
+            get { return Convert.ToString(Session["UserRole"] ?? Session["role"]) ?? ""; }
         }
 
         protected string Initial
@@ -46,7 +46,7 @@ namespace WAPP_EduCore
             get
             {
                 string back = HttpUtility.UrlEncode(Request.Url.PathAndQuery);
-                return ResolveUrl("~/auth/login.aspx") + "?returnUrl=" + back;
+                return ResolveUrl("~/Auth/login.aspx") + "?returnUrl=" + back;
             }
         }
 

@@ -9,9 +9,14 @@ namespace WAPP_EduCore.pages.Student
 {
     public partial class courseOverview : System.Web.UI.Page
     {
+        private bool IsGuest
+        {
+            get { return Session["UserID"] == null; }
+        }
+
         private long UserId
         {
-            get { return Convert.ToInt64(Session["UserID"]); }
+            get { return IsGuest ? 0 : Convert.ToInt64(Session["UserID"]); }
         }
 
         private bool TryGetCourseId(out long courseId)
@@ -21,11 +26,7 @@ namespace WAPP_EduCore.pages.Student
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (Session["UserID"] == null)
-            {
-                Response.Redirect("~/auth/login.aspx");
-                return;
-            }
+            // login check removed: guests may view the overview
 
             long courseId;
             if (!TryGetCourseId(out courseId))
@@ -95,9 +96,21 @@ namespace WAPP_EduCore.pages.Student
             pnlLearn.Visible = points.Count > 0;
 
             // enrollment status card
-            litStatus.Text = enrolled ? "You are Enrolled" : "Not Enrolled";
-            phEnrolled.Visible = enrolled;
-            phNotEnrolled.Visible = !enrolled;
+            // enrollment status card
+            if (IsGuest)
+            {
+                litStatus.Text = "Guest Preview";
+                phEnrolled.Visible = true;      // "Start Learning" lets guests open the lessons
+                phNotEnrolled.Visible = false;  // no Enroll button
+                phGuest.Visible = true;         // "Log in to enroll" link
+            }
+            else
+            {
+                litStatus.Text = enrolled ? "You are Enrolled" : "Not Enrolled";
+                phEnrolled.Visible = enrolled;
+                phNotEnrolled.Visible = !enrolled;
+                phGuest.Visible = false;
+            }
 
             // ---------- lessons ----------
             DataTable lessons = Db.Query(
@@ -119,6 +132,11 @@ namespace WAPP_EduCore.pages.Student
 
         protected void btnEnroll_Click(object sender, EventArgs e)
         {
+            if (IsGuest)
+            {
+                Response.Redirect("~/auth/login.aspx");
+                return;
+            }
             long courseId;
             if (!TryGetCourseId(out courseId)) return;
 

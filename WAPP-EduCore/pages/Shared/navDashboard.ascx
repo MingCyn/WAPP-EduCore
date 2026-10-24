@@ -64,6 +64,7 @@
     <div class="nav-account">
         <% if (!IsLoggedIn) { %>
             <a class="btn-login" href="<%= LoginUrl %>">Log in</a>
+            <p class="nav-hint"><a href="<%= ResolveUrl("~/Auth/login.aspx") %>">No account? Login now.</a></p>
             <p class="nav-hint">Log in to enroll in courses and track your progress.</p>
         <% } else { %>
             <div class="nav-user">

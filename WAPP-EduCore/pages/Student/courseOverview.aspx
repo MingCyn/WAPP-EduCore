@@ -78,6 +78,10 @@
                             <div class="access-title"><asp:Literal ID="litStatus" runat="server"></asp:Literal></div>
 
                             <asp:PlaceHolder ID="phEnrolled" runat="server">
+                                <asp:PlaceHolder ID="phGuest" runat="server" Visible="false">
+                                    <a href="../../Auth/login.aspx" class="btn-ghost"
+                                       style="display:block;text-align:center;margin-top:12px">Log in to enroll</a>
+                                </asp:PlaceHolder>
                                 <asp:HyperLink ID="lnkStart" runat="server" CssClass="btn-start" NavigateUrl="#syllabus">Start Learning</asp:HyperLink>
                             </asp:PlaceHolder>
                             <asp:PlaceHolder ID="phNotEnrolled" runat="server">

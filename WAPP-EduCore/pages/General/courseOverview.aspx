@@ -100,7 +100,7 @@
                             <h3>You are Enrolled</h3>
 
                             <a class="btn btn-block" href="<%= StartLessonUrl %>">Start Learning</a>
-                            <p class="alt">No account? <a href="<%= ResolveUrl("/Auth/signup.aspx") %>">Create one</a></p>
+                            <p class="alt">No account? <a href="<%= ResolveUrl("~/Auth/login.aspx") %>">Login now.</a></p>
 
                             <ul>
                                 <li>
