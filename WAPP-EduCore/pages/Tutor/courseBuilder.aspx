@@ -14,6 +14,7 @@
         .status-pill.published { background-color: #e3f1e6; color: #1f7a3d; }
         .status-pill.pending { background-color: #e8ecfb; color: #2a4494; }
         .btn[disabled] { opacity: 0.6; cursor: default; }
+        .live-notice { margin-bottom: 16px; }
     </style>
 </head>
 <body>
@@ -40,11 +41,19 @@
                     </div>
                     <div class="page-actions">
                         <asp:Button ID="BtnPreviewCourse" runat="server" Text="Preview Course" CssClass="btn btn-outline" />
+                        <%-- Draft course: Publish. Published course: Unpublish (hidden/shown from the code-behind) --%>
                         <asp:Button ID="BtnPublishCourse" runat="server" OnClientClick="openModal('modalPublish'); return false;" Text="Publish Course" CssClass="btn btn-primary" />
+                        <asp:Button ID="BtnUnpublish" runat="server" OnClientClick="openModal('modalUnpublish'); return false;" Text="Unpublish Course" CssClass="btn btn-outline" Visible="false" />
                     </div>
                 </div>
 
                 <asp:Label ID="LblStatus" runat="server" CssClass="page-status" Visible="false" />
+
+                <%-- Shown only while the course is published --%>
+                <asp:Panel ID="PnlLiveNotice" runat="server" CssClass="notice warning live-notice" Visible="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v5" /><circle cx="12" cy="16.5" r=".6" fill="currentColor" /></svg>
+                    <span>This course is <strong>published</strong>. Changes you save here are visible to students straight away.</span>
+                </asp:Panel>
 
                 <div class="builder-layout">
 
@@ -107,6 +116,41 @@
                                     </div>
                                 </asp:Panel>
 
+                                <!-- Paragraph Component (block of type "paragraph" in lesson.lesson_content) -->
+                                <asp:Panel ID="PnlParagraph" runat="server" CssClass="component-card" Visible="false">
+                                    <div class="component-icon text">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M4 6h16M4 12h16M4 18h7" />
+                                        </svg>
+                                    </div>
+                                    <div class="component-body">
+                                        <h3 class="component-title">Text Paragraph</h3>
+                                        <p class="component-meta">
+                                            <asp:Literal ID="LitParagraphMeta" runat="server" /></p>
+                                        <div class="component-actions">
+                                            <button type="button" runat="server" id="BtnEditParagraph" class="btn btn-outline btn-sm" onclick="openModal('modalEditParagraph')">Edit Text</button>
+                                        </div>
+                                    </div>
+                                </asp:Panel>
+
+                                <!-- Table Component (block of type "table" in lesson.lesson_content) -->
+                                <asp:Panel ID="PnlTable" runat="server" CssClass="component-card" Visible="false">
+                                    <div class="component-icon table">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                                            <path d="M3 9h18M3 15h18M9 3v18" />
+                                        </svg>
+                                    </div>
+                                    <div class="component-body">
+                                        <h3 class="component-title">
+                                            <asp:Literal ID="LitTableTitle" runat="server" /></h3>
+                                        <p class="component-meta">Data Table Component</p>
+                                        <div class="component-actions">
+                                            <button type="button" runat="server" id="BtnEditTable" class="btn btn-outline btn-sm" onclick="openModal('modalEditTable')">Edit Table</button>
+                                        </div>
+                                    </div>
+                                </asp:Panel>
+
                                 <!-- Interactive object (block of type "interactive" in lesson.lesson_content) -->
                                 <asp:Panel ID="PnlInteractive" runat="server" CssClass="component-card" Visible="false">
                                     <div class="component-icon navy">
@@ -158,6 +202,8 @@
                                 <div id="DivAddRow" runat="server" class="component-add">
                                     <span>Add:</span>
                                     <button type="button" id="BtnAddVideo" runat="server" class="btn btn-outline btn-sm" onclick="openModal('modalUploadVideo')">+ Video</button>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="openModal('modalEditParagraph')">+ Paragraph</button>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="openModal('modalEditTable')">+ Table</button>
                                     <a id="LnkAddQuiz" runat="server" class="btn btn-outline btn-sm">+ Assessment</a>
                                     <a id="LnkAddInteractive" runat="server" class="btn btn-outline btn-sm">+ Interactive Object</a>
                                     <a id="LnkAddLab" runat="server" class="btn btn-outline btn-sm">+ Virtual Lab</a>
@@ -165,10 +211,11 @@
 
                             </div>
 
-                            <div class="editor-footer">
+                            <%-- Only for DRAFT courses. A published course has no "Save as Draft" so it can never be hidden from enrolled students by accident. --%>
+                            <asp:Panel ID="PnlDraftFooter" runat="server" CssClass="editor-footer">
                                 <asp:Button ID="BtnSaveDraft" runat="server" OnClick="BtnSaveDraft_Click" Text="Save as Draft" CssClass="btn btn-muted" />
                                 <asp:Button ID="BtnPublishModule" runat="server" OnClientClick="openModal('modalPublish'); return false;" Text="Publish Module Content" CssClass="btn btn-primary" />
-                            </div>
+                            </asp:Panel>
                         </asp:Panel>
                     </section>
 
@@ -177,10 +224,11 @@
         </div>
 
         <!-- ============ POP-UP DIALOGS ============ -->
+        <%-- No DefaultButton on any pop-up: pressing Enter must never save. Only the pop-up's own button saves. --%>
 
         <%-- Edit course information: title, topic, level, duration (weeks + hours per week) and image --%>
         <div class="modal-overlay" id="modalCourseInfo" aria-hidden="true">
-            <asp:Panel ID="PnlCourseInfo" runat="server" CssClass="modal" DefaultButton="BtnSaveCourseInfo" role="dialog" aria-modal="true" aria-labelledby="title_modalCourseInfo">
+            <asp:Panel ID="PnlCourseInfo" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalCourseInfo">
                 <h3 class="modal-title" id="title_modalCourseInfo">Edit course information</h3>
                 <div id="courseInfoError" class="page-status error" style="display:none"></div>
 
@@ -248,7 +296,7 @@
 
         <%-- Add new lesson (creates a row in public.lesson with empty content) --%>
         <div class="modal-overlay" id="modalAddModule" aria-hidden="true">
-            <asp:Panel ID="PnlAddModule" runat="server" CssClass="modal" DefaultButton="BtnConfirmAddModule" role="dialog" aria-modal="true" aria-labelledby="title_modalAddModule">
+            <asp:Panel ID="PnlAddModule" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalAddModule">
                 <h3 class="modal-title" id="title_modalAddModule">Add new lesson</h3>
 
                 <div class="form-group">
@@ -267,7 +315,7 @@
         </div>
 
         <div class="modal-overlay" id="modalEditDetails" aria-hidden="true">
-            <asp:Panel ID="PnlEditDetails" runat="server" CssClass="modal" DefaultButton="BtnSaveDetails" role="dialog" aria-modal="true" aria-labelledby="title_modalEditDetails">
+            <asp:Panel ID="PnlEditDetails" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalEditDetails">
                 <h3 class="modal-title" id="title_modalEditDetails">Edit lesson details</h3>
                 <div class="form-group">
                     <label class="form-label" for="TxtLessonTitle">Lesson title</label>
@@ -285,7 +333,7 @@
         </div>
 
         <div class="modal-overlay" id="modalUploadVideo" aria-hidden="true">
-            <asp:Panel ID="PnlUploadVideo" runat="server" CssClass="modal" DefaultButton="BtnConfirmUpload" role="dialog" aria-modal="true" aria-labelledby="title_modalUploadVideo">
+            <asp:Panel ID="PnlUploadVideo" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalUploadVideo">
                 <h3 class="modal-title" id="title_modalUploadVideo">Set lesson video</h3>
                 <div class="form-group">
                     <label class="form-label" for="TxtVideoUrl">Video link</label>
@@ -299,11 +347,47 @@
             </asp:Panel>
         </div>
 
+        <%-- Modal: Add/Edit Paragraph --%>
+        <div class="modal-overlay" id="modalEditParagraph" aria-hidden="true">
+            <asp:Panel ID="PnlModalParagraph" runat="server" CssClass="modal" role="dialog" aria-modal="true">
+                <h3 class="modal-title">Add / Edit Paragraph Text</h3>
+                <div class="form-group">
+                    <label class="form-label" for="TxtParagraphContent">Paragraph Content</label>
+                    <asp:TextBox ID="TxtParagraphContent" runat="server" TextMode="MultiLine" Rows="5" CssClass="form-control" placeholder="Write your context or explanation here..." />
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalEditParagraph')">Cancel</button>
+                    <asp:Button ID="BtnSaveParagraph" runat="server" OnClick="BtnSaveParagraph_Click" Text="Save Paragraph" CssClass="btn btn-accent" />
+                </div>
+            </asp:Panel>
+        </div>
+
+        <%-- Modal: Add/Edit Table --%>
+        <div class="modal-overlay" id="modalEditTable" aria-hidden="true">
+            <asp:Panel ID="PnlModalTable" runat="server" CssClass="modal" role="dialog" aria-modal="true">
+                <h3 class="modal-title">Add / Edit Data Table</h3>
+                <div class="form-group">
+                    <label class="form-label" for="TxtTableTitle">Table Caption / Title</label>
+                    <asp:TextBox ID="TxtTableTitle" runat="server" CssClass="form-control" placeholder="e.g. Summary of Cell Organelles" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="TxtTableData">Table Rows (JSON or CSV format)</label>
+                    <asp:TextBox ID="TxtTableData" runat="server" TextMode="MultiLine" Rows="4" CssClass="form-control" placeholder="Header1, Header2 | Row1Col1, Row1Col2" />
+                    <p class="form-hint">Enter row data separated by commas/pipes for rendering.</p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalEditTable')">Cancel</button>
+                    <asp:Button ID="BtnSaveTable" runat="server" OnClick="BtnSaveTable_Click" Text="Save Table" CssClass="btn btn-accent" />
+                </div>
+            </asp:Panel>
+        </div>
+
+        <%-- Publish (draft courses only) --%>
         <div class="modal-overlay" id="modalPublish" aria-hidden="true">
-            <asp:Panel ID="PnlPublish" runat="server" CssClass="modal" DefaultButton="BtnConfirmPublish" role="dialog" aria-modal="true" aria-labelledby="title_modalPublish">
+            <asp:Panel ID="PnlPublish" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalPublish">
                 <h3 class="modal-title" id="title_modalPublish">Publish this course?</h3>
 
-                <p class="confirm-text">Publishing makes <strong><asp:Literal ID="LitPublishLesson" runat="server" /></strong> visible to students. You can hide it again at any time with <em>Save as Draft</em>.</p>
+                <p class="confirm-text">Publishing makes <strong><asp:Literal ID="LitPublishLesson" runat="server" /></strong> visible to students. Once it is published, changes you save are visible to students straight away. You can hide it again with <em>Unpublish Course</em>.</p>
                 <asp:Panel ID="PnlDraftNotice" runat="server" CssClass="notice warning" Visible="false">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z" /><path d="M12 10v5" /><circle cx="12" cy="18" r=".6" fill="currentColor" /></svg>
                     <span>These components are still drafts and will stay hidden: <strong><asp:Literal ID="LitDraftList" runat="server" /></strong>.</span>
@@ -311,6 +395,20 @@
                 <div class="modal-actions">
                     <button type="button" class="btn btn-cancel" onclick="closeModal('modalPublish')">Cancel</button>
                     <asp:Button ID="BtnConfirmPublish" runat="server" OnClick="BtnConfirmPublish_Click" Text="Publish now" CssClass="btn btn-accent" />
+                </div>
+            </asp:Panel>
+        </div>
+
+        <%-- Unpublish (published courses only): a deliberate, separate step with a warning --%>
+        <div class="modal-overlay" id="modalUnpublish" aria-hidden="true">
+            <asp:Panel ID="PnlUnpublish" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalUnpublish">
+                <h3 class="modal-title" id="title_modalUnpublish">Unpublish this course?</h3>
+
+                <p class="confirm-text">Unpublishing hides <strong><asp:Literal ID="LitUnpublishName" runat="server" /></strong> from students.</p>
+                <p class="confirm-text"><asp:Literal ID="LitUnpublishInfo" runat="server" /></p>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalUnpublish')">Keep published</button>
+                    <asp:Button ID="BtnConfirmUnpublish" runat="server" OnClick="BtnConfirmUnpublish_Click" Text="Unpublish" CssClass="btn btn-accent" />
                 </div>
             </asp:Panel>
         </div>
@@ -350,6 +448,17 @@
         // Clicking the dimmed backdrop closes the pop-up
         document.querySelectorAll('.modal-overlay').forEach(function (o) {
             o.addEventListener('mousedown', function (e) { if (e.target === o) closeModal(o.id); });
+        });
+
+        // Enter inside a pop-up must never submit the form: only the pop-up's own button saves.
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter') return;
+            var t = e.target;
+            if (!t || !t.closest || !t.closest('.modal')) return;
+            var tag = t.tagName;
+            if (tag === 'TEXTAREA' || tag === 'BUTTON') return;                 // new lines / keyboard-click on buttons still work
+            if (tag === 'INPUT' && (t.type === 'submit' || t.type === 'button')) return;
+            e.preventDefault();
         });
 
         // ---------- Course info pop-up: live duration text + image preview ----------

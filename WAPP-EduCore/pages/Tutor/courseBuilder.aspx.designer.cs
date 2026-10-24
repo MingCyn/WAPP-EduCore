@@ -60,6 +60,15 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.Button BtnPublishCourse;
 
         /// <summary>
+        /// BtnUnpublish control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button BtnUnpublish;
+
+        /// <summary>
         /// LblStatus control.
         /// </summary>
         /// <remarks>
@@ -67,6 +76,15 @@ namespace WAPP_EduCore.pages.Tutor
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label LblStatus;
+
+        /// <summary>
+        /// PnlLiveNotice control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlLiveNotice;
 
         /// <summary>
         /// RptLessons control.
@@ -184,6 +202,60 @@ namespace WAPP_EduCore.pages.Tutor
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button BtnUploadVideo;
+
+        /// <summary>
+        /// PnlParagraph control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlParagraph;
+
+        /// <summary>
+        /// LitParagraphMeta control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal LitParagraphMeta;
+
+        /// <summary>
+        /// BtnEditParagraph control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlButton BtnEditParagraph;
+
+        /// <summary>
+        /// PnlTable control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlTable;
+
+        /// <summary>
+        /// LitTableTitle control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal LitTableTitle;
+
+        /// <summary>
+        /// BtnEditTable control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlButton BtnEditTable;
 
         /// <summary>
         /// PnlInteractive control.
@@ -346,6 +418,15 @@ namespace WAPP_EduCore.pages.Tutor
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkAddLab;
+
+        /// <summary>
+        /// PnlDraftFooter control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlDraftFooter;
 
         /// <summary>
         /// BtnSaveDraft control.
@@ -546,6 +627,69 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.Button BtnConfirmUpload;
 
         /// <summary>
+        /// PnlModalParagraph control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlModalParagraph;
+
+        /// <summary>
+        /// TxtParagraphContent control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox TxtParagraphContent;
+
+        /// <summary>
+        /// BtnSaveParagraph control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button BtnSaveParagraph;
+
+        /// <summary>
+        /// PnlModalTable control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlModalTable;
+
+        /// <summary>
+        /// TxtTableTitle control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox TxtTableTitle;
+
+        /// <summary>
+        /// TxtTableData control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox TxtTableData;
+
+        /// <summary>
+        /// BtnSaveTable control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button BtnSaveTable;
+
+        /// <summary>
         /// PnlPublish control.
         /// </summary>
         /// <remarks>
@@ -589,5 +733,41 @@ namespace WAPP_EduCore.pages.Tutor
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button BtnConfirmPublish;
+
+        /// <summary>
+        /// PnlUnpublish control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlUnpublish;
+
+        /// <summary>
+        /// LitUnpublishName control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal LitUnpublishName;
+
+        /// <summary>
+        /// LitUnpublishInfo control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal LitUnpublishInfo;
+
+        /// <summary>
+        /// BtnConfirmUnpublish control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button BtnConfirmUnpublish;
     }
 }

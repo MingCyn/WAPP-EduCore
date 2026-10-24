@@ -39,8 +39,7 @@ namespace WAPP_EduCore.pages.Tutor
         protected int TotalCount, PublishedCount, DraftCount;
 
         // ------------------------------------------------------------------
-        // SQL - only the signed-in tutor's courses are listed (c.user_id = @uid).
-        // status is expected to be 'published', 'draft' or 'pending_review' (case-insensitive).
+        // SQL queries
         // ------------------------------------------------------------------
         private const string SqlCourses =
             "SELECT c.course_id, c.title, c.category, " +
@@ -53,18 +52,15 @@ namespace WAPP_EduCore.pages.Tutor
             "WHERE c.user_id = @uid " +
             "ORDER BY c.created_at DESC NULLS LAST, c.course_id DESC";
 
-        // Assumes an enrollments table with one row per student per course.
-        // If it doesn't exist yet the page still works and shows 0 students.
         private const string SqlEnrolled =
             "SELECT course_id, COUNT(*) FROM enrollments GROUP BY course_id";
 
-        // Creates the course and records who owns it (user_id).
-        // If your courses table has other NOT NULL columns without a default
-        // (for example course_description or course_level), add them here too.
-        // Creates an empty draft owned by the logged-in tutor; the details are filled in inside the builder.
         private const string SqlCreateDraft =
             "INSERT INTO courses (title, category, duration, user_id, status, created_at, updated_at) " +
             "VALUES ('Untitled course', '', 1, @uid, 'draft', NOW(), NOW()) RETURNING course_id";
+
+        private const string SqlDeleteDraft =
+            "DELETE FROM courses WHERE course_id = @cid AND user_id = @uid AND status = 'draft'";
 
         private const string SqlUserName =
             "SELECT full_name FROM public.users WHERE user_id = @uid";
@@ -89,7 +85,7 @@ namespace WAPP_EduCore.pages.Tutor
         }
 
         // ------------------------------------------------------------------
-        // Page load: no courses -> empty state, otherwise the course list
+        // Page load
         // ------------------------------------------------------------------
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -99,7 +95,6 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            // Runs on every request (including postbacks) so the footer name is always the logged-in user's.
             TutorName = GetTutorName();
 
             if (IsPostBack) return;
@@ -114,12 +109,12 @@ namespace WAPP_EduCore.pages.Tutor
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 var pg = ex as PostgresException;
                 ShowMessage("DEBUG: " + ex.GetType().Name + " - " + (pg != null ? pg.MessageText : ex.Message));
-                return;                              // error shown, neither state displayed
+                return;
             }
 
             if (courses.Count == 0)
             {
-                ShowDebugInfo();                     // TEMPORARY: session id vs user_id values in the table
+                ShowDebugInfo();
                 PnlEmpty.Visible = true;
                 PnlList.Visible = false;
             }
@@ -132,9 +127,6 @@ namespace WAPP_EduCore.pages.Tutor
             }
         }
 
-        // ------------------------------------------------------------------
-        // Logged-in user's name: session first, database as a fallback
-        // ------------------------------------------------------------------
         private string GetTutorName()
         {
             string name = Convert.ToString(Session[SessionNameKey]);
@@ -151,7 +143,7 @@ namespace WAPP_EduCore.pages.Tutor
                     if (result != null && result != DBNull.Value)
                     {
                         name = Convert.ToString(result);
-                        Session[SessionNameKey] = name;   // cache for other pages
+                        Session[SessionNameKey] = name;
                         return name;
                     }
                 }
@@ -204,7 +196,7 @@ namespace WAPP_EduCore.pages.Tutor
                             Enrolled = students,
                             EnrolledText = students == 1 ? "1 enrolled student" : students + " enrolled students",
                             MetaText = BuildMeta(key, updated),
-                            ThumbHtml = BuildThumb(thumb, id, title, topic), // <-- Keep this one
+                            ThumbHtml = BuildThumb(thumb, id, title, topic),
                             SearchText = (title + " " + topic).ToLowerInvariant(),
                             UpdatedMs = ToUnixMs(updated),
                             CreatedMs = ToUnixMs(created)
@@ -219,7 +211,6 @@ namespace WAPP_EduCore.pages.Tutor
             return list;
         }
 
-        // Courses query, limited to the signed-in tutor
         private NpgsqlCommand CoursesCommand(NpgsqlConnection conn)
         {
             var cmd = new NpgsqlCommand(SqlCourses, conn);
@@ -240,10 +231,52 @@ namespace WAPP_EduCore.pages.Tutor
             }
             catch (PostgresException ex)
             {
-                // No enrollments table yet (or different name): show 0 students instead of failing the page.
                 System.Diagnostics.Debug.WriteLine("Enrollment counts unavailable: " + ex.Message);
             }
             return map;
+        }
+
+        // ------------------------------------------------------------------
+        // Repeater Command Handling (Delete Draft)
+        // ------------------------------------------------------------------
+        protected void RptCourses_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            if (e.CommandName == "DeleteDraft")
+            {
+                int courseId;
+                if (int.TryParse(e.CommandArgument.ToString(), out courseId))
+                {
+                    try
+                    {
+                        using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
+                        using (var cmd = new NpgsqlCommand(SqlDeleteDraft, conn))
+                        {
+                            cmd.Parameters.AddWithValue("cid", courseId);
+                            cmd.Parameters.AddWithValue("uid", userId);
+                            conn.Open();
+                            int rowsAffected = cmd.ExecuteNonQuery();
+
+                            if (rowsAffected > 0)
+                            {
+                                ShowMessage("Draft course successfully deleted.");
+                            }
+                            else
+                            {
+                                ShowMessage("Could not delete the course. Make sure it is still a draft and you own it.");
+                            }
+                        }
+                    }
+                    catch (NpgsqlException ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(ex.ToString());
+                        var pg = ex as PostgresException;
+                        string detail = pg != null ? pg.MessageText : ex.Message;
+                        ShowMessage("Failed to delete draft." + (ShowDatabaseErrors ? " (" + detail + ")" : ""));
+                    }
+
+                    ReloadList();
+                }
+            }
         }
 
         // ------------------------------------------------------------------
@@ -286,25 +319,20 @@ namespace WAPP_EduCore.pages.Tutor
             return n + " " + unit + (n == 1 ? "" : "s");
         }
 
-        // Real thumbnail if thumbnail_url is a valid https link, otherwise an illustrated placeholder.
-        // Updated BuildThumb to support local server uploads and https links
         private string BuildThumb(string url, int id, string title, string topic)
         {
-            // 1. Check if it's a valid local server upload (e.g. starting with ~/ or /uploads/)
             if (!string.IsNullOrWhiteSpace(url) && (url.StartsWith("~/", StringComparison.Ordinal) || url.StartsWith("/uploads/", StringComparison.Ordinal)))
             {
                 string resolvedUrl = ResolveUrl(url);
                 return "<div class=\"cc-thumb\"><img src=\"" + HttpUtility.HtmlAttributeEncode(resolvedUrl) + "\" alt=\"\" /></div>";
             }
 
-            // 2. Check if it's an absolute https link
             Uri uri;
             if (!string.IsNullOrWhiteSpace(url) && Uri.TryCreate(url, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps)
             {
                 return "<div class=\"cc-thumb\"><img src=\"" + HttpUtility.HtmlAttributeEncode(url) + "\" alt=\"\" /></div>";
             }
 
-            // 3. Fallback to illustrated placeholder if no valid image exists
             string text = (title + " " + topic).ToLowerInvariant();
             int variant;
             if (text.Contains("web") || text.Contains("program") || text.Contains("code")) variant = 0;
@@ -350,9 +378,6 @@ namespace WAPP_EduCore.pages.Tutor
             return (long)(utc - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
         }
 
-        // ------------------------------------------------------------------
-        // Create course pop-up -> insert the course, then open it in the course builder
-        // ------------------------------------------------------------------
         protected void BtnNewCourse_Click(object sender, EventArgs e)
         {
             int newId;
@@ -371,16 +396,14 @@ namespace WAPP_EduCore.pages.Tutor
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 var pg = ex as PostgresException;
                 string detail = pg != null ? pg.MessageText : ex.Message;
-                ReloadList();   // a postback skips the list loading in Page_Load, so rebuild the page first
+                ReloadList();
                 ShowMessage("We couldn't create the course." + (ShowDatabaseErrors ? " (" + detail + ")" : " Please try again."));
                 return;
             }
 
-            // edit=1 makes the builder open its "Edit course information" pop-up right away
             Response.Redirect("courseBuilder.aspx?courseId=" + newId + "&edit=1");
         }
 
-        // After a failed pop-up submit the page is rebuilt, so load the list again.
         private void ReloadList()
         {
             try
@@ -399,10 +422,6 @@ namespace WAPP_EduCore.pages.Tutor
             }
         }
 
-        // ------------------------------------------------------------------
-        // TEMPORARY debug helper: remove the ShowDebugInfo() call in Page_Load
-        // (and this method) before you deploy.
-        // ------------------------------------------------------------------
         private void ShowDebugInfo()
         {
             try

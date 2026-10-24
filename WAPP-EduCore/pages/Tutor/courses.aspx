@@ -9,7 +9,7 @@
     <link href="../../Content/dashboard.css" rel="stylesheet" type="text/css" />
     <%-- courseBuilder.css supplies the shared nav tweaks, page header, .btn and pop-up styles --%>
     <link href="../../Content/courseBuilder.css?v=4" rel="stylesheet" type="text/css" />
-    <link href="../../Content/courses.css?v=2" rel="stylesheet" type="text/css" />
+    <link href="../../Content/courses.css?v=3" rel="stylesheet" type="text/css" />
 </head>
 <body>
     <form id="form1" runat="server">
@@ -91,7 +91,7 @@
 
                     <!-- Course cards -->
                     <div class="cc-grid" id="ccGrid">
-                        <asp:Repeater ID="RptCourses" runat="server">
+                        <asp:Repeater ID="RptCourses" runat="server" OnItemCommand="RptCourses_ItemCommand">
                             <ItemTemplate>
                                 <div class="cc-card"
                                      data-status='<%# Eval("StatusKey") %>'
@@ -125,6 +125,13 @@
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
                                             Edit
                                         </a>
+                                        <asp:LinkButton ID="BtnDeleteDraft" runat="server" CssClass="cc-delete-draft" 
+                                            CommandName="DeleteDraft" CommandArgument='<%# Eval("CourseId") %>' 
+                                            Visible='<%# Eval("StatusKey").ToString() == "draft" %>'
+                                            OnClientClick="return confirm('Are you sure you want to delete this draft?');" CausesValidation="false">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            Delete
+                                        </asp:LinkButton>
                                     </div>
                                 </div>
                             </ItemTemplate>
