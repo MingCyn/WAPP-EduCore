@@ -159,15 +159,6 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.Literal LitLessonCount;
 
         /// <summary>
-        /// PnlDraftHint control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel PnlDraftHint;
-
-        /// <summary>
         /// PnlOutcomeList control.
         /// </summary>
         /// <remarks>
@@ -222,24 +213,6 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.Panel PnlNoReferences;
 
         /// <summary>
-        /// TxtDescription control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox TxtDescription;
-
-        /// <summary>
-        /// BtnSaveDescription control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button BtnSaveDescription;
-
-        /// <summary>
         /// TxtOutcome control.
         /// </summary>
         /// <remarks>
@@ -265,15 +238,6 @@ namespace WAPP_EduCore.pages.Tutor
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox TxtRefTitle;
-
-        /// <summary>
-        /// TxtRefUrl control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox TxtRefUrl;
 
         /// <summary>
         /// BtnSaveReference control.
@@ -355,5 +319,32 @@ namespace WAPP_EduCore.pages.Tutor
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button BtnSaveCourseInfo;
+
+        /// <summary>
+        /// BtnConfirmDelete control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button BtnConfirmDelete;
+
+        /// <summary>
+        /// HfTargetId control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField HfTargetId;
+
+        /// <summary>
+        /// HfDeleteType control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField HfDeleteType;
     }
 }

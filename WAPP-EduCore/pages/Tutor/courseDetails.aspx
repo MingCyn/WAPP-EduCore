@@ -9,7 +9,7 @@
     <link href="../../Content/dashboard.css" rel="stylesheet" type="text/css" />
     <%-- courseBuilder.css supplies the shared .btn, pop-up and form styles --%>
     <link href="../../Content/courseBuilder.css?v=4" rel="stylesheet" type="text/css" />
-    <link href="../../Content/courseDetails.css?v=1" rel="stylesheet" type="text/css" />
+    <link href="../../Content/courseDetails.css?v=2" rel="stylesheet" type="text/css" />
 </head>
 <body>
     <form id="form1" runat="server">
@@ -36,8 +36,7 @@
                     </div>
                     <div class="cd-actions">
                         <button type="button" class="btn btn-outline" onclick="openModal('modalCourseInfo')">Edit Course</button>
-                        <a class="btn btn-outline" href='courseBuilder.aspx?courseId=<%= CourseIdValue %>'>Manage Lessons</a>
-                        <a class="btn btn-outline" href='analytics.aspx?courseId=<%= CourseIdValue %>'>View Analytics</a>
+                        <a class="btn btn-outline" href='courseAnalysis.aspx?courseId=<%= CourseIdValue %>'>View Analytics</a>
                     </div>
                 </div>
 
@@ -60,7 +59,6 @@
                             <div class="cd-overview-body">
                                 <div class="cd-card-head">
                                     <h2 class="cd-card-title">Course overview</h2>
-                                    <button type="button" class="btn btn-outline btn-sm" onclick="openModal('modalDescription')">Edit overview</button>
                                 </div>
                                 <p class="cd-description"><asp:Literal ID="LitDescription" runat="server" /></p>
                                 <div class="cd-created">Created by <asp:Literal ID="LitCreatedBy" runat="server" /></div>
@@ -121,28 +119,29 @@
                         <section class="cd-card cd-publish">
                             <h2 class="cd-card-title">Publishing overview</h2>
                             <asp:Label ID="LblPublishPill" runat="server" CssClass="cd-pill draft" Text="Draft course" />
-                            <p class="cd-publish-text"><asp:Literal ID="LitPublishText" runat="server" /></p>
+                            <p class="cd-publish-text">
+                                <asp:Literal ID="LitPublishText" runat="server" /></p>
                             <div class="cd-stats">
                                 <div>
-                                    <span class="cd-stat-num"><asp:Literal ID="LitEnrolled" runat="server" /></span>
+                                    <span class="cd-stat-num">
+                                        <asp:Literal ID="LitEnrolled" runat="server" /></span>
                                     <span class="cd-stat-label">Enrolled students</span>
                                 </div>
                                 <div>
-                                    <span class="cd-stat-num"><asp:Literal ID="LitLessonCount" runat="server" /></span>
+                                    <span class="cd-stat-num">
+                                        <asp:Literal ID="LitLessonCount" runat="server" /></span>
                                     <span class="cd-stat-label">Lessons</span>
                                 </div>
                             </div>
-                            <asp:Panel ID="PnlDraftHint" runat="server" CssClass="cd-draft-hint" Visible="false">
-                                <a class="btn btn-outline btn-sm" href='courseBuilder.aspx?courseId=<%= CourseIdValue %>'>Open course builder</a>
-                            </asp:Panel>
                         </section>
-
                         <!-- Learning outcomes -->
                         <section class="cd-card">
                             <div class="cd-card-head">
                                 <h2 class="cd-card-title">Learning outcomes</h2>
                                 <button type="button" class="btn btn-outline btn-sm cd-add" onclick="openCleanModal('modalOutcome', ['TxtOutcome'], 'outcomeError')">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
                                     Add
                                 </button>
                             </div>
@@ -153,10 +152,14 @@
                                     <asp:Repeater ID="RptOutcomes" runat="server" OnItemCommand="RptOutcomes_ItemCommand">
                                         <ItemTemplate>
                                             <li class="cd-item">
-                                                <span class="cd-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.7 2.7L16 9.5" /></svg></span>
+                                                <span class="cd-item-icon">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                        <circle cx="12" cy="12" r="9" />
+                                                        <path d="M8 12.5l2.7 2.7L16 9.5" />
+                                                    </svg></span>
                                                 <span class="cd-item-text"><%#: Eval("Text") %></span>
-                                                <asp:LinkButton runat="server" CommandName="delete" CommandArgument='<%# Eval("Id") %>' CssClass="cd-remove" CausesValidation="false" ToolTip="Remove" OnClientClick="return confirm('Remove this learning outcome?');">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                                                <asp:LinkButton ID="BtnDeleteOutcome" runat="server" CssClass="cd-remove" CausesValidation="false" ToolTip="Remove" OnClientClick='<%# "showDeleteModal(" + Eval("Id") + ", \"outcome\"); return false;" %>'>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                                 </asp:LinkButton>
                                             </li>
                                         </ItemTemplate>
@@ -172,8 +175,10 @@
                         <section class="cd-card">
                             <div class="cd-card-head">
                                 <h2 class="cd-card-title">References</h2>
-                                <button type="button" class="btn btn-outline btn-sm cd-add" onclick="openCleanModal('modalReference', ['TxtRefTitle', 'TxtRefUrl'], 'referenceError')">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                                <button type="button" class="btn btn-outline btn-sm cd-add" onclick="openCleanModal('modalReference', ['TxtRefTitle'], 'referenceError')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
                                     Add
                                 </button>
                             </div>
@@ -210,23 +215,6 @@
         <!-- ============ POP-UP DIALOGS ============ -->
         <%-- Pressing Enter in a pop-up never saves: only the pop-up's own button does. --%>
 
-        <%-- Edit overview (courses.course_description) --%>
-        <div class="modal-overlay" id="modalDescription" aria-hidden="true">
-            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalDescription">
-                <h3 class="modal-title" id="title_modalDescription">Edit course overview</h3>
-                <div id="descriptionError" class="page-status error" style="display:none"></div>
-                <div class="form-group">
-                    <label class="form-label" for="TxtDescription">Overview</label>
-                    <asp:TextBox ID="TxtDescription" runat="server" TextMode="MultiLine" Rows="7" CssClass="form-control" placeholder="Describe what this course covers and who it is for" />
-                    <p class="form-hint">Up to 2000 characters. Students see this on the course page.</p>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalDescription')">Cancel</button>
-                    <asp:Button ID="BtnSaveDescription" runat="server" OnClick="BtnSaveDescription_Click" Text="Save overview" CssClass="btn btn-accent" />
-                </div>
-            </div>
-        </div>
-
         <%-- Add a learning outcome --%>
         <div class="modal-overlay" id="modalOutcome" aria-hidden="true">
             <div class="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalOutcome">
@@ -252,11 +240,6 @@
                 <div class="form-group">
                     <label class="form-label" for="TxtRefTitle">Title</label>
                     <asp:TextBox ID="TxtRefTitle" runat="server" CssClass="form-control" MaxLength="200" placeholder="e.g. Introduction to Algorithms, 4th edition" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="TxtRefUrl">Link (optional)</label>
-                    <asp:TextBox ID="TxtRefUrl" runat="server" CssClass="form-control" MaxLength="500" placeholder="https://..." />
-                    <p class="form-hint">Use a secure (https) link if you want students to open it.</p>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-cancel" onclick="closeModal('modalReference')">Cancel</button>
@@ -318,6 +301,23 @@
                 </div>
             </asp:Panel>
         </div>
+
+        <%-- Custom Confirmation Modal --%>
+        <div class="modal-overlay" id="modalConfirmDelete" aria-hidden="true">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalConfirmDelete">
+                <h3 class="modal-title" id="title_modalConfirmDelete">Confirm Deletion</h3>
+                <p class="modal-desc" id="confirmDeleteMessage" style="margin: 1rem 0; color: var(--text-muted, #64748b);">
+                    Are you sure you want to delete this item?
+                </p>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalConfirmDelete')">Cancel</button>
+                    <asp:Button ID="BtnConfirmDelete" runat="server" OnClick="BtnConfirmDelete_Click" Text="Yes, Delete" CssClass="btn btn-danger-custom" />
+                </div>
+            </div>
+        </div>
+
+        <asp:HiddenField ID="HfTargetId" runat="server" />
+        <asp:HiddenField ID="HfDeleteType" runat="server" />
     </form>
 
     <script>
@@ -359,6 +359,16 @@
                 document.querySelectorAll('.modal-overlay.open').forEach(function (m) { closeModal(m.id); });
             }
         });
+
+        function showDeleteModal(id, type) {
+            document.getElementById('<%= HfTargetId.ClientID %>').value = id;
+            document.getElementById('<%= HfDeleteType.ClientID %>').value = type;
+
+            var msg = (type === 'outcome') ? 'Do you want to delete this learning outcome?' : 'Do you want to delete this reference?';
+            document.getElementById('confirmDeleteMessage').textContent = msg;
+
+            openModal('modalConfirmDelete');
+        }
 
         document.querySelectorAll('.modal-overlay').forEach(function (o) {
             o.addEventListener('mousedown', function (e) { if (e.target === o) closeModal(o.id); });

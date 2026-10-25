@@ -455,3 +455,21 @@
         width: 14px;
         height: 14px;
     }
+
+/* Custom Delete Button Styling */
+.btn-danger-custom {
+    background-color: #dc3545;
+    border: 1px solid #dc3545;
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+    .btn-danger-custom:hover {
+        background-color: #fdf2f2; /* Soft red tint on hover */
+        border-color: #f5c6cb;
+        color: #dc3545; /* Keeps the text readable in matching red */
+    }

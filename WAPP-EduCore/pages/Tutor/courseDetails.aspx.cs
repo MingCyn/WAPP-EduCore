@@ -24,11 +24,9 @@ namespace WAPP_EduCore.pages.Tutor
 
         private const string LessonsTable = "public.lesson";
 
-        // While developing, the real database error is shown on the page.
         private const bool ShowDatabaseErrors = true;
         private const string StatusPublished = "published";
 
-        private const int MaxDescriptionChars = 2000;
         private const int MaxWeeks = 52;
         private const int MaxHoursPerWeek = 40;
         private const string ImageFolder = "~/uploads/courses/";
@@ -42,7 +40,6 @@ namespace WAPP_EduCore.pages.Tutor
         private string courseStatus = "";
         private string currentImage = "";
 
-        // Used by the markup for links such as courseBuilder.aspx?courseId=...
         protected int CourseIdValue;
 
         private bool TryGetUserId(out int id)
@@ -64,10 +61,6 @@ namespace WAPP_EduCore.pages.Tutor
             "SELECT title, category, course_level, duration, course_img, status, course_description, reference " +
             "FROM courses WHERE course_id = @cid AND user_id = @uid";
 
-        private const string SqlDescriptionUpdate =
-            "UPDATE courses SET course_description = @desc, updated_at = now() " +
-            "WHERE course_id = @cid AND user_id = @uid";
-
         private const string SqlCourseFullUpdate =
             "UPDATE courses SET course_description = @desc, reference = CAST(@reference AS jsonb), updated_at = now() " +
             "WHERE course_id = @cid AND user_id = @uid";
@@ -77,7 +70,7 @@ namespace WAPP_EduCore.pages.Tutor
             "FROM " + LessonsTable + " WHERE course_id = @cid ORDER BY created_at, lesson_id";
 
         private const string SqlEnrolledCount =
-            "SELECT COUNT(*) FROM enrollments WHERE course_id = @cid AND enrollment_status = 'active'";
+            "SELECT COUNT(*) FROM enrollment WHERE course_id = @cid";
 
         private const string SqlUserName =
             "SELECT full_name FROM public.users WHERE user_id = @uid";
@@ -88,7 +81,7 @@ namespace WAPP_EduCore.pages.Tutor
             "WHERE course_id = @cid AND user_id = @uid";
 
         // ------------------------------------------------------------------
-        // Data shapes used by the repeaters
+        // Data shapes
         // ------------------------------------------------------------------
         public class ComponentView
         {
@@ -188,7 +181,7 @@ namespace WAPP_EduCore.pages.Tutor
                 // 2) Overview card
                 LitThumb.Text = BuildThumb(image);
                 LitDescription.Text = string.IsNullOrWhiteSpace(description)
-                    ? "<span class=\"cd-muted\">No overview yet. Use \"Edit overview\" to describe what this course covers.</span>"
+                    ? "<span class=\"cd-muted\">No overview yet. Add learning outcomes to populate this section.</span>"
                     : EncodeWithBreaks(description);
 
                 string tutorName = GetTutorName(conn);
@@ -196,7 +189,6 @@ namespace WAPP_EduCore.pages.Tutor
 
                 if (!IsPostBack)
                 {
-                    TxtDescription.Text = description;
                     TxtCourseTitle.Text = title;
                     TxtCourseTopic.Text = topic;
                     SelectIfPresent(DdlCourseLevel, (level ?? "").Trim().ToUpperInvariant());
@@ -209,7 +201,6 @@ namespace WAPP_EduCore.pages.Tutor
 
                 // 3) Publishing overview
                 PnlLiveNotice.Visible = published;
-                PnlDraftHint.Visible = !published;
                 LblPublishPill.Text = published ? "Published course" : "Draft course";
                 LblPublishPill.CssClass = "cd-pill " + (published ? "published" : "draft");
                 LitPublishText.Text = Server.HtmlEncode(published
@@ -226,7 +217,7 @@ namespace WAPP_EduCore.pages.Tutor
                 PnlNoLessons.Visible = lessons.Count == 0;
                 LitLessonCount.Text = lessons.Count.ToString(CultureInfo.InvariantCulture);
 
-                // 5) Learning outcomes (split by newline from description)
+                // 5) Learning outcomes
                 var outcomes = new List<OutcomeView>();
                 if (!string.IsNullOrWhiteSpace(description))
                 {
@@ -247,7 +238,7 @@ namespace WAPP_EduCore.pages.Tutor
                 PnlOutcomeList.Visible = outcomes.Count > 0;
                 PnlNoOutcomes.Visible = outcomes.Count == 0;
 
-                // 6) References (deserialized from JSON array column)
+                // 6) References
                 var references = new List<ReferenceView>();
                 if (!string.IsNullOrWhiteSpace(referenceJson))
                 {
@@ -258,15 +249,11 @@ namespace WAPP_EduCore.pages.Tutor
                         {
                             for (int i = 0; i < refStrings.Count; i++)
                             {
-                                string refText = refStrings[i];
-                                string titleHtml = HttpUtility.HtmlEncode(refText);
-                                string host = "";
-
-                                references.Add(new ReferenceView { Id = i, TitleHtml = titleHtml, HostText = host });
+                                references.Add(new ReferenceView { Id = i, TitleHtml = HttpUtility.HtmlEncode(refStrings[i]), HostText = "" });
                             }
                         }
                     }
-                    catch { /* Fallback if format is invalid */ }
+                    catch { }
                 }
 
                 RptReferences.DataSource = references;
@@ -277,7 +264,7 @@ namespace WAPP_EduCore.pages.Tutor
         }
 
         // ------------------------------------------------------------------
-        // Queries
+        // Queries & Helpers
         // ------------------------------------------------------------------
         private bool TryGetCourse(NpgsqlConnection conn, out string title, out string topic, out string level,
                                 out string duration, out string image, out string status, out string description, out string referenceJson)
@@ -333,7 +320,7 @@ namespace WAPP_EduCore.pages.Tutor
                     return (countResult != null && countResult != DBNull.Value) ? Convert.ToInt32(countResult) : 0;
                 }
             }
-            catch (PostgresException)
+            catch (Exception)
             {
                 return -1;
             }
@@ -371,7 +358,6 @@ namespace WAPP_EduCore.pages.Tutor
         private LessonView BuildLessonView(int number, int lessonId, string title, string json, long? quizId)
         {
             List<Dictionary<string, object>> blocks = ParseBlocks(json);
-
             Dictionary<string, object> video = FindBlock(blocks, "video");
             Dictionary<string, object> interactive = FindBlock(blocks, "interactive");
             Dictionary<string, object> lab = FindBlock(blocks, "lab");
@@ -473,9 +459,6 @@ namespace WAPP_EduCore.pages.Tutor
             };
         }
 
-        // ------------------------------------------------------------------
-        // JSON block parsers
-        // ------------------------------------------------------------------
         private static List<Dictionary<string, object>> ParseBlocks(string json)
         {
             if (string.IsNullOrWhiteSpace(json)) return new List<Dictionary<string, object>>();
@@ -499,11 +482,7 @@ namespace WAPP_EduCore.pages.Tutor
             return null;
         }
 
-        private static string BlockTypeOf(Dictionary<string, object> block)
-        {
-            return block == null ? "" : Str(block, "type", "").ToLowerInvariant();
-        }
-
+        private static string BlockTypeOf(Dictionary<string, object> block) => block == null ? "" : Str(block, "type", "").ToLowerInvariant();
         private static string Str(Dictionary<string, object> block, string key, string fallback)
         {
             object v;
@@ -514,7 +493,6 @@ namespace WAPP_EduCore.pages.Tutor
             }
             return fallback;
         }
-
         private static bool IsPublished(Dictionary<string, object> block)
         {
             object v;
@@ -522,9 +500,6 @@ namespace WAPP_EduCore.pages.Tutor
             return true;
         }
 
-        // ------------------------------------------------------------------
-        // Helpers
-        // ------------------------------------------------------------------
         private static string NormalizeStatus(string status)
         {
             string s = (status ?? "").Trim().ToLowerInvariant().Replace(' ', '_');
@@ -553,10 +528,7 @@ namespace WAPP_EduCore.pages.Tutor
                 if (path.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase)) url = ResolveUrl(path);
                 else url = SafeHttpsUrl(path);
             }
-
-            if (url.Length > 0)
-                return "<img src=\"" + HttpUtility.HtmlAttributeEncode(url) + "\" alt=\"Course image\" />";
-
+            if (url.Length > 0) return "<img src=\"" + HttpUtility.HtmlAttributeEncode(url) + "\" alt=\"Course image\" />";
             return IconImagePlaceholder();
         }
 
@@ -584,25 +556,14 @@ namespace WAPP_EduCore.pages.Tutor
                 DdlCourseHours.Items.Add(new ListItem(h + (h == 1 ? " hour" : " hours") + " per week", h.ToString(CultureInfo.InvariantCulture)));
         }
 
-        private static string FormatDuration(int weeks, int hoursPerWeek)
-        {
-            return weeks + (weeks == 1 ? " week" : " weeks") +
-                   " (" + hoursPerWeek + (hoursPerWeek == 1 ? " hr" : " hrs") + "/week)";
-        }
+        private static string FormatDuration(int weeks, int hoursPerWeek) => weeks + (weeks == 1 ? " week" : " weeks") + " (" + hoursPerWeek + (hoursPerWeek == 1 ? " hr" : " hrs") + "/week)";
 
         private static void ParseDuration(string text, out string weeks, out string hours)
         {
             weeks = hours = "";
             if (string.IsNullOrWhiteSpace(text)) return;
-
             Match m = DurationPattern.Match(text);
-            if (m.Success)
-            {
-                weeks = m.Groups[1].Value;
-                hours = m.Groups[2].Value;
-                return;
-            }
-
+            if (m.Success) { weeks = m.Groups[1].Value; hours = m.Groups[2].Value; return; }
             int plain;
             if (int.TryParse(text.Trim(), out plain) && plain > 0) weeks = plain.ToString(CultureInfo.InvariantCulture);
         }
@@ -611,58 +572,37 @@ namespace WAPP_EduCore.pages.Tutor
         {
             if (string.IsNullOrEmpty(value)) return;
             ListItem item = list.Items.FindByValue(value);
-            if (item != null)
-            {
-                list.ClearSelection();
-                item.Selected = true;
-            }
+            if (item != null) { list.ClearSelection(); item.Selected = true; }
         }
 
         private bool TrySaveCourseImage(out string savedPath, out string error)
         {
             savedPath = null;
             error = null;
-
             HttpPostedFile file = FileCourseImg.PostedFile;
             if (file == null || file.ContentLength == 0) return true;
 
-            if (file.ContentLength > MaxImageBytes)
-            {
-                error = "The image must be 2 MB or smaller.";
-                return false;
-            }
+            if (file.ContentLength > MaxImageBytes) { error = "The image must be 2 MB or smaller."; return false; }
 
             var head = new byte[12];
             int read = file.InputStream.Read(head, 0, head.Length);
             file.InputStream.Position = 0;
 
             string extension = DetectImageExtension(head, read);
-            if (extension == null)
-            {
-                error = "Please choose a JPG, PNG or WEBP image.";
-                return false;
-            }
+            if (extension == null) { error = "Please choose a JPG, PNG or WEBP image."; return false; }
 
             try
             {
                 string folder = Server.MapPath(ImageFolder);
                 Directory.CreateDirectory(folder);
-
                 string fileName = courseId + "-" + Guid.NewGuid().ToString("N") + extension;
                 file.SaveAs(Path.Combine(folder, fileName));
                 savedPath = ImageFolder + fileName;
                 return true;
             }
-            catch (IOException ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
                 error = "The image could not be saved on the server.";
-                return false;
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                error = "The server is not allowed to save images in " + ImageFolder;
                 return false;
             }
         }
@@ -670,13 +610,8 @@ namespace WAPP_EduCore.pages.Tutor
         private static string DetectImageExtension(byte[] head, int length)
         {
             if (length >= 3 && head[0] == 0xFF && head[1] == 0xD8 && head[2] == 0xFF) return ".jpg";
-
-            if (length >= 8 && head[0] == 0x89 && head[1] == 0x50 && head[2] == 0x4E && head[3] == 0x47 &&
-                head[4] == 0x0D && head[5] == 0x0A && head[6] == 0x1A && head[7] == 0x0A) return ".png";
-
-            if (length >= 12 && head[0] == (byte)'R' && head[1] == (byte)'I' && head[2] == (byte)'F' && head[3] == (byte)'F' &&
-                head[8] == (byte)'W' && head[9] == (byte)'E' && head[10] == (byte)'B' && head[11] == (byte)'P') return ".webp";
-
+            if (length >= 8 && head[0] == 0x89 && head[1] == 0x50 && head[2] == 0x4E && head[3] == 0x47 && head[4] == 0x0D && head[5] == 0x0A && head[6] == 0x1A && head[7] == 0x0A) return ".png";
+            if (length >= 12 && head[0] == (byte)'R' && head[1] == (byte)'I' && head[2] == (byte)'F' && head[3] == (byte)'F' && head[8] == (byte)'W' && head[9] == (byte)'E' && head[10] == (byte)'B' && head[11] == (byte)'P') return ".webp";
             return null;
         }
 
@@ -689,54 +624,10 @@ namespace WAPP_EduCore.pages.Tutor
                 string full = Path.GetFullPath(Server.MapPath(path));
                 if (full.StartsWith(folder, StringComparison.OrdinalIgnoreCase) && File.Exists(full)) File.Delete(full);
             }
-            catch (Exception ex)
-            {
-                if (!(ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException)) throw;
-            }
+            catch { }
         }
 
-        // ------------------------------------------------------------------
-        // Saving Actions (Overview, Outcomes, References directly in `courses`)
-        // ------------------------------------------------------------------
-
-        private string DetailsUrl(string notice)
-        {
-            return "courseDetails.aspx?courseId=" + courseId + (notice != null ? "&notice=" + notice : "");
-        }
-
-        protected void BtnSaveDescription_Click(object sender, EventArgs e)
-        {
-            string text = (TxtDescription.Text ?? "").Replace("\r\n", "\n").Trim();
-            if (text.Length > MaxDescriptionChars)
-            {
-                ReopenDialog("modalDescription", "descriptionError", "Please keep the overview under " + MaxDescriptionChars + " characters.");
-                return;
-            }
-
-            try
-            {
-                using (NpgsqlConnection conn = OpenConnection())
-                using (var cmd = new NpgsqlCommand(SqlDescriptionUpdate, conn))
-                {
-                    cmd.Parameters.AddWithValue("desc", text);
-                    cmd.Parameters.AddWithValue("cid", courseId);
-                    cmd.Parameters.AddWithValue("uid", userId);
-                    int rows = cmd.ExecuteNonQuery();
-                    if (rows == 0)
-                    {
-                        ReopenDialog("modalDescription", "descriptionError", "This course could not be found.");
-                        return;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                ReopenDialog("modalDescription", "descriptionError", "We couldn't save that. Please try again.");
-                return;
-            }
-
-            Response.Redirect(DetailsUrl("overview-saved"));
-        }
+        private string DetailsUrl(string notice) => "courseDetails.aspx?courseId=" + courseId + (notice != null ? "&notice=" + notice : "");
 
         protected void BtnSaveOutcome_Click(object sender, EventArgs e)
         {
@@ -828,76 +719,14 @@ namespace WAPP_EduCore.pages.Tutor
                         updateCmd.ExecuteNonQuery();
                     }
                 }
+
+                LoadPage();
+                ShowMessage("Learning outcome removed successfully.", false);
             }
             catch (Exception)
             {
                 ShowMessage("We couldn't remove the outcome.", true);
-                return;
             }
-
-            Response.Redirect(DetailsUrl("outcome-removed"));
-        }
-
-        protected void BtnSaveReference_Click(object sender, EventArgs e)
-        {
-            string title = Regex.Replace((TxtRefTitle.Text ?? "").Trim(), @"\s+", " ");
-            string url = (TxtRefUrl.Text ?? "").Trim();
-
-            if (title.Length == 0)
-            {
-                ReopenDialog("modalReference", "referenceError", "Please enter a title for the reference.");
-                return;
-            }
-
-            string fullReferenceText = title + (url.Length > 0 ? " - " + url : "");
-
-            try
-            {
-                using (NpgsqlConnection conn = OpenConnection())
-                {
-                    string currentDesc = "";
-                    string currentRefJson = "";
-                    using (var readCmd = new NpgsqlCommand("SELECT course_description, reference FROM courses WHERE course_id = @cid AND user_id = @uid", conn))
-                    {
-                        readCmd.Parameters.AddWithValue("cid", courseId);
-                        readCmd.Parameters.AddWithValue("uid", userId);
-                        using (var reader = readCmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                currentDesc = reader.IsDBNull(0) ? "" : reader.GetString(0);
-                                currentRefJson = reader.IsDBNull(1) ? "" : reader.GetString(1);
-                            }
-                        }
-                    }
-
-                    var refList = new List<string>();
-                    if (!string.IsNullOrWhiteSpace(currentRefJson))
-                    {
-                        try { refList = new JavaScriptSerializer().Deserialize<List<string>>(currentRefJson) ?? new List<string>(); }
-                        catch { }
-                    }
-
-                    refList.Add(fullReferenceText);
-                    string updatedRefJson = new JavaScriptSerializer().Serialize(refList);
-
-                    using (var updateCmd = new NpgsqlCommand(SqlCourseFullUpdate, conn))
-                    {
-                        updateCmd.Parameters.AddWithValue("desc", string.IsNullOrEmpty(currentDesc) ? (object)DBNull.Value : currentDesc);
-                        updateCmd.Parameters.AddWithValue("reference", updatedRefJson);
-                        updateCmd.Parameters.AddWithValue("cid", courseId);
-                        updateCmd.Parameters.AddWithValue("uid", userId);
-                        updateCmd.ExecuteNonQuery();
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                ReopenDialog("modalReference", "referenceError", "We couldn't save the reference.");
-                return;
-            }
-
-            Response.Redirect(DetailsUrl("reference-added"));
         }
 
         protected void RptReferences_ItemCommand(object source, RepeaterCommandEventArgs e)
@@ -947,14 +776,72 @@ namespace WAPP_EduCore.pages.Tutor
                         updateCmd.ExecuteNonQuery();
                     }
                 }
+
+                LoadPage();
+                ShowMessage("Reference removed successfully.", false);
             }
             catch (Exception)
             {
                 ShowMessage("We couldn't remove the reference.", true);
+            }
+        }
+
+        protected void BtnSaveReference_Click(object sender, EventArgs e)
+        {
+            string title = Regex.Replace((TxtRefTitle.Text ?? "").Trim(), @"\s+", " ");
+            if (title.Length == 0)
+            {
+                ReopenDialog("modalReference", "referenceError", "Please enter a reference.");
                 return;
             }
 
-            Response.Redirect(DetailsUrl("reference-removed"));
+            try
+            {
+                using (NpgsqlConnection conn = OpenConnection())
+                {
+                    string currentDesc = "";
+                    string currentRefJson = "";
+                    using (var readCmd = new NpgsqlCommand("SELECT course_description, reference FROM courses WHERE course_id = @cid AND user_id = @uid", conn))
+                    {
+                        readCmd.Parameters.AddWithValue("cid", courseId);
+                        readCmd.Parameters.AddWithValue("uid", userId);
+                        using (var reader = readCmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                currentDesc = reader.IsDBNull(0) ? "" : reader.GetString(0);
+                                currentRefJson = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                            }
+                        }
+                    }
+
+                    var refList = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(currentRefJson))
+                    {
+                        try { refList = new JavaScriptSerializer().Deserialize<List<string>>(currentRefJson) ?? new List<string>(); }
+                        catch { }
+                    }
+
+                    refList.Add(title);
+                    string updatedRefJson = new JavaScriptSerializer().Serialize(refList);
+
+                    using (var updateCmd = new NpgsqlCommand(SqlCourseFullUpdate, conn))
+                    {
+                        updateCmd.Parameters.AddWithValue("desc", string.IsNullOrEmpty(currentDesc) ? (object)DBNull.Value : currentDesc);
+                        updateCmd.Parameters.AddWithValue("reference", updatedRefJson);
+                        updateCmd.Parameters.AddWithValue("cid", courseId);
+                        updateCmd.Parameters.AddWithValue("uid", userId);
+                        updateCmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                ReopenDialog("modalReference", "referenceError", "We couldn't save the reference.");
+                return;
+            }
+
+            Response.Redirect(DetailsUrl("reference-added"));
         }
 
         private void ReopenDialog(string modalId, string errorBoxId, string message)
@@ -977,11 +864,8 @@ namespace WAPP_EduCore.pages.Tutor
         {
             switch (Request.QueryString["notice"])
             {
-                case "overview-saved": ShowMessage("Course overview saved.", false); break;
                 case "outcome-added": ShowMessage("Learning outcome added.", false); break;
-                case "outcome-removed": ShowMessage("Learning outcome removed.", false); break;
                 case "reference-added": ShowMessage("Reference added.", false); break;
-                case "reference-removed": ShowMessage("Reference removed.", false); break;
             }
         }
 
@@ -1059,6 +943,87 @@ namespace WAPP_EduCore.pages.Tutor
             if (newImage != null) DeleteStoredImage(currentImage);
 
             Response.Redirect(Request.RawUrl);
+        }
+        protected void BtnConfirmDelete_Click(object sender, EventArgs e)
+        {
+            string deleteType = HfDeleteType.Value;
+            if (!int.TryParse(HfTargetId.Value, out int removeIndex)) return;
+
+            try
+            {
+                using (NpgsqlConnection conn = OpenConnection())
+                {
+                    string currentDesc = "";
+                    string currentRefJson = "";
+                    using (var readCmd = new NpgsqlCommand("SELECT course_description, reference FROM courses WHERE course_id = @cid AND user_id = @uid", conn))
+                    {
+                        readCmd.Parameters.AddWithValue("cid", courseId);
+                        readCmd.Parameters.AddWithValue("uid", userId);
+                        using (var reader = readCmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                currentDesc = reader.IsDBNull(0) ? "" : reader.GetString(0);
+                                currentRefJson = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                            }
+                        }
+                    }
+
+                    if (deleteType == "outcome")
+                    {
+                        var lines = new List<string>(currentDesc.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
+                        if (removeIndex >= 0 && removeIndex < lines.Count)
+                        {
+                            lines.RemoveAt(removeIndex);
+                        }
+                        string updatedDesc = string.Join(Environment.NewLine, lines);
+
+                        using (var updateCmd = new NpgsqlCommand(SqlCourseFullUpdate, conn))
+                        {
+                            updateCmd.Parameters.AddWithValue("desc", string.IsNullOrEmpty(updatedDesc) ? (object)DBNull.Value : updatedDesc);
+                            updateCmd.Parameters.AddWithValue("reference", string.IsNullOrEmpty(currentRefJson) ? (object)DBNull.Value : currentRefJson);
+                            updateCmd.Parameters.AddWithValue("cid", courseId);
+                            updateCmd.Parameters.AddWithValue("uid", userId);
+                            updateCmd.ExecuteNonQuery();
+                        }
+
+                        LoadPage();
+                        ShowMessage("Learning outcome removed successfully.", false);
+                    }
+                    else if (deleteType == "reference")
+                    {
+                        var refList = new List<string>();
+                        if (!string.IsNullOrWhiteSpace(currentRefJson))
+                        {
+                            try { refList = new JavaScriptSerializer().Deserialize<List<string>>(currentRefJson) ?? new List<string>(); }
+                            catch { }
+                        }
+
+                        if (removeIndex >= 0 && removeIndex < refList.Count)
+                        {
+                            refList.RemoveAt(removeIndex);
+                        }
+
+                        string updatedRefJson = refList.Count > 0 ? new JavaScriptSerializer().Serialize(refList) : null;
+
+                        using (var updateCmd = new NpgsqlCommand(SqlCourseFullUpdate, conn))
+                        {
+                            updateCmd.Parameters.AddWithValue("desc", string.IsNullOrEmpty(currentDesc) ? (object)DBNull.Value : currentDesc);
+                            updateCmd.Parameters.AddWithValue("reference", updatedRefJson == null ? (object)DBNull.Value : updatedRefJson);
+                            updateCmd.Parameters.AddWithValue("cid", courseId);
+                            updateCmd.Parameters.AddWithValue("uid", userId);
+                            updateCmd.ExecuteNonQuery();
+                        }
+
+                        LoadPage();
+                        ShowMessage("Reference removed successfully.", false);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                ShowMessage("We couldn't process your request.", true);
+            }
         }
 
         private void ShowMessage(string message, bool isError)
