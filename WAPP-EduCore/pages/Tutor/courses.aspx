@@ -115,7 +115,7 @@
                                     <div class="cc-meta"><%#: Eval("MetaText") %></div>
 
                                     <div class="cc-actions">
-                                        <a class="cc-view" href='courseBuilder.aspx?courseId=<%# Eval("CourseId") %>'>View Details</a>
+                                        <a class="cc-view" href='courseDetails.aspx?courseId=<%# Eval("CourseId") %>'>View Details</a>
                                         <a class="cc-edit" href='courseBuilder.aspx?courseId=<%# Eval("CourseId") %>&amp;edit=1'>
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
                                             Edit

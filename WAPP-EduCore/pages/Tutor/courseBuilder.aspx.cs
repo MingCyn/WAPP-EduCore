@@ -23,6 +23,8 @@ namespace WAPP_EduCore.pages.Tutor
         private const string DraftTitle = "Untitled course";
 
         private const string StatusPublished = "published";
+
+        protected int CourseIdValue;
         private const string StatusDraft = "draft";
 
         private const int MaxWeeks = 52;
@@ -141,6 +143,9 @@ namespace WAPP_EduCore.pages.Tutor
                 Context.ApplicationInstance.CompleteRequest();
                 return;
             }
+
+            // Assign the value here once courseId is validated
+            CourseIdValue = courseId;
 
             if (!IsPostBack)
             {

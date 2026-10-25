@@ -40,7 +40,7 @@
                         </p>
                     </div>
                     <div class="page-actions">
-                        <asp:Button ID="BtnPreviewCourse" runat="server" Text="Preview Course" CssClass="btn btn-outline" OnClick="BtnPreviewCourse_Click" />
+                        <a class="btn btn-outline" href='courseDetails.aspx?courseId=<%= CourseIdValue %>'>Preview Course</a>
                         <%-- Draft course: Publish. Published course: Unpublish (hidden/shown from the code-behind) --%>
                         <asp:Button ID="BtnPublishCourse" runat="server" OnClientClick="openModal('modalPublish'); return false;" Text="Publish Course" CssClass="btn btn-primary" />
                         <asp:Button ID="BtnUnpublish" runat="server" OnClientClick="openModal('modalUnpublish'); return false;" Text="Unpublish Course" CssClass="btn btn-outline" Visible="false" />

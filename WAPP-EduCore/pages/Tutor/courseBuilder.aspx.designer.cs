@@ -42,15 +42,6 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.Label LblCourseStatus;
 
         /// <summary>
-        /// BtnPreviewCourse control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button BtnPreviewCourse;
-
-        /// <summary>
         /// BtnPublishCourse control.
         /// </summary>
         /// <remarks>

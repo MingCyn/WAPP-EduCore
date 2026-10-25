@@ -141,6 +141,7 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\courseBuilder.css" />
+    <Content Include="Content\courseDetails.css" />
     <Content Include="Content\courses.css" />
     <Content Include="Content\dashboard.css" />
     <Content Include="Content\Site.css" />
@@ -188,6 +189,7 @@
     <Content Include="pages\Student\studentDashboard.aspx" />
     <Content Include="pages\Tutor\courseBuilder.aspx" />
     <Content Include="pages\Tutor\assessmentBuilder.aspx" />
+    <Content Include="pages\Tutor\courseDetails.aspx" />
     <Content Include="pages\Tutor\courses.aspx" />
     <Content Include="pages\Tutor\studentPerformance.aspx" />
     <Content Include="pages\Tutor\studentManagement.aspx" />
@@ -484,6 +486,13 @@
     <Compile Include="pages\Tutor\assessmentBuilder.aspx.cs">
       <DependentUpon>assessmentBuilder.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Tutor\courseDetails.aspx.cs">
+      <DependentUpon>courseDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Tutor\courseDetails.aspx.designer.cs">
+      <DependentUpon>courseDetails.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Tutor\courses.aspx.cs">
       <DependentUpon>courses.aspx</DependentUpon>

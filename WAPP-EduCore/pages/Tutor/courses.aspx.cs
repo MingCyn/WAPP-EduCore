@@ -15,6 +15,7 @@ namespace WAPP_EduCore.pages.Tutor
         private const string SessionNameKey = "UserFullName";
         private const string LoginPage = "~/auth/login.aspx";
         private const string LessonsTable = "public.lesson";
+        private const string EnrollmentTable = "public.enrollment";
         private const bool ShowDatabaseErrors = true;
 
         private int userId;
@@ -39,7 +40,7 @@ namespace WAPP_EduCore.pages.Tutor
             "ORDER BY c.created_at DESC NULLS LAST, c.course_id DESC";
 
         private const string SqlEnrolled =
-            "SELECT course_id, COUNT(*) FROM enrollments GROUP BY course_id";
+            "SELECT course_id, COUNT(*) FROM " + EnrollmentTable + " GROUP BY course_id";
 
         private const string SqlCreateDraft =
             "INSERT INTO courses (title, category, duration, user_id, status, created_at, updated_at) " +

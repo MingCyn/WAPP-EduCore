@@ -29,11 +29,12 @@ namespace WAPP_EduCore.pages.Tutor
         // The completion target shown under "Completion Rate" (a goal, not stored data).
         private const int CompletionTarget = 70;
 
-        // Student status rules (Active Student Progress table)
-        private const int AtRiskInactiveDays = 7;       // no lesson completed for this long -> AT RISK
-        private const int AttentionInactiveDays = 3;    // no lesson completed for this long -> NEEDS ATTENTION
-        private const int AtRiskProgress = 20;          // progress below this %             -> AT RISK
-        private const int AttentionProgress = 50;       // progress below this %             -> NEEDS ATTENTION
+        // Student status (Active Student Progress table) looks only at the student's latest quiz score
+        // in that course, compared with that quiz's passing_score:
+        //   score below passing_score                          -> NEEDS ATTENTION
+        //   score passes by less than this many points         -> AT RISK
+        //   anything else (or no quiz taken yet)               -> ON TRACK
+        private const int AtRiskMarginPoints = 10;
 
         // ------------------------------------------------------------------
         // Values shown in the stat cards (set in LoadDashboard)
@@ -137,7 +138,9 @@ namespace WAPP_EduCore.pages.Tutor
             "WHERE c.user_id = @uid AND LOWER(c.status) = 'published' " +
             "ORDER BY c.updated_at DESC NULLS LAST, c.course_id DESC LIMIT 3";
 
-        // Five students with the most recently completed lessons (one row per student and course)
+        // Five students with the most recently completed lessons (one row per student and course).
+        //   progress = lessons completed (lesson_progress)
+        //   status   = the student's latest quiz score in that course vs that quiz's passing_score (quiz table)
         private const string SqlStudentRows =
             LessonScopeCte +
             ", totals AS (SELECT course_id, COUNT(*) AS lesson_count FROM lscope GROUP BY course_id), " +
@@ -146,12 +149,23 @@ namespace WAPP_EduCore.pages.Tutor
             "         COUNT(DISTINCT lp.lesson_id) FILTER (WHERE lp.is_completed) AS done_lessons, " +
             "         MAX(lp.completed_at) FILTER (WHERE lp.is_completed) AS last_done " +
             "  FROM public.lesson_progress lp JOIN lscope s ON s.lesson_id = lp.lesson_id " +
-            "  GROUP BY lp.user_id, s.course_id) " +
-            "SELECT u.full_name, c.title, a.last_done, a.done_lessons, t.lesson_count " +
+            "  GROUP BY lp.user_id, s.course_id), " +
+            "sizes AS (SELECT quiz_id, COUNT(*) AS n FROM quiz_questions GROUP BY quiz_id), " +
+            "latest AS (" +
+            "  SELECT DISTINCT ON (qs.user_id, s.course_id) qs.user_id, s.course_id, " +
+            "         " + PercentSql + " AS pct, q.passing_score " +
+            "  FROM quiz_score qs " +
+            "  JOIN quiz q ON q.quiz_id = qs.quiz_id " +
+            "  JOIN lscope s ON s.lesson_id = q.lesson_id " +
+            "  LEFT JOIN sizes z ON z.quiz_id = qs.quiz_id " +
+            "  WHERE qs.done_time IS NOT NULL " +
+            "  ORDER BY qs.user_id, s.course_id, qs.done_time DESC) " +
+            "SELECT u.full_name, c.title, a.done_lessons, t.lesson_count, lt.pct, lt.passing_score " +
             "FROM activity a " +
             "JOIN public.users u ON u.user_id = a.user_id AND LOWER(u.role) = 'student' " +
             "JOIN courses c ON c.course_id = a.course_id " +
             "JOIN totals t ON t.course_id = a.course_id " +
+            "LEFT JOIN latest lt ON lt.user_id = a.user_id AND lt.course_id = a.course_id " +
             "ORDER BY a.last_done DESC NULLS LAST, u.full_name LIMIT 5";
 
         // Latest quiz attempts
@@ -386,14 +400,13 @@ namespace WAPP_EduCore.pages.Tutor
                     long total = Convert.ToInt64(r["lesson_count"]);
                     int progress = ClampPercent(total > 0 ? done * 100.0 / total : 0);
 
-                    // When the student last completed a lesson (empty if they have not completed any yet)
-                    int lastDoneColumn = r.GetOrdinal("last_done");
-                    TimeSpan? sinceLastLesson = r.IsDBNull(lastDoneColumn)
-                        ? (TimeSpan?)null
-                        : DateTime.UtcNow - ToUtc(r.GetDateTime(lastDoneColumn));
+                    // Latest quiz score of this student in this course and that quiz's passing score
+                    // (both empty when the student has not taken a quiz in this course yet)
+                    double? score = r.IsDBNull(r.GetOrdinal("pct")) ? (double?)null : Convert.ToDouble(r["pct"]);
+                    double? passing = r.IsDBNull(r.GetOrdinal("passing_score")) ? (double?)null : Convert.ToDouble(r["passing_score"]);
 
                     string label, css;
-                    MapStatus(progress, sinceLastLesson, out label, out css);
+                    MapStatus(score, passing, out label, out css);
 
                     list.Add(new StudentRow
                     {
@@ -495,19 +508,19 @@ namespace WAPP_EduCore.pages.Tutor
             return (int)Math.Max(0, Math.Min(100, Math.Round(value)));
         }
 
-        // inactive = time since the student last completed a lesson (null when they have not completed any yet).
-        private static void MapStatus(int progress, TimeSpan? inactive, out string label, out string css)
+        // score = the student's latest quiz score (%), passing = that quiz's passing_score (%).
+        // Either one is null when the student has not taken a quiz in the course yet.
+        private static void MapStatus(double? score, double? passing, out string label, out string css)
         {
-            bool longInactive = inactive.HasValue && inactive.Value.TotalDays >= AtRiskInactiveDays;
-            bool shortInactive = inactive.HasValue && inactive.Value.TotalDays >= AttentionInactiveDays;
-
-            if (longInactive || progress < AtRiskProgress)
+            if (score.HasValue && passing.HasValue && score.Value < passing.Value)
             {
-                label = "AT RISK"; css = "status-risk";
-            }
-            else if (shortInactive || progress < AttentionProgress)
-            {
+                // below the passing score
                 label = "NEEDS ATTENTION"; css = "status-attention";
+            }
+            else if (score.HasValue && passing.HasValue && score.Value < passing.Value + AtRiskMarginPoints)
+            {
+                // passed, but by less than AtRiskMarginPoints
+                label = "AT RISK"; css = "status-risk";
             }
             else
             {

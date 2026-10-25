@@ -1,0 +1,457 @@
+﻿/* ==========================================
+   EduCore - Course Details (courseDetails.aspx)
+   Load AFTER dashboard.css and courseBuilder.css
+   ========================================== */
+
+:root {
+    --cd-navy: #2a4494;
+    --cd-border: #e1e4ea;
+    --cd-ink: #1c2033;
+    --cd-muted: #6b7285;
+    --cd-peach: #fbead4;
+    --cd-peach-line: #f0dcc0;
+    --cd-green: #1f7a3d;
+}
+
+.cd-muted {
+    color: var(--cd-muted);
+}
+
+/* ---------- Breadcrumb + header ---------- */
+.cd-crumb {
+    font-size: 13px;
+    color: var(--cd-muted);
+    margin-bottom: 18px;
+}
+
+    .cd-crumb a:hover {
+        text-decoration: underline;
+    }
+
+.cd-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.cd-title {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0 0 10px;
+    color: var(--cd-ink);
+}
+
+.cd-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--cd-muted);
+}
+
+.cd-pill {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+    .cd-pill.published {
+        background-color: #e3f1e6;
+        color: var(--cd-green);
+    }
+
+    .cd-pill.draft {
+        background-color: #fbe9d2;
+        color: #8a5a14;
+    }
+
+.cd-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.cd-notice {
+    margin-bottom: 18px;
+}
+
+/* ---------- Two-column layout ---------- */
+.cd-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1000px) {
+    .cd-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.cd-side {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.cd-card {
+    background-color: #ffffff;
+    border: 1px solid var(--cd-border);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.cd-card-title {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--cd-ink);
+}
+
+.cd-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.cd-card-sub {
+    font-size: 13px;
+    color: var(--cd-muted);
+    margin: 0 0 18px;
+}
+
+/* ---------- Course overview ---------- */
+.cd-overview {
+    display: flex;
+    gap: 24px;
+}
+
+@media (max-width: 700px) {
+    .cd-overview {
+        flex-direction: column;
+    }
+}
+
+.cd-thumb {
+    flex: none;
+    width: 220px;
+    height: 132px;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #e8eefc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .cd-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .cd-thumb svg {
+        width: 56px;
+        height: 56px;
+        color: var(--cd-navy);
+    }
+
+.cd-overview-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.cd-description {
+    font-size: 14px;
+    line-height: 1.65;
+    color: #3d4260;
+    margin: 12px 0 14px;
+    overflow-wrap: anywhere;
+}
+
+.cd-created {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cd-ink);
+}
+
+/* ---------- Syllabus ---------- */
+.cd-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 30px 0 14px;
+}
+
+.cd-section-title {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--cd-ink);
+}
+
+.cd-lesson {
+    background-color: #ffffff;
+    border: 1px solid var(--cd-border);
+    border-radius: 12px;
+    padding: 6px 20px 10px;
+    margin-bottom: 14px;
+}
+
+.cd-lesson-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+}
+
+.cd-lesson-icon {
+    flex: none;
+    display: inline-flex;
+    width: 22px;
+    color: var(--cd-navy);
+}
+
+    .cd-lesson-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+.cd-lesson-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.cd-lesson-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cd-ink);
+    overflow-wrap: anywhere;
+}
+
+.cd-lesson-sub {
+    font-size: 12px;
+    color: var(--cd-muted);
+    margin-top: 2px;
+}
+
+.cd-link {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--cd-navy);
+}
+
+    .cd-link svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .cd-link:hover {
+        text-decoration: underline;
+    }
+
+.cd-components {
+    padding: 0 0 8px 36px;
+}
+
+.cd-component {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background-color: var(--cd-peach);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--cd-ink);
+}
+
+.cd-component-icon {
+    flex: none;
+    display: inline-flex;
+    color: var(--cd-navy);
+}
+
+    .cd-component-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+
+.cd-component-title {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.cd-component-meta {
+    flex: none;
+    max-width: 55%;
+    text-align: right;
+    font-size: 12px;
+    color: var(--cd-muted);
+}
+
+.cd-draft {
+    margin-right: 10px;
+    font-weight: 700;
+    color: #8a5a14;
+}
+
+.cd-empty {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--cd-muted);
+    padding: 16px;
+    border: 1px dashed #cdd2de;
+    border-radius: 10px;
+    background-color: #faf9f7;
+}
+
+/* ---------- Publishing overview ---------- */
+.cd-publish {
+    background-color: var(--cd-peach);
+    border-color: var(--cd-peach-line);
+}
+
+    .cd-publish .cd-pill {
+        margin: 14px 0;
+    }
+
+.cd-publish-text {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--cd-ink);
+    margin: 0 0 18px;
+}
+
+.cd-stats {
+    display: flex;
+    gap: 32px;
+}
+
+.cd-stat-num {
+    display: block;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--cd-ink);
+}
+
+.cd-stat-label {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--cd-muted);
+}
+
+.cd-draft-hint {
+    margin-top: 18px;
+}
+
+/* ---------- Learning outcomes + references ---------- */
+.cd-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.cd-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--cd-ink);
+}
+
+.cd-item-icon {
+    flex: none;
+    display: inline-flex;
+    margin-top: 1px;
+    color: var(--cd-green);
+}
+
+    .cd-item-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+.cd-item.ref .cd-item-icon {
+    color: var(--cd-navy);
+}
+
+.cd-item-text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+    .cd-item-text a {
+        color: var(--cd-navy);
+        font-weight: 500;
+    }
+
+        .cd-item-text a:hover {
+            text-decoration: underline;
+        }
+
+.cd-item-host {
+    display: block;
+    font-size: 12px;
+    color: var(--cd-muted);
+}
+
+.cd-remove {
+    flex: none;
+    display: inline-flex;
+    padding: 2px;
+    color: #c62828;
+    background: none;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+    .cd-remove:hover {
+        opacity: 1;
+        background-color: #fdecea;
+    }
+
+    .cd-remove svg {
+        width: 16px;
+        height: 16px;
+    }
+
+.cd-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .cd-add svg {
+        width: 14px;
+        height: 14px;
+    }
