@@ -15,6 +15,16 @@
         a.course-card:hover{box-shadow:0 8px 22px rgba(16,24,40,0.12)}
         .courses{flex-wrap:wrap}
         .db-empty{padding:26px 10px;font-size:13px;color:#7b8697}
+
+        /* ---------- fonts: same serif headings as the other student pages ---------- */
+        .topbar .greeting{font-family:'Merriweather',Georgia,serif;font-size:26px;font-weight:700;color:#111c3d}
+        .hero h2{font-family:'Merriweather',Georgia,serif;font-size:28px;font-weight:700;line-height:1.3}
+        .section-title{font-family:'Merriweather',Georgia,serif;font-size:19px;font-weight:700;color:#111c3d}
+        .section-title a{font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:13px;font-weight:500}
+        .course-card h4{font-family:'Merriweather',Georgia,serif;font-size:16px;font-weight:700;line-height:1.3;color:#111c3d}
+        .right-col .card h4{font-family:'Merriweather',Georgia,serif;font-size:17px;font-weight:700;color:#111c3d}
+        .stat .num{font-family:'Merriweather',Georgia,serif;font-size:24px;font-weight:700;color:#243f86}
+        .deadline-item strong,.achievements strong{font-weight:600;color:#111c3d}
     </style>
 </head>
 <body>
