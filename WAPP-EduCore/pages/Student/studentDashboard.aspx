@@ -10,10 +10,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
-    <style>
-        a.course-card{display:block;color:inherit;text-decoration:none}
+<style>
+        a.course-card{
+            display: flex;
+            flex-direction: column; /* Stacks thumb and meta vertically */
+            height: 100%;           /* Forces card to fill the grid row height */
+            color: inherit;
+            text-decoration: none;
+            background: #fcf6ee;    /* Sets a uniform background color for the whole card */
+        }
         a.course-card:hover{box-shadow:0 8px 22px rgba(16,24,40,0.12)}
-        .courses{flex-wrap:wrap}
+        
+        .course-card .meta {
+            flex: 1;                /* Forces meta area to expand and fill remaining space */
+            display: flex;
+            flex-direction: column;
+            background: #fcf6ee;    /* Ensures meta background matches */
+        }
+
+        .course-card .progress {
+            margin-top: auto;       /* Pushes the progress bar cleanly to the bottom */
+        }
+
+        .courses {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            align-items: stretch;   /* Ensures all cards stretch to match the tallest card in the row */
+        }
+        
+        @media (max-width: 1300px) {
+            .courses {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         .db-empty{padding:26px 10px;font-size:13px;color:#7b8697}
     </style>
 </head>
