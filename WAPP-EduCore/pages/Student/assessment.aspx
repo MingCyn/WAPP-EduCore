@@ -93,10 +93,16 @@
                     <div class="result-score"><asp:Literal ID="litScore" runat="server"></asp:Literal>%</div>
                     <h3 style="margin:10px 0 6px"><asp:Literal ID="litResultText" runat="server"></asp:Literal></h3>
                     <p style="color:#6b7385;font-size:14px">Grade: <strong><asp:Literal ID="litGrade" runat="server" Mode="Encode"></asp:Literal></strong></p>
+    
                     <div style="margin-top:26px;display:flex;gap:12px;justify-content:center">
                         <asp:HyperLink ID="lnkRetake" runat="server" CssClass="btn-ghost" Style="text-decoration:none">Retake Quiz</asp:HyperLink>
                         <asp:HyperLink ID="lnkBack" runat="server" CssClass="btn-solid" Style="text-decoration:none">Back to Course</asp:HyperLink>
                     </div>
+
+                    <%-- Small row for guests below the buttons --%>
+                    <asp:Panel ID="pnlGuestLoginPrompt" runat="server" Visible="false" style="margin-top: 18px; font-size: 13px; color: #6b7385;">
+                        Log in to save your score. <a href="../../Auth/login.aspx" style="color: #243f86; font-weight: 600; text-decoration: underline;">Login</a>
+                    </asp:Panel>
                 </asp:Panel>
             </main>
         </div>

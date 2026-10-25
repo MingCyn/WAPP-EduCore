@@ -130,7 +130,7 @@ namespace WAPP_EduCore.pages.Shared
             Session.Abandon();
             FormsAuthentication.SignOut();
 
-            Response.Redirect("~/auth/login.aspx");
+            Response.Redirect("~/default.aspx");
         }
     }
 }

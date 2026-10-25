@@ -26,8 +26,6 @@ namespace WAPP_EduCore.pages.Student
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            // login check removed: guests may view the overview
-
             long courseId;
             if (!TryGetCourseId(out courseId))
             {
@@ -43,7 +41,6 @@ namespace WAPP_EduCore.pages.Student
 
         private void LoadPage(long courseId)
         {
-            // ---------- course (published courses only) ----------
             string courseSql =
                 "SELECT c.course_id, c.title, c.course_description, c.duration, c.course_level, c.course_img, " +
                 "  COALESCE(u.full_name, 'TBA') AS instructor, " +
@@ -59,7 +56,6 @@ namespace WAPP_EduCore.pages.Student
                 { "@cid", courseId }
             });
 
-            // not found, or still a draft
             if (course.Rows.Count == 0)
             {
                 Response.Redirect("~/pages/Student/myCourses.aspx");
@@ -85,7 +81,6 @@ namespace WAPP_EduCore.pages.Student
             string heroStyle = HeroStyle(row["course_img"]);
             if (heroStyle.Length > 0) heroBox.Attributes["style"] = heroStyle;
 
-            // What You'll Learn: one tick per line of course_description
             string desc = Convert.ToString(row["course_description"]);
             List<string> points = desc
                 .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
@@ -96,14 +91,12 @@ namespace WAPP_EduCore.pages.Student
             rptLearn.DataBind();
             pnlLearn.Visible = points.Count > 0;
 
-            // enrollment status card
-            // enrollment status card
             if (IsGuest)
             {
                 litStatus.Text = "Guest Preview";
-                phEnrolled.Visible = true;      // "Start Learning" lets guests open the lessons
-                phNotEnrolled.Visible = false;  // no Enroll button
-                phGuest.Visible = true;         // "Log in to enroll" link
+                phEnrolled.Visible = true;
+                phNotEnrolled.Visible = false;
+                phGuest.Visible = true;
             }
             else
             {
@@ -113,7 +106,6 @@ namespace WAPP_EduCore.pages.Student
                 phGuest.Visible = false;
             }
 
-            // ---------- lessons ----------
             DataTable lessons = Db.Query(
                 "SELECT l.lesson_id, l.lesson_title, l.lesson_description, " +
                 "  COALESCE(lp.is_completed, false) AS done " +
@@ -141,7 +133,6 @@ namespace WAPP_EduCore.pages.Student
             long courseId;
             if (!TryGetCourseId(out courseId)) return;
 
-            // only a published course can be joined
             Db.Execute(
                 "INSERT INTO enrollment (user_id, course_id) " +
                 "SELECT @uid, c.course_id FROM courses c " +
@@ -154,7 +145,6 @@ namespace WAPP_EduCore.pages.Student
             LoadPage(courseId);
         }
 
-        // Dark overlay on top of the course image, like the Figma hero
         private string HeroStyle(object img)
         {
             string url = Convert.ToString(img);

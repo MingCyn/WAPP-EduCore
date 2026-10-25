@@ -159,15 +159,6 @@ namespace WAPP_EduCore.pages.Student
         protected global::System.Web.UI.WebControls.PlaceHolder phEnrolled;
 
         /// <summary>
-        /// phGuest control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.PlaceHolder phGuest;
-
-        /// <summary>
         /// lnkStart control.
         /// </summary>
         /// <remarks>
@@ -175,6 +166,15 @@ namespace WAPP_EduCore.pages.Student
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.HyperLink lnkStart;
+
+        /// <summary>
+        /// phGuest control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.PlaceHolder phGuest;
 
         /// <summary>
         /// phNotEnrolled control.

@@ -18,24 +18,24 @@ namespace WAPP_EduCore.pages.Student
 
         private bool IsGuest { get { return Session["UserID"] == null; } }
         private long UserId { get { return IsGuest ? 0 : Convert.ToInt64(Session["UserID"]); } }
+
         protected void Page_Load(object sender, EventArgs e)
         {
-            // guests may view any course; students must be enrolled
-            if (Session["UserID"] == null) { Response.Redirect("~/auth/login.aspx"); return; }
-
             if (!long.TryParse(Request.QueryString["course"], out _courseId))
             {
                 Response.Redirect("~/pages/Student/myCourses.aspx");
                 return;
             }
 
-            // course, tutor and enrollment check
-            DataTable ct = Db.Query(
-                "SELECT c.course_id, c.title, c.category, COALESCE(u.full_name, 'TBA') AS tutor, " +
-                "  EXISTS (SELECT 1 FROM enrollment e WHERE e.course_id = c.course_id AND e.user_id = @uid) AS is_enrolled " +
-                "FROM courses c LEFT JOIN users u ON u.user_id = c.user_id " +
-                "WHERE c.course_id = @cid",
-                new Dictionary<string, object> { { "@uid", UserId }, { "@cid", _courseId } });
+            // Course and tutor info (enrollment check only applies to logged-in students)
+            string courseQuery = IsGuest
+                ? "SELECT c.course_id, c.title, c.category, COALESCE(u.full_name, 'TBA') AS tutor FROM courses c LEFT JOIN users u ON u.user_id = c.user_id WHERE c.course_id = @cid"
+                : "SELECT c.course_id, c.title, c.category, COALESCE(u.full_name, 'TBA') AS tutor, EXISTS (SELECT 1 FROM enrollment e WHERE e.course_id = c.course_id AND e.user_id = @uid) AS is_enrolled FROM courses c LEFT JOIN users u ON u.user_id = c.user_id WHERE c.course_id = @cid";
+
+            var parameters = new Dictionary<string, object> { { "@cid", _courseId } };
+            if (!IsGuest) parameters.Add("@uid", UserId);
+
+            DataTable ct = Db.Query(courseQuery, parameters);
 
             if (ct.Rows.Count == 0)
             {
@@ -44,20 +44,22 @@ namespace WAPP_EduCore.pages.Student
             }
             _course = ct.Rows[0];
 
-            if (!Convert.ToBoolean(_course["is_enrolled"]))
+            // If logged in and not enrolled, redirect to course overview to prompt enrollment
+            if (!IsGuest && !Convert.ToBoolean(_course["is_enrolled"]))
             {
                 Response.Redirect("~/pages/Student/courseOverview.aspx?id=" + _courseId);
                 return;
             }
 
-            // all lessons of the course, with this student's completion
-            _lessons = Db.Query(
-                "SELECT l.lesson_id, l.lesson_title, l.lesson_description, l.lesson_content, l.quiz_id, " +
-                "  COALESCE(lp.is_completed, false) AS done " +
-                "FROM lesson l " +
-                "LEFT JOIN lesson_progress lp ON lp.lesson_id = l.lesson_id AND lp.user_id = @uid " +
-                "WHERE l.course_id = @cid ORDER BY l.lesson_id",
-                new Dictionary<string, object> { { "@uid", UserId }, { "@cid", _courseId } });
+            // Fetch lessons (for guests, completion flags default to false)
+            string lessonQuery = IsGuest
+                ? "SELECT l.lesson_id, l.lesson_title, l.lesson_description, l.lesson_content, l.quiz_id, false AS done FROM lesson l WHERE l.course_id = @cid ORDER BY l.lesson_id"
+                : "SELECT l.lesson_id, l.lesson_title, l.lesson_description, l.lesson_content, l.quiz_id, COALESCE(lp.is_completed, false) AS done FROM lesson l LEFT JOIN lesson_progress lp ON lp.lesson_id = l.lesson_id AND lp.user_id = @uid WHERE l.course_id = @cid ORDER BY l.lesson_id";
+
+            var lessonParams = new Dictionary<string, object> { { "@cid", _courseId } };
+            if (!IsGuest) lessonParams.Add("@uid", UserId);
+
+            _lessons = Db.Query(lessonQuery, lessonParams);
 
             string courseTitle = Convert.ToString(_course["title"]);
             litCourseTitle.Text = courseTitle;
@@ -72,7 +74,6 @@ namespace WAPP_EduCore.pages.Student
                 return;
             }
 
-            // which lesson to show
             bool found = false;
             long requested;
             if (long.TryParse(Request.QueryString["lesson"], out requested))
@@ -90,7 +91,6 @@ namespace WAPP_EduCore.pages.Student
 
             if (!found)
             {
-                // default: first unfinished lesson, else the first one
                 _index = 0;
                 for (int i = 0; i < _lessons.Rows.Count; i++)
                 {
@@ -109,8 +109,6 @@ namespace WAPP_EduCore.pages.Student
             if (!IsPostBack) Render();
         }
 
-        // ---------- showing the lesson ----------
-        // ---------- showing the lesson ----------
         private void Render()
         {
             DataRow cur = _lessons.Rows[_index];
@@ -119,7 +117,7 @@ namespace WAPP_EduCore.pages.Student
             int done = 0;
             foreach (DataRow r in _lessons.Rows)
                 if (Convert.ToBoolean(r["done"])) done++;
-            int pct = (int)(done * 100L / total);
+            int pct = total > 0 ? (int)(done * 100L / total) : 0;
 
             litLessonNo.Text = (_index + 1).ToString();
             litLessonTotal.Text = total.ToString();
@@ -154,7 +152,6 @@ namespace WAPP_EduCore.pages.Student
                                 string url = Convert.ToString(urlObj);
                                 string builtVideo = BuildVideoHtml(url);
 
-                                // Assign the first video to the dedicated top video player slot
                                 if (string.IsNullOrEmpty(videoHtml))
                                 {
                                     videoHtml = builtVideo;
@@ -208,7 +205,6 @@ namespace WAPP_EduCore.pages.Student
                 }
                 catch (Exception)
                 {
-                    // Fallback if JSON deserialization fails
                     bodyContentHtml = HttpUtility.HtmlEncode(jsonContent).Replace("\r\n", "<br />").Replace("\n", "<br />");
                 }
             }
@@ -226,11 +222,11 @@ namespace WAPP_EduCore.pages.Student
                 litContent.Text = bodyContentHtml;
             }
 
-            // Buttons & Navigation State
+            // Buttons & Navigation State for Guests vs Students
             bool isDone = !IsGuest && Convert.ToBoolean(cur["done"]);
-            btnComplete.Visible = !IsGuest && !isDone;   // guests cannot save progress
+            btnComplete.Visible = !IsGuest && !isDone;
             doneBox.Visible = isDone;
-            lnkDiscuss.Visible = !IsGuest;               // discussion needs an account
+            lnkDiscuss.Visible = !IsGuest;
 
             lnkPrev.Visible = _index > 0;
             if (lnkPrev.Visible)
@@ -240,7 +236,7 @@ namespace WAPP_EduCore.pages.Student
             if (lnkNext.Visible)
                 lnkNext.NavigateUrl = LessonUrl(Convert.ToInt64(_lessons.Rows[_index + 1]["lesson_id"]));
 
-            // Quiz Link
+            // Quiz Link (works for guests too, routing to assessment.aspx)
             long lessonQuizId = cur["quiz_id"] == DBNull.Value ? -1 : Convert.ToInt64(cur["quiz_id"]);
             DataTable qz = Db.Query(
                 "SELECT quiz_id FROM quiz WHERE lesson_id = @lid OR quiz_id = @qid ORDER BY quiz_id LIMIT 1",
@@ -249,11 +245,9 @@ namespace WAPP_EduCore.pages.Student
             if (lnkQuiz.Visible)
                 lnkQuiz.NavigateUrl = "~/pages/Student/assessment.aspx?quiz=" + Convert.ToInt64(qz.Rows[0]["quiz_id"]);
 
-            // Syllabus List
             rptSyllabus.DataSource = _lessons;
             rptSyllabus.DataBind();
 
-            // Tutor Card Information
             string tutor = Convert.ToString(_course["tutor"]);
             string category = Convert.ToString(_course["category"]);
             litTutorName.Text = tutor;
@@ -262,7 +256,6 @@ namespace WAPP_EduCore.pages.Student
             lnkDiscuss.NavigateUrl = "~/pages/Student/messages.aspx?lesson=" + _lessonId + "&tab=lesson";
         }
 
-        // ---------- mark as complete ----------
         protected void btnComplete_Click(object sender, EventArgs e)
         {
             if (IsGuest)
@@ -277,7 +270,6 @@ namespace WAPP_EduCore.pages.Student
                 "ON CONFLICT (user_id, lesson_id) DO UPDATE SET is_completed = true, completed_at = now()",
                 new Dictionary<string, object> { { "@uid", UserId }, { "@lid", _lessonId } });
 
-            // keep enrollment.progression in step with the lessons completed
             int done = 0;
             foreach (DataRow r in _lessons.Rows)
                 if (Convert.ToBoolean(r["done"])) done++;
@@ -288,11 +280,9 @@ namespace WAPP_EduCore.pages.Student
                 "UPDATE enrollment SET progression = @p WHERE user_id = @uid AND course_id = @cid",
                 new Dictionary<string, object> { { "@p", pct }, { "@uid", UserId }, { "@cid", _courseId } });
 
-            // reload the same lesson so that refreshing cannot repeat the save
             Response.Redirect(LessonUrl(_lessonId));
         }
 
-        // ---------- helpers ----------
         private string LessonUrl(long lessonId)
         {
             return "~/pages/Student/learningProgression.aspx?course=" + _courseId + "&lesson=" + lessonId;
@@ -311,43 +301,27 @@ namespace WAPP_EduCore.pages.Student
             return css;
         }
 
-        private string GetVideoUrl(string json)
-        {
-            try
-            {
-                var blocks = new JavaScriptSerializer().Deserialize<List<Dictionary<string, object>>>(json);
-                if (blocks == null) return "";
-                foreach (var block in blocks)
-                {
-                    object type;
-                    object url;
-                    if (block != null && block.TryGetValue("type", out type) &&
-                        string.Equals(Convert.ToString(type), "video", StringComparison.OrdinalIgnoreCase) &&
-                        block.TryGetValue("url", out url))
-                        return Convert.ToString(url).Trim();
-                }
-            }
-            catch (ArgumentException) { }
-            catch (InvalidOperationException) { }
-            return "";
-        }
-
         private string BuildVideoHtml(string url)
         {
             if (string.IsNullOrWhiteSpace(url)) return "";
+
             Match match = Regex.Match(url,
                 @"(?:youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/)|youtu\.be/)([A-Za-z0-9_-]{11})",
                 RegexOptions.IgnoreCase);
+
             if (match.Success)
+            {
                 return "<div class=\"lv-video\"><iframe src=\"https://www.youtube.com/embed/" + match.Groups[1].Value + "\" title=\"Lesson video\" allowfullscreen></iframe></div>";
+            }
 
             Uri uri;
             if (Uri.TryCreate(url, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps &&
                 url.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
+            {
                 return "<div class=\"lv-video\"><video controls src=\"" + HttpUtility.HtmlAttributeEncode(url) + "\"></video></div>";
+            }
 
             return "";
         }
-
     }
 }

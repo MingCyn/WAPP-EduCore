@@ -30,7 +30,7 @@ namespace WAPP_EduCore.pages.Student
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.UserControl Sidebar1;
+        protected global::WAPP_EduCore.pages.Shared.Sidebar Sidebar1;
 
         /// <summary>
         /// litQuizTitle control.
@@ -247,5 +247,14 @@ namespace WAPP_EduCore.pages.Student
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.HyperLink lnkBack;
+
+        /// <summary>
+        /// pnlGuestLoginPrompt control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlGuestLoginPrompt;
     }
 }

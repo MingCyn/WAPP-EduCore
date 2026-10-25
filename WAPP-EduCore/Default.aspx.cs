@@ -27,9 +27,10 @@ namespace WAPP_EduCore
 
             // Added c.course_id here so the repeater can link to courseOverview.aspx?id=...
             string query = @"SELECT c.course_id, c.title, c.category, c.duration, c.course_img, u.full_name AS tutor_name 
-                         FROM courses c 
-                         LEFT JOIN users u ON c.user_id = u.user_id 
-                         LIMIT 4";
+                 FROM courses c 
+                 LEFT JOIN users u ON c.user_id = u.user_id 
+                 WHERE lower(c.status) = 'published'
+                 LIMIT 4";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(connString))
             {

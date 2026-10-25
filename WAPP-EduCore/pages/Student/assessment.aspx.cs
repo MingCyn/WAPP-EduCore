@@ -8,7 +8,6 @@ namespace WAPP_EduCore.pages.Student
 {
     public partial class WebForm3 : System.Web.UI.Page
     {
-        // ---------- small classes used by the repeaters ----------
         public class OptionItem
         {
             public string Letter { get; set; }
@@ -23,13 +22,13 @@ namespace WAPP_EduCore.pages.Student
             public string Css { get; set; }
         }
 
-        // ---------- state ----------
         private long _quizId;
         private DataRow _quiz;
         private DataTable _questions;
-        protected bool IsLocked;   // used by the markup to disable the options
+        protected bool IsLocked;
 
-        private long UserId { get { return Convert.ToInt64(Session["UserID"]); } }
+        private bool IsGuest { get { return Session["UserID"] == null; } }
+        private long UserId { get { return IsGuest ? 0 : Convert.ToInt64(Session["UserID"]); } }
 
         private int Index
         {
@@ -47,22 +46,14 @@ namespace WAPP_EduCore.pages.Student
             set { ViewState["Chk"] = value; }
         }
 
-        // ---------- page load ----------
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (Session["UserID"] == null)
-            {
-                Response.Redirect("~/auth/login.aspx");
-                return;
-            }
-
             if (!long.TryParse(Request.QueryString["quiz"], out _quizId))
             {
                 Response.Redirect("~/pages/Student/myCourses.aspx");
                 return;
             }
 
-            // quiz + the course it belongs to (works whichever table holds the link)
             DataTable qt = Db.Query(
                 "SELECT q.quiz_id, q.quiz_title, q.passing_score, " +
                 "  (SELECT l.course_id FROM lesson l " +
@@ -78,8 +69,8 @@ namespace WAPP_EduCore.pages.Student
             _quiz = qt.Rows[0];
             litQuizTitle.Text = Convert.ToString(_quiz["quiz_title"]);
 
-            // only enrolled students may take the quiz
-            if (_quiz["course_id"] != DBNull.Value)
+            // Only enforce strict enrollment checks if the user is signed in
+            if (!IsGuest && _quiz["course_id"] != DBNull.Value)
             {
                 DataTable en = Db.Query(
                     "SELECT 1 FROM enrollment WHERE user_id = @uid AND course_id = @cid",
@@ -91,12 +82,22 @@ namespace WAPP_EduCore.pages.Student
                 }
             }
 
-            // result screen after submitting (the page is reloaded with ?result=)
             long resultId;
             if (long.TryParse(Request.QueryString["result"], out resultId))
             {
                 ShowResult(resultId);
                 return;
+            }
+
+            // Support guest session results passing via ViewState or QueryString for stateless guest grading
+            if (IsGuest && Request.QueryString["guest_score"] != null)
+            {
+                long guestScore;
+                if (long.TryParse(Request.QueryString["guest_score"], out guestScore))
+                {
+                    ShowGuestResult(guestScore);
+                    return;
+                }
             }
 
             _questions = Db.Query(
@@ -122,7 +123,6 @@ namespace WAPP_EduCore.pages.Student
             }
         }
 
-        // ---------- showing one question ----------
         private void RenderQuestion()
         {
             int n = _questions.Rows.Count;
@@ -139,7 +139,6 @@ namespace WAPP_EduCore.pages.Student
             litQNum.Text = (i + 1).ToString();
             litQuestion.Text = Convert.ToString(q["question_text"]);
 
-            // option cards
             var options = new List<OptionItem>();
             string[] letters = { "A", "B", "C", "D" };
             string[] columns = { "option_a", "option_b", "option_c", "option_d" };
@@ -160,7 +159,6 @@ namespace WAPP_EduCore.pages.Student
             rptOptions.DataSource = options;
             rptOptions.DataBind();
 
-            // progress circles
             var nav = new List<NavItem>();
             for (int k = 0; k < n; k++)
             {
@@ -172,12 +170,10 @@ namespace WAPP_EduCore.pages.Student
             rptNav.DataSource = nav;
             rptNav.DataBind();
 
-            // buttons
             btnPrev.Visible = i > 0;
             btnCheck.Visible = !locked;
             btnNext.Visible = locked && i < n - 1;
 
-            // explanation (shown only after Check Answer)
             pnlExplain.Visible = locked;
             if (locked)
             {
@@ -188,7 +184,6 @@ namespace WAPP_EduCore.pages.Student
             }
         }
 
-        // The correct answer as a letter (accepts "B" or the full answer text)
         private string CorrectLetter(DataRow q)
         {
             string ca = Convert.ToString(q["correct_answer"]).Trim();
@@ -205,11 +200,10 @@ namespace WAPP_EduCore.pages.Student
             return up;
         }
 
-        // ---------- events ----------
         protected void rptOptions_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             if (e.CommandName != "pick") return;
-            if (CheckedFlags[Index]) return;   // locked after Check Answer
+            if (CheckedFlags[Index]) return;
 
             string[] a = Answers;
             a[Index] = Convert.ToString(e.CommandArgument);
@@ -263,6 +257,11 @@ namespace WAPP_EduCore.pages.Student
 
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
+            _questions = Db.Query(
+                "SELECT question_id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation " +
+                "FROM quiz_questions WHERE quiz_id = @qid ORDER BY question_id",
+                new Dictionary<string, object> { { "@qid", _quizId } });
+
             int n = _questions.Rows.Count;
             string[] answers = Answers;
 
@@ -274,6 +273,15 @@ namespace WAPP_EduCore.pages.Student
             }
 
             long percent = (long)Math.Round(correctCount * 100.0 / n);
+
+            if (IsGuest)
+            {
+                // Store guest score temporarily in session for result display
+                Session["GuestScore_" + _quizId] = percent;
+                Session["GuestGrade_" + _quizId] = GradeFor(percent);
+                Response.Redirect("~/pages/Student/assessment.aspx?quiz=" + _quizId + "&guest_score=" + percent);
+                return;
+            }
 
             DataTable saved = Db.Query(
                 "INSERT INTO quiz_score (quiz_id, user_id, total_score, grade, done_time) " +
@@ -287,12 +295,9 @@ namespace WAPP_EduCore.pages.Student
                 });
 
             long scoreId = Convert.ToInt64(saved.Rows[0]["score_id"]);
-
-            // redirect so that refreshing the page cannot save the score twice
             Response.Redirect("~/pages/Student/assessment.aspx?quiz=" + _quizId + "&result=" + scoreId);
         }
 
-        // ---------- result screen ----------
         private void ShowResult(long scoreId)
         {
             DataTable r = Db.Query(
@@ -326,7 +331,30 @@ namespace WAPP_EduCore.pages.Student
             pnlResult.Visible = true;
         }
 
-        // Change these cut-offs if your team uses a different grading scale
+        private void ShowGuestResult(long percent)
+        {
+            long passMark = _quiz["passing_score"] == DBNull.Value ? 50 : Convert.ToInt64(_quiz["passing_score"]);
+
+            litScore.Text = percent.ToString();
+            litGrade.Text = GradeFor(percent);
+            litResultText.Text = percent >= passMark ? "Well done, you passed!" : "You did not pass this time.";
+
+            lnkRetake.NavigateUrl = "~/pages/Student/assessment.aspx?quiz=" + _quizId;
+            lnkBack.NavigateUrl = _quiz["course_id"] == DBNull.Value
+                ? "~/pages/Student/myCourses.aspx"
+                : "~/pages/Student/learningProgression.aspx?course=" + Convert.ToInt64(_quiz["course_id"]);
+
+            pnlQuiz.Visible = false;
+            chipBox.Visible = false;
+            pnlResult.Visible = true;
+
+            // Show the guest login prompt row since this is guest mode
+            if (pnlGuestLoginPrompt != null)
+            {
+                pnlGuestLoginPrompt.Visible = true;
+            }
+        }
+
         private string GradeFor(long percent)
         {
             if (percent >= 80) return "A";
