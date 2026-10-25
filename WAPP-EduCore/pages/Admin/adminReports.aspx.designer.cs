@@ -69,15 +69,6 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.Panel pnlUsers;
 
         /// <summary>
-        /// lblSnapshot control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSnapshot;
-
-        /// <summary>
         /// lblTotalUsers control.
         /// </summary>
         /// <remarks>
@@ -202,15 +193,6 @@ namespace WAPP_EduCore.pages.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Panel pnlCourses;
-
-        /// <summary>
-        /// lblSnapshotCourses control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSnapshotCourses;
 
         /// <summary>
         /// lblTotalCourses control.
@@ -357,15 +339,6 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.Panel pnlLearning;
 
         /// <summary>
-        /// lblSnapshotLearning control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSnapshotLearning;
-
-        /// <summary>
         /// lblEnrol control.
         /// </summary>
         /// <remarks>
@@ -391,15 +364,6 @@ namespace WAPP_EduCore.pages.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label lblDone;
-
-        /// <summary>
-        /// lblRate control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblRate;
 
         /// <summary>
         /// lblQuiz control.
@@ -445,14 +409,5 @@ namespace WAPP_EduCore.pages.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Literal litPerfTable;
-
-        /// <summary>
-        /// litFocus control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litFocus;
     }
 }

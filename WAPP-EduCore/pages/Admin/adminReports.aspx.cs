@@ -35,12 +35,6 @@ namespace WAPP_EduCore.pages.Admin
 
             if (!IsPostBack)
             {
-                // "Snapshot · 22 Sep 2026" shown at the top right of every tab
-                string snapshot = "Snapshot · " + DateTime.Now.ToString("dd MMM yyyy", Inv);
-                lblSnapshot.Text = snapshot;
-                lblSnapshotCourses.Text = snapshot;
-                lblSnapshotLearning.Text = snapshot;
-
                 LoadUsersTab();
                 LoadCoursesTab();
                 LoadLearningTab();
@@ -403,17 +397,23 @@ namespace WAPP_EduCore.pages.Admin
         // =====================================================
         //  TAB 3 : LEARNING PERFORMANCE
         //  (enrollment + quiz_score + quiz + lesson + courses tables)
-        //  "Reporting cohort" = the 5 courses with the most enrolments.
+        //  "Reporting cohort" = the PUBLISHED courses that have enrolments.
         // =====================================================
         private void LoadLearningTab()
         {
-            // An enrolment counts as "complete" when its status says complete,
-            // or its progression reached 100 (only if progression is a number column).
+            // An enrolment counts as "complete" when ONE of these is true:
+            //   1) its status says complete,
+            //   2) its progression reached 100 (only if progression is a number column),
+            //   3) the student finished EVERY lesson of the course (lesson_progress table).
+            // (3) is the most reliable one, because lesson_progress is saved when a lesson is finished.
             string doneRule = "e.enrollment_status::text ILIKE 'complet%'";
             if (IsNumberType(ColumnType("enrollment", "progression")))
                 doneRule += " OR e.progression >= 100";
+            doneRule += " OR (COALESCE(lt.n, 0) > 0 AND COALESCE(ld.n, 0) >= lt.n)";
 
-            // The 5 courses with the most enrolments + how many of them are complete
+            // The PUBLISHED courses that have enrolments + how many of them are complete.
+            // (A course that is still draft / pending review is left out, because students
+            //  cannot enrol in it yet. Want only the top 5? Add  LIMIT 5  at the end.)
             DataTable cohort = GetTable(
                 @"SELECT c.course_id, c.title, c.category, u.full_name AS instructor,
                          COUNT(e.enrollment_id) AS enrol,
@@ -421,9 +421,20 @@ namespace WAPP_EduCore.pages.Admin
                   FROM public.courses c
                   JOIN public.enrollment e ON e.course_id = c.course_id
                   LEFT JOIN public.users u ON u.user_id = c.user_id
+                  -- lt.n = how many lessons the course has
+                  LEFT JOIN (SELECT course_id, COUNT(*) AS n
+                             FROM public.lesson GROUP BY course_id) lt
+                         ON lt.course_id = c.course_id
+                  -- ld.n = how many of those lessons THIS student has finished
+                  LEFT JOIN (SELECT lp.user_id, l.course_id, COUNT(DISTINCT l.lesson_id) AS n
+                             FROM public.lesson_progress lp
+                             JOIN public.lesson l ON l.lesson_id = lp.lesson_id
+                             WHERE lp.is_completed
+                             GROUP BY lp.user_id, l.course_id) ld
+                         ON ld.user_id = e.user_id AND ld.course_id = c.course_id
+                  WHERE c.status::text ILIKE 'publish%'
                   GROUP BY c.course_id, c.title, c.category, u.full_name
-                  ORDER BY enrol DESC, c.title
-                  LIMIT 5");
+                  ORDER BY enrol DESC, c.title");
 
             // Average quiz score of every course (course_id -> score)
             Dictionary<int, int> quizByCourse = new Dictionary<int, int>();
@@ -488,11 +499,6 @@ namespace WAPP_EduCore.pages.Admin
             StringBuilder table = new StringBuilder();
             HashSet<string> cohortTopics = new HashSet<string>();
 
-            string weakest = "";
-            string weakestTeacher = "";
-            int weakestRate = 101;
-            int weakestQuiz = -1;
-
             foreach (DataRow r in cohort.Rows)
             {
                 int courseId = Convert.ToInt32(r["course_id"]);
@@ -510,58 +516,36 @@ namespace WAPP_EduCore.pages.Admin
                 if (topic != "") cohortTopics.Add(topic);
 
                 // low completion gets an orange bar (below 70%)
-                completionBars.Append(BarRow(name, rate, 100, rate + "%", rate < 70));
+                // the bar is as long as the completion rate, the number at the end is  completed/enrolled  (like 2/4)
+                completionBars.Append(BarRow(name, rate, 100, done + "/" + enrol, rate < 70));
 
                 table.Append("<tr><td>" + Server.HtmlEncode(name) + "</td><td>" + OrDash(topic) + "</td><td>" + enrol.ToString("N0") +
                              "</td><td>" + done.ToString("N0") + "</td><td>" + rate + "%</td><td>" +
                              (quiz < 0 ? "—" : quiz + "%") + "</td></tr>");
-
-                if (rate < weakestRate)
-                {
-                    weakestRate = rate;
-                    weakest = name;
-                    weakestQuiz = quiz;
-                    weakestTeacher = r["instructor"] == DBNull.Value ? "" : r["instructor"].ToString();
-                }
             }
 
             double overallRate = (totalEnrol == 0) ? 0 : totalDone * 100.0 / totalEnrol;
 
             lblEnrol.Text = totalEnrol.ToString("N0");
-            lblEnrolNote.Text = "Across " + cohort.Rows.Count + " reporting courses";
+            lblEnrolNote.Text = "Across " + cohort.Rows.Count + " published courses";
             lblDone.Text = totalDone.ToString("N0");
-            lblRate.Text = overallRate.ToString("0.0", Inv) + "%";
 
             if (cohort.Rows.Count == 0)
             {
-                completionBars.Append("<div class='note'>No enrolments yet.</div>");
-                table.Append("<tr><td colspan='6' class='grey-text'>No enrolments yet.</td></tr>");
+                completionBars.Append("<div class='note'>No enrolments in published courses yet.</div>");
+                table.Append("<tr><td colspan='6' class='grey-text'>No enrolments in published courses yet.</td></tr>");
             }
             else
             {
-                completionBars.Append("<div class='note'>Rates rounded to whole percentages · scale 0–100%.</div>");
+                completionBars.Append("<div class='note'>Numbers show completed / enrolled students · the bar shows the completion rate (0–100%).</div>");
 
-                table.Append("<tr class='total'><td>Reporting cohort</td><td>" + cohortTopics.Count + " topics</td><td>" + totalEnrol.ToString("N0") +
+                table.Append("<tr class='total'><td>Published courses</td><td>" + cohortTopics.Count + " topics</td><td>" + totalEnrol.ToString("N0") +
                              "</td><td>" + totalDone.ToString("N0") + "</td><td>" + overallRate.ToString("0.0", Inv) +
                              "%</td><td>" + (hasQuiz ? avgQuiz + "%" : "—") + "</td></tr>");
             }
 
             litCompletionBars.Text = completionBars.ToString();
             litPerfTable.Text = table.ToString();
-
-            // ----- The yellow focus box -----
-            if (cohort.Rows.Count == 0)
-            {
-                litFocus.Text = "<b>Focus area</b><br />There are no enrolments yet, so there is nothing to review.";
-            }
-            else
-            {
-                string quizText = (weakestQuiz < 0) ? "" : " and a " + weakestQuiz + "% quiz score";
-                string teacherText = (weakestTeacher == "") ? "" : " with " + Server.HtmlEncode(weakestTeacher);
-
-                litFocus.Text = "<b>Focus area · " + Server.HtmlEncode(weakest) + "</b><br />" +
-                                weakestRate + "% completion" + quizText + ". Review lesson pacing and quiz support" + teacherText + ".";
-            }
         }
 
         // =====================================================

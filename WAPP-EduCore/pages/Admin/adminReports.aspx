@@ -37,7 +37,12 @@
             color: #B45309;
         }
 
-        /* Title on the left, "Snapshot" date on the right */
+        /* A row with 3 number boxes (admin.css only has 4, 5 and 6) */
+        .stat-row.three {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        /* Title row */
         .title-row {
             display: flex;
             justify-content: space-between;
@@ -132,16 +137,16 @@
     </style>
 
     <script type="text/javascript">
-// ----- The drop-down menu at the top right -----
-function toggleUserMenu(event) {
-    event.stopPropagation();   // so the click does not reach "document" below
-    document.getElementById('userDropdown').classList.toggle('open');
-}
+        // ----- The drop-down menu at the top right -----
+        function toggleUserMenu(event) {
+            event.stopPropagation();   // so the click does not reach "document" below
+            document.getElementById('userDropdown').classList.toggle('open');
+        }
 
-document.addEventListener('click', function () {
-    document.getElementById('userDropdown').classList.remove('open');
-});
-</script>
+        document.addEventListener('click', function () {
+            document.getElementById('userDropdown').classList.remove('open');
+        });
+    </script>
 </head>
 
 <body>
@@ -223,7 +228,6 @@ document.addEventListener('click', function () {
                             <h2 style="margin:0;">User analytics</h2>
                             <p class="sub">Account growth, role composition and engagement</p>
                         </div>
-                        <asp:Label ID="lblSnapshot" runat="server" CssClass="note"></asp:Label>
                     </div>
 
                     <!-- 4 number boxes -->
@@ -321,7 +325,6 @@ document.addEventListener('click', function () {
                             <h2 style="margin:0;">Course analytics</h2>
                             <p class="sub">Subjects, lessons and enrolment across courses</p>
                         </div>
-                        <asp:Label ID="lblSnapshotCourses" runat="server" CssClass="note"></asp:Label>
                     </div>
 
                     <!-- 4 number boxes -->
@@ -457,13 +460,12 @@ document.addEventListener('click', function () {
                     <div class="title-row">
                         <div>
                             <h2 style="margin:0;">Learning performance</h2>
-                            <p class="sub">Completion and quiz outcomes · five-course reporting cohort</p>
+                            <p class="sub">Completion and quiz outcomes · published courses only</p>
                         </div>
-                        <asp:Label ID="lblSnapshotLearning" runat="server" CssClass="note"></asp:Label>
                     </div>
 
-                    <!-- 4 number boxes -->
-                    <div class="stat-row four">
+                    <!-- 3 number boxes -->
+                    <div class="stat-row three">
 
                         <div class="card">
                             <div class="stat-label stat-top">
@@ -485,15 +487,6 @@ document.addEventListener('click', function () {
 
                         <div class="card">
                             <div class="stat-label stat-top">
-                                <span>Completion rate</span>
-                                <svg class="stat-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="8 12 11 15 16 9" /></svg>
-                            </div>
-                            <div class="stat-number"><asp:Label ID="lblRate" runat="server"></asp:Label></div>
-                            <div class="stat-note">Completions ÷ enrolments</div>
-                        </div>
-
-                        <div class="card">
-                            <div class="stat-label stat-top">
                                 <span>Average quiz score</span>
                                 <svg class="stat-icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" /></svg>
                             </div>
@@ -508,7 +501,7 @@ document.addEventListener('click', function () {
 
                         <div class="card">
                             <h3>Completion rate by course</h3>
-                            <p class="sub">Share of enrolled learners who completed the course</p>
+                            <p class="sub">Completed ÷ enrolled students per course (for example 2/4 = 2 of 4 students finished)</p>
                             <asp:Literal ID="litCompletionBars" runat="server"></asp:Literal>
                         </div>
 
@@ -523,7 +516,7 @@ document.addEventListener('click', function () {
                     <!-- Performance table -->
                     <div class="card" style="margin-bottom:18px;">
                         <h3>Performance table</h3>
-                        <p class="sub">Course-level learning outcomes for the reporting cohort</p>
+                        <p class="sub">Course-level learning outcomes · published courses with enrolments</p>
 
                         <div class="table-wrap">
                             <table class="data">
@@ -531,7 +524,7 @@ document.addEventListener('click', function () {
                                     <th>Course</th>
                                     <th>Topic</th>
                                     <th>Enrolments</th>
-                                    <th>Completions</th>
+                                    <th>Completed users</th>
                                     <th>Completion rate</th>
                                     <th>Avg. quiz score</th>
                                 </tr>
@@ -539,12 +532,7 @@ document.addEventListener('click', function () {
                             </table>
                         </div>
 
-                        <div class="note">Completion rates are enrolment-weighted; the quiz summary is the mean of topic scores.</div>
-                    </div>
-
-                    <!-- Yellow tip box -->
-                    <div class="focus-box">
-                        <asp:Literal ID="litFocus" runat="server"></asp:Literal>
+                        <div class="note">Completion rate = completed users ÷ enrolments. The quiz summary is the mean of topic scores.</div>
                     </div>
 
                 </asp:Panel>
