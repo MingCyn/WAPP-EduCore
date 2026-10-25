@@ -12,15 +12,13 @@ namespace WAPP_EduCore.pages.Student
 {
     public partial class calendar : System.Web.UI.Page
     {
-        // Malaysia is UTC+8. Times are stored in UTC and shown in local time.
         private const int UtcOffsetHours = 8;
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
-        // time grid: 8 AM to 10 PM, seven 2-hour slots
         private const int StartHour = 8;
         private const int SlotCount = 7;
         private const double SlotPx = 64;
-        private const double PitchPx = 70;   // slot height + 6px gap
+        private const double PitchPx = 70;
 
         public class UpItem
         {
@@ -69,11 +67,9 @@ namespace WAPP_EduCore.pages.Student
             }
 
             BuildCalendar();
-            BuildCalendar();
             if (!IsPostBack) BindUpcoming();
         }
 
-        // ---------- calendar (week, day or month) ----------
         private void BuildCalendar()
         {
             DateTime rangeStart, rangeEnd, prev, next;
@@ -178,13 +174,11 @@ namespace WAPP_EduCore.pages.Student
             return list;
         }
 
-        // ---------- week and day view ----------
         private string BuildTimeGrid(DateTime start, int dayCount, List<Ev> evs)
         {
             var sb = new StringBuilder();
             sb.Append("<div class=\"cl-grid\" style=\"--n:" + dayCount + "\">");
 
-            // header row
             sb.Append("<div></div>");
             for (int d = 0; d < dayCount; d++)
             {
@@ -193,7 +187,6 @@ namespace WAPP_EduCore.pages.Student
                           Href("day", day) + "\">" + day.ToString("ddd d", Inv) + "</a>");
             }
 
-            // time labels
             sb.Append("<div class=\"cl-times\">");
             for (int s = 0; s < SlotCount; s++)
             {
@@ -203,7 +196,6 @@ namespace WAPP_EduCore.pages.Student
             }
             sb.Append("</div>");
 
-            // one column per day
             for (int d = 0; d < dayCount; d++)
             {
                 DateTime day = start.AddDays(d);
@@ -212,7 +204,6 @@ namespace WAPP_EduCore.pages.Student
 
                 List<Ev> dayEvs = evs.Where(x => x.Start.Date == day).OrderBy(x => x.Start).ToList();
 
-                // side-by-side lanes so that overlapping events do not hide each other
                 var laneEnds = new List<DateTime>();
                 var laneOf = new int[dayEvs.Count];
                 for (int i = 0; i < dayEvs.Count; i++)
@@ -263,7 +254,6 @@ namespace WAPP_EduCore.pages.Student
             return sb.ToString();
         }
 
-        // ---------- month view ----------
         private string BuildMonth(DateTime gridStart, int weeks, List<Ev> evs)
         {
             Dictionary<DateTime, List<Ev>> byDay = evs
@@ -301,7 +291,6 @@ namespace WAPP_EduCore.pages.Student
             return sb.ToString();
         }
 
-        // ---------- upcoming events ----------
         private void BindUpcoming()
         {
             var items = new List<UpItem>();
@@ -334,7 +323,7 @@ namespace WAPP_EduCore.pages.Student
                     });
                 }
             }
-            catch (Exception) { /* the grid already shows the error message */ }
+            catch (Exception) { }
 
             rptUpcoming.DataSource = items;
             rptUpcoming.DataBind();
@@ -347,7 +336,7 @@ namespace WAPP_EduCore.pages.Student
 
             if (IsGuest)
             {
-                Response.Redirect("~/Auth/login.aspx");
+                FormError("Please log in now to unlock all functions and manage events!");
                 return;
             }
 
@@ -361,7 +350,6 @@ namespace WAPP_EduCore.pages.Student
             Response.Redirect(Request.RawUrl);
         }
 
-        // ---------- add event ----------
         private void LoadCourseList()
         {
             ddlCourse.Items.Clear();
@@ -381,7 +369,7 @@ namespace WAPP_EduCore.pages.Student
         {
             if (IsGuest)
             {
-                Response.Redirect("~/Auth/login.aspx");
+                FormError("Please log in now to unlock all functions and add custom events!");
                 return;
             }
 
@@ -400,7 +388,6 @@ namespace WAPP_EduCore.pages.Student
 
             try
             {
-                // a course can only be attached if the student is enrolled in it
                 object courseId = DBNull.Value;
                 long cid;
                 if (long.TryParse(ddlCourse.SelectedValue, out cid))
@@ -416,12 +403,12 @@ namespace WAPP_EduCore.pages.Student
                     "VALUES (@uid, @cid, @t, @type, @s, @e)",
                     new Dictionary<string, object>
                     {
-                        { "@uid", UserId },
-                        { "@cid", courseId },
-                        { "@t", title },
-                        { "@type", ddlType.SelectedValue },
-                        { "@s", DateTime.SpecifyKind(startLocal.AddHours(-UtcOffsetHours), DateTimeKind.Utc) },
-                        { "@e", DateTime.SpecifyKind(endLocal.AddHours(-UtcOffsetHours), DateTimeKind.Utc) }
+                { "@uid", UserId },
+                { "@cid", courseId },
+                { "@t", title },
+                { "@type", ddlType.SelectedValue },
+                { "@s", DateTime.SpecifyKind(startLocal.AddHours(-UtcOffsetHours), DateTimeKind.Utc) },
+                { "@e", DateTime.SpecifyKind(endLocal.AddHours(-UtcOffsetHours), DateTimeKind.Utc) }
                     });
             }
             catch (Exception ex)
@@ -430,19 +417,24 @@ namespace WAPP_EduCore.pages.Student
                 return;
             }
 
-            // show the week (or month) that contains the new event
             Response.Redirect(ResolveUrl("~/pages/Student/calendar.aspx?view=" + _view +
                                          "&date=" + startLocal.ToString("yyyy-MM-dd", Inv)));
         }
 
         private void FormError(string text)
         {
-            lblFormError.Text = HttpUtility.HtmlEncode(text);
-            lblFormError.Visible = true;
-            ClientScript.RegisterStartupScript(GetType(), "openAdd", "openAdd();", true);
+            if (IsGuest)
+            {
+                ClientScript.RegisterStartupScript(GetType(), "openLoginPrompt", "openLoginPrompt();", true);
+            }
+            else
+            {
+                lblFormError.Text = HttpUtility.HtmlEncode(text);
+                lblFormError.Visible = true;
+                ClientScript.RegisterStartupScript(GetType(), "openAdd", "openAdd();", true);
+            }
         }
 
-        // ---------- helpers ----------
         private static DateTime MondayOf(DateTime d)
         {
             return d.AddDays(-(((int)d.DayOfWeek + 6) % 7));

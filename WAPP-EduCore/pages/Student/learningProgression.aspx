@@ -80,7 +80,6 @@
                                         <div class="tutor-role"><asp:Literal ID="litTutorRole" runat="server" Mode="Encode"></asp:Literal></div>
                                     </div>
                                 </div>
-                                <button type="button" class="btn-start" disabled="disabled" title="Messages coming soon">Ask Tutor</button>
                             </div>
 
                             <asp:HyperLink ID="lnkDiscuss" runat="server" CssClass="btn-ghost" Style="display:block;text-align:center;margin-bottom:22px">Open Lesson Discussion</asp:HyperLink>

@@ -1701,3 +1701,76 @@ nav li {
     color: #6b7385;
     font-style: italic;
 }
+
+/* ===== Not Logged In Modal Popup Styles ===== */
+.modal-back {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 27, 72, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+    .modal-back.open {
+        opacity: 1;
+        visibility: visible;
+    }
+
+.modal-box {
+    background: #fff;
+    border: 1px solid #ebe7e1;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 440px;
+    padding: 32px;
+    box-shadow: 0 12px 32px rgba(16, 24, 40, 0.12);
+    transform: translateY(10px);
+    transition: transform 0.2s ease;
+}
+
+.modal-back.open .modal-box {
+    transform: translateY(0);
+}
+
+.modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+    .modal-head h3 {
+        font-family: 'Merriweather', Georgia, serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #111c3d;
+        margin: 0;
+    }
+
+/* Modal action buttons alignment */
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+/* Form error text inside modals */
+.form-error {
+    display: block;
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    background: #fdeceb;
+    border: 1px solid #f3c4c1;
+    border-radius: 8px;
+    color: #8f2d2a;
+    font-size: 13px;
+}

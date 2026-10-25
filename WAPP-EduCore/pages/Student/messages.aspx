@@ -62,6 +62,51 @@
         .fm-empty-box{padding:36px 20px;text-align:center;background:#fff;border:1px solid #ebe7e1;border-radius:12px;font-size:14px;color:#7b8697}
 
         @media(max-width:1000px){.fm-layout{grid-template-columns:1fr}}
+
+        /* ===== Modal Action Buttons Style ===== */
+        .cl-btn-solid {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 24px;
+            border: 0;
+            border-radius: 8px;
+            background: #243f86;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .cl-btn-solid:hover {
+            background: #1b3270;
+            color: #fff;
+        }
+
+        .cl-btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 24px;
+            border: 1px solid #e3e3e3;
+            border-radius: 8px;
+            background: #fff;
+            color: #16223b;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .cl-btn-ghost:hover {
+            border-color: #243f86;
+            background: #f8f7f5;
+            color: #111c3d;
+        }
+
     </style>
 </head>
 <body>
@@ -150,6 +195,39 @@
                 </asp:Panel>
             </main>
         </div>
+
+        <!-- Not Logged In Modal Popup -->
+        <div class="modal-back" id="loginPromptModal">
+            <div class="modal-box" style="text-align: center; padding: 32px; max-width: 440px;">
+                <div style="font-size: 40px; margin-bottom: 12px;">🔒</div>
+                <h3 style="font-family: 'Merriweather', Georgia, serif; font-size: 20px; color: #111c3d; margin-bottom: 8px;">Not logged in?</h3>
+                <p style="font-size: 14px; color: #4a5468; margin-bottom: 24px; line-height: 1.5;">
+                    Login or create an account to unlock all functions, post discussions, track your progress, and manage your schedule!
+                </p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <a href="<%= ResolveUrl("~/Auth/login.aspx") %>" class="cl-btn-solid" style="text-decoration: none; padding: 10px 24px; display: inline-flex; align-items: center; justify-content: center;">Log In</a>
+                    <a href="<%= ResolveUrl("~/Auth/register.aspx") %>" class="cl-btn-ghost" style="text-decoration: none; padding: 10px 24px; display: inline-flex; align-items: center; justify-content: center;">Sign Up</a>
+                    <button type="button" class="cl-btn-ghost" onclick="closeLoginPrompt()" style="padding: 10px 16px;">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        if (typeof openLoginPrompt !== 'function') {
+            window.openLoginPrompt = function () {
+                var modal = document.getElementById('loginPromptModal');
+                if (modal) modal.classList.add('open');
+            };
+        }
+
+        if (typeof closeLoginPrompt !== 'function') {
+            window.closeLoginPrompt = function () {
+                var modal = document.getElementById('loginPromptModal');
+                if (modal) modal.classList.remove('open');
+            };
+        }
+        </script>
+
     </form>
 </body>
 </html>

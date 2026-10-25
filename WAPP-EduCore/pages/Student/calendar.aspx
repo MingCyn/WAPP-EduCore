@@ -120,7 +120,7 @@ function closeAdd() { document.getElementById('addModal').classList.remove('open
                             </asp:Repeater>
                         </div>
                         <% if (Session["UserID"] == null) { %>
-                        <a href="<%= ResolveUrl("~/Auth/login.aspx") %>" class="cl-add">+ Add Event</a>
+                        <a href="#" class="cl-add" onclick="openLoginPrompt(); return false;">+ Add Event</a>
                         <% } else { %>
                         <a href="#" class="cl-add" onclick="openAdd(); return false;">+ Add Event</a>
                         <% } %>
@@ -178,6 +178,32 @@ function closeAdd() { document.getElementById('addModal').classList.remove('open
                 </div>
             </div>
         </div>
+
+        <!-- Not Logged In Modal Popup -->
+<div class="modal-back" id="loginPromptModal">
+    <div class="modal-box" style="text-align: center; padding: 30px 24px;">
+        <div style="font-size: 40px; margin-bottom: 12px;">🔒</div>
+        <h3 style="font-family: 'Merriweather', Georgia, serif; font-size: 20px; color: #111c3d; margin-bottom: 8px;">Not logged in?</h3>
+        <p style="font-size: 14px; color: #4a5468; margin-bottom: 24px; line-height: 1.5;">
+            Login or create an account to unlock all functions, post discussions, track your progress, and manage your schedule!
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <a href="<%= ResolveUrl("~/auth/login.aspx") %>" class="cl-btn-solid" style="text-decoration: none; padding: 10px 24px;">Log In</a>
+            <a href="<%= ResolveUrl("~/auth/register.aspx") %>" class="cl-btn-ghost" style="text-decoration: none; padding: 10px 24px; display: inline-flex; align-items: center;">Sign Up</a>
+            <button type="button" class="cl-btn-ghost" onclick="closeLoginPrompt()" style="padding: 10px 16px;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openLoginPrompt() {
+    document.getElementById('loginPromptModal').classList.add('open');
+}
+function closeLoginPrompt() {
+    document.getElementById('loginPromptModal').classList.remove('open');
+}
+</script>
+
     </form>
 </body>
 </html>

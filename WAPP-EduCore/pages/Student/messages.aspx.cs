@@ -196,15 +196,26 @@ namespace WAPP_EduCore.pages.Student
                 where.Append(" AND p.lesson_id = @lid");
                 prm["@lid"] = _lessonId;
             }
-            else
+            else if (_tab == "questions")
             {
                 if (_lessonId > 0)
+                {
+                    where.Append(" AND (p.lesson_id = @lid OR p.course_id = @cid)");
+                    prm["@lid"] = _lessonId;
+                    prm["@cid"] = _lessonCourseId;
+                }
+                where.Append(" AND p.post_type = 'Question'");
+            }
+            else
+            {
+                if (_lessonId > 0 && _tab != "all" && _tab != "announcements")
                 {
                     where.Append(" AND p.course_id = @cid");
                     prm["@cid"] = _lessonCourseId;
                 }
+
                 if (_tab == "questions") where.Append(" AND p.post_type = 'Question'");
-                if (_tab == "announcements") where.Append(" AND p.post_type = 'Announcement'");
+                else if (_tab == "announcements") where.Append(" AND p.post_type = 'Announcement'");
             }
 
             DataTable t = Db.Query(
@@ -272,7 +283,6 @@ namespace WAPP_EduCore.pages.Student
             return sb.ToString();
         }
 
-        // ---------- active participants ----------
         private void BuildPeople()
         {
             string scope;
@@ -288,7 +298,7 @@ namespace WAPP_EduCore.pages.Student
                 prm["@uid"] = UserId;
             }
 
-            if (_lessonId > 0)
+            if (_lessonId > 0 && _tab == "lesson")
             {
                 scope += " AND p.course_id = @cid";
                 prm["@cid"] = _lessonCourseId;
@@ -328,7 +338,7 @@ namespace WAPP_EduCore.pages.Student
         {
             if (IsGuest)
             {
-                Response.Redirect("~/Auth/login.aspx");
+                PostError("Please log in now to unlock all functions, post topics, and engage in discussions!");
                 return;
             }
 
@@ -344,7 +354,6 @@ namespace WAPP_EduCore.pages.Student
             if (_lessonId > 0) courseId = _lessonCourseId;
             else if (!long.TryParse(ddlCourse.SelectedValue, out courseId)) { PostError("Please choose a course."); return; }
 
-            // only enrolled students can post in a course
             bool enrolled = _enrolled.AsEnumerable().Any(r => Convert.ToInt64(r["course_id"]) == courseId);
             if (!enrolled) { PostError("You are not enrolled in that course."); return; }
 
@@ -358,7 +367,7 @@ namespace WAPP_EduCore.pages.Student
                     {
                         { "@uid", UserId },
                         { "@cid", courseId },
-                        { "@lid", _lessonId > 0 ? (object)_lessonId : DBNull.Value },
+                        { "@lid", (_lessonId > 0 && _tab == "lesson") ? (object)_lessonId : DBNull.Value },
                         { "@t", title },
                         { "@c", content },
                         { "@type", ddlType.SelectedValue }
@@ -371,7 +380,6 @@ namespace WAPP_EduCore.pages.Student
                 return;
             }
 
-            // reload on a tab where the new thread is visible, with it opened
             Response.Redirect(ResolveUrl(RawUrl(_lessonId > 0 ? "lesson" : "all", newId)));
         }
 
@@ -379,7 +387,7 @@ namespace WAPP_EduCore.pages.Student
         {
             if (IsGuest)
             {
-                Response.Redirect("~/Auth/login.aspx");
+                ReplyError("Please log in now to unlock all functions and reply to discussions!");
                 return;
             }
 
@@ -391,7 +399,6 @@ namespace WAPP_EduCore.pages.Student
 
             try
             {
-                // the thread must belong to one of the student's courses
                 DataTable ok = Db.Query(
                     "SELECT 1 FROM discussion_posts p WHERE p.post_id = @pid " +
                     "AND p.course_id IN (SELECT course_id FROM enrollment WHERE user_id = @uid)",
@@ -413,17 +420,30 @@ namespace WAPP_EduCore.pages.Student
 
         private void PostError(string text)
         {
-            lblPostError.Text = HttpUtility.HtmlEncode(text);
-            lblPostError.Visible = true;
+            if (IsGuest)
+            {
+                ClientScript.RegisterStartupScript(GetType(), "openLoginPrompt", "openLoginPrompt();", true);
+            }
+            else
+            {
+                lblPostError.Text = HttpUtility.HtmlEncode(text);
+                lblPostError.Visible = true;
+            }
         }
 
         private void ReplyError(string text)
         {
-            lblReplyError.Text = HttpUtility.HtmlEncode(text);
-            lblReplyError.Visible = true;
+            if (IsGuest)
+            {
+                ClientScript.RegisterStartupScript(GetType(), "openLoginPrompt", "openLoginPrompt();", true);
+            }
+            else
+            {
+                lblReplyError.Text = HttpUtility.HtmlEncode(text);
+                lblReplyError.Visible = true;
+            }
         }
 
-        // ---------- helpers ----------
         private string RawUrl(string tab, long postId)
         {
             return "~/pages/Student/messages.aspx?tab=" + tab +

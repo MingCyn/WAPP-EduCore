@@ -51,6 +51,20 @@
                     </ul>
                 </asp:Panel>
 
+                <%-- Added: Course References Panel --%>
+                <asp:Panel ID="pnlReferences" runat="server" CssClass="panel" Visible="false">
+                    <h3>Course References & Textbooks</h3>
+                    <ul class="learn-list" style="list-style-type: disc; padding-left: 20px;">
+                        <asp:Repeater ID="rptReferences" runat="server">
+                            <ItemTemplate>
+                                <li style="margin-bottom: 8px; font-size: 14px; color: #4a5468; line-height: 1.5;">
+                                    <span><%#: Container.DataItem %></span>
+                                </li>
+                            </ItemTemplate>
+                        </asp:Repeater>
+                    </ul>
+                </asp:Panel>
+
                         <h3 class="syllabus-title" id="syllabus">Course Syllabus</h3>
 
                         <asp:Panel ID="pnlNoLessons" runat="server" Visible="false" CssClass="panel"
@@ -70,21 +84,6 @@
                                 </div>
                             </ItemTemplate>
                         </asp:Repeater>
-
-                                        <%-- Added: Course References Panel --%>
-                <asp:Panel ID="pnlReferences" runat="server" CssClass="panel" Visible="false">
-                    <h3>Course References & Textbooks</h3>
-                    <ul class="learn-list" style="list-style-type: disc; padding-left: 20px;">
-                        <asp:Repeater ID="rptReferences" runat="server">
-                            <ItemTemplate>
-                                <li style="margin-bottom: 8px; font-size: 14px; color: #4a5468; line-height: 1.5;">
-                                    <span><%#: Container.DataItem %></span>
-                                </li>
-                            </ItemTemplate>
-                        </asp:Repeater>
-                    </ul>
-                </asp:Panel>
-
                     </div>
 
                     <div>

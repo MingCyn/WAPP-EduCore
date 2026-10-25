@@ -19,6 +19,19 @@ namespace WAPP_EduCore.pages.Student
         private bool IsGuest { get { return Session["UserID"] == null; } }
         private long UserId { get { return IsGuest ? 0 : Convert.ToInt64(Session["UserID"]); } }
 
+        // Session-based temporary completion storage for guests
+        private HashSet<long> GuestCompletedLessons
+        {
+            get
+            {
+                if (Session["GuestCompleted_" + _courseId] == null)
+                {
+                    Session["GuestCompleted_" + _courseId] = new HashSet<long>();
+                }
+                return (HashSet<long>)Session["GuestCompleted_" + _courseId];
+            }
+        }
+
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!long.TryParse(Request.QueryString["course"], out _courseId))
@@ -51,7 +64,7 @@ namespace WAPP_EduCore.pages.Student
                 return;
             }
 
-            // Fetch lessons (for guests, completion flags default to false)
+            // Fetch lessons and merge with guest session progress if guest
             string lessonQuery = IsGuest
                 ? "SELECT l.lesson_id, l.lesson_title, l.lesson_description, l.lesson_content, l.quiz_id, false AS done FROM lesson l WHERE l.course_id = @cid ORDER BY l.lesson_id"
                 : "SELECT l.lesson_id, l.lesson_title, l.lesson_description, l.lesson_content, l.quiz_id, COALESCE(lp.is_completed, false) AS done FROM lesson l LEFT JOIN lesson_progress lp ON lp.lesson_id = l.lesson_id AND lp.user_id = @uid WHERE l.course_id = @cid ORDER BY l.lesson_id";
@@ -60,6 +73,20 @@ namespace WAPP_EduCore.pages.Student
             if (!IsGuest) lessonParams.Add("@uid", UserId);
 
             _lessons = Db.Query(lessonQuery, lessonParams);
+
+            // Apply guest temporary state from Session if guest
+            if (IsGuest)
+            {
+                var completedSet = GuestCompletedLessons;
+                foreach (DataRow row in _lessons.Rows)
+                {
+                    long lid = Convert.ToInt64(row["lesson_id"]);
+                    if (completedSet.Contains(lid))
+                    {
+                        row["done"] = true;
+                    }
+                }
+            }
 
             string courseTitle = Convert.ToString(_course["title"]);
             litCourseTitle.Text = courseTitle;
@@ -223,10 +250,10 @@ namespace WAPP_EduCore.pages.Student
             }
 
             // Buttons & Navigation State for Guests vs Students
-            bool isDone = !IsGuest && Convert.ToBoolean(cur["done"]);
-            btnComplete.Visible = !IsGuest && !isDone;
+            bool isDone = Convert.ToBoolean(cur["done"]);
+            btnComplete.Visible = !isDone;
             doneBox.Visible = isDone;
-            lnkDiscuss.Visible = !IsGuest;
+            lnkDiscuss.Visible = true; // Visible for both guests and students now
 
             lnkPrev.Visible = _index > 0;
             if (lnkPrev.Visible)
@@ -260,25 +287,27 @@ namespace WAPP_EduCore.pages.Student
         {
             if (IsGuest)
             {
-                Response.Redirect("~/auth/login.aspx");
-                return;
+                // Temporarily store in session for the guest without touching database
+                GuestCompletedLessons.Add(_lessonId);
             }
+            else
+            {
+                Db.Execute(
+                    "INSERT INTO lesson_progress (user_id, lesson_id, is_completed, completed_at) " +
+                    "VALUES (@uid, @lid, true, now()) " +
+                    "ON CONFLICT (user_id, lesson_id) DO UPDATE SET is_completed = true, completed_at = now()",
+                    new Dictionary<string, object> { { "@uid", UserId }, { "@lid", _lessonId } });
 
-            Db.Execute(
-                "INSERT INTO lesson_progress (user_id, lesson_id, is_completed, completed_at) " +
-                "VALUES (@uid, @lid, true, now()) " +
-                "ON CONFLICT (user_id, lesson_id) DO UPDATE SET is_completed = true, completed_at = now()",
-                new Dictionary<string, object> { { "@uid", UserId }, { "@lid", _lessonId } });
+                int done = 0;
+                foreach (DataRow r in _lessons.Rows)
+                    if (Convert.ToBoolean(r["done"])) done++;
+                if (!Convert.ToBoolean(_lessons.Rows[_index]["done"])) done++;
+                long pct = done * 100L / _lessons.Rows.Count;
 
-            int done = 0;
-            foreach (DataRow r in _lessons.Rows)
-                if (Convert.ToBoolean(r["done"])) done++;
-            if (!Convert.ToBoolean(_lessons.Rows[_index]["done"])) done++;
-            long pct = done * 100L / _lessons.Rows.Count;
-
-            Db.Execute(
-                "UPDATE enrollment SET progression = @p WHERE user_id = @uid AND course_id = @cid",
-                new Dictionary<string, object> { { "@p", pct }, { "@uid", UserId }, { "@cid", _courseId } });
+                Db.Execute(
+                    "UPDATE enrollment SET progression = @p WHERE user_id = @uid AND course_id = @cid",
+                    new Dictionary<string, object> { { "@p", pct }, { "@uid", UserId }, { "@cid", _courseId } });
+            }
 
             Response.Redirect(LessonUrl(_lessonId));
         }
