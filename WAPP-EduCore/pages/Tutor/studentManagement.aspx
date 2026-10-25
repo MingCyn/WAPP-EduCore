@@ -108,6 +108,16 @@
         .sm-legend .dot { display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; }
 
         .sm-box .btn { width: 100%; justify-content: center; text-align: center; }
+
+        /* ---------- Status badges (AT RISK / NEEDS ATTENTION / ON TRACK) ----------
+           nowrap = the words stay on ONE line, so "NEEDS ATTENTION" is not cut into 2 lines.
+           The badge now only is as wide as its words, and the words are in the center. */
+        .data-table .badge {
+            display: inline-block;
+            width: auto;
+            white-space: nowrap;
+            text-align: center;
+        }
     </style>
 </head>
 <body>

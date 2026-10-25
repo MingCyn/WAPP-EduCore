@@ -1,4 +1,6 @@
-﻿/* ==========================================================
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap');
+
+/* ==========================================================
    admin.css  -  shared by ALL admin pages
    Location:  WAPP-EduCore/Content/admin.css
 
@@ -28,6 +30,9 @@
   22. SIDEBAR ICONS ........ a little picture before every menu name
   23. LESSONS + QUIZZES ICONS  (sidebar)
   24. ICON PICTURES ........ the drawings used by the sidebar icons
+
+  FONTS: search "--serif" to find every heading that uses the
+  Merriweather font (same as the other pages).
    ========================================================== */
 
 
@@ -44,6 +49,10 @@
     --grey: #64748B; /* small grey text */
     --line: #E2E8F0; /* thin border lines */
     --page: #F6F7FB; /* page background */
+    /* Fonts (same as the other pages) */
+    --serif: 'Merriweather', Georgia, serif; /* headings */
+    --sans: 'Inter', 'Segoe UI', Arial, sans-serif; /* normal text */
+    --heading: #111c3d; /* heading color */
 }
 
 
@@ -58,7 +67,7 @@ body {
     margin: 0;
     background: #f6f5f3; /* same page background as the other pages */
     color: #16223b; /* same text color as the other pages */
-    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* same font as the other pages */
+    font-family: var(--sans); /* same font as the other pages */
 }
 
 
@@ -139,7 +148,10 @@ body {
 
     .topbar h1 {
         margin: 0;
-        font-size: 20px;
+        font-family: var(--serif);
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--heading);
     }
 
     .topbar p {
@@ -193,7 +205,10 @@ body {
 
     .card h3 {
         margin: 0 0 4px 0;
-        font-size: 16px;
+        font-family: var(--serif);
+        font-size: 19px;
+        font-weight: 700;
+        color: var(--heading);
     }
 
     /* Small grey text under a title */
@@ -214,7 +229,10 @@ body {
 
 .stat-number {
     margin: 14px 0 10px 0;
-    font-size: 30px;
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 700;
+    color: #243f86;
 }
 
 .stat-note {
@@ -373,8 +391,9 @@ table.data {
 /* Small headings above the Top 5 / Lowest 5 tables */
 .mini-title {
     margin: 16px 0 8px 0;
-    font-size: 14px;
-    font-weight: 600;
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 700;
 }
 
     .mini-title.blue {
@@ -600,8 +619,9 @@ table.data tr.clickable {
 
 .empty-title {
     margin-bottom: 6px;
-    color: var(--text);
-    font-size: 15px;
+    color: var(--heading);
+    font-family: var(--serif);
+    font-size: 17px;
     font-weight: 700;
 }
 
@@ -679,13 +699,17 @@ table.data tr.clickable {
 
     .modal-head h3 {
         margin: 0;
-        font-size: 18px;
+        font-family: var(--serif);
+        font-size: 19px;
+        font-weight: 700;
+        color: var(--heading);
     }
 
 .modal-title {
     margin: 0 0 4px 0;
-    font-size: 15px;
-    font-weight: 600;
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 700;
 }
 
 .modal-text {
