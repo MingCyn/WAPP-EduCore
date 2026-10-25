@@ -26,6 +26,8 @@
   20. POPUPS (MODALS) ....... detail, edit, confirm, add user
   21. DROPDOWN ARROW ........ moves the arrow away from the right edge
   22. SIDEBAR ICONS ........ a little picture before every menu name
+  23. LESSONS + QUIZZES ICONS  (sidebar)
+  24. ICON PICTURES ........ the drawings used by the sidebar icons
    ========================================================== */
 
 
@@ -54,9 +56,9 @@
 
 body {
     margin: 0;
-    font-family: 'Inter', Arial, sans-serif;
-    background: var(--page);
-    color: var(--text);
+    background: #f6f5f3; /* same page background as the other pages */
+    color: #16223b; /* same text color as the other pages */
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* same font as the other pages */
 }
 
 
@@ -796,42 +798,42 @@ select.input {
 
     /* Dashboard (4 squares) */
     .sidebar a.menu-item[href="adminDashboard.aspx"]::before {
-        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7' height='7'/%3E%3Crect x='14' y='3' width='7' height='7'/%3E%3Crect x='14' y='14' width='7' height='7'/%3E%3Crect x='3' y='14' width='7' height='7'/%3E%3C/svg%3E");
-        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7' height='7'/%3E%3Crect x='14' y='3' width='7' height='7'/%3E%3Crect x='14' y='14' width='7' height='7'/%3E%3Crect x='3' y='14' width='7' height='7'/%3E%3C/svg%3E");
+        -webkit-mask-image: var(--icon-adminDashboard);
+        mask-image: var(--icon-adminDashboard);
     }
 
     /* Users (people) */
     .sidebar a.menu-item[href="userManagement.aspx"]::before {
-        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M23 21v-2a4 4 0 00-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 010 7.75'/%3E%3C/svg%3E");
-        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M23 21v-2a4 4 0 00-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 010 7.75'/%3E%3C/svg%3E");
+        -webkit-mask-image: var(--icon-userManagement);
+        mask-image: var(--icon-userManagement);
     }
 
     /* Courses (open book) */
     .sidebar a.menu-item[href="coursesManagement.aspx"]::before {
-        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z'/%3E%3C/svg%3E");
-        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z'/%3E%3C/svg%3E");
+        -webkit-mask-image: var(--icon-coursesManagement);
+        mask-image: var(--icon-coursesManagement);
     }
 
     /* Reports (bar chart) */
     .sidebar a.menu-item[href="adminReports.aspx"]::before {
-        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='20' x2='18' y2='10'/%3E%3Cline x1='12' y1='20' x2='12' y2='4'/%3E%3Cline x1='6' y1='20' x2='6' y2='14'/%3E%3C/svg%3E");
-        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='20' x2='18' y2='10'/%3E%3Cline x1='12' y1='20' x2='12' y2='4'/%3E%3Cline x1='6' y1='20' x2='6' y2='14'/%3E%3C/svg%3E");
+        -webkit-mask-image: var(--icon-adminReports);
+        mask-image: var(--icon-adminReports);
     }
 
-    /* ==========================================================
-    23. SIDEBAR ICONS FOR LESSONS AND QUIZZES
-    ========================================================== */
+    /* ----------------------------------------------------------
+       23. SIDEBAR ICONS FOR LESSONS AND QUIZZES
+       ---------------------------------------------------------- */
 
     /* Lessons (page with lines) */
     .sidebar a.menu-item[href="lessonManagement.aspx"]::before {
-        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3C/svg%3E");
-        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3C/svg%3E");
+        -webkit-mask-image: var(--icon-lessonManagement);
+        mask-image: var(--icon-lessonManagement);
     }
 
     /* Quizzes (circle with a question mark) */
     .sidebar a.menu-item[href="quizManagement.aspx"]::before {
-        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E");
-        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E");
+        -webkit-mask-image: var(--icon-quizManagement);
+        mask-image: var(--icon-quizManagement);
     }
 
     /* Some pages already draw the icon in the page itself (an <svg class="menu-icon">).
@@ -839,3 +841,56 @@ select.input {
     .sidebar a.menu-item:has(svg.menu-icon)::before {
         display: none;
     }
+
+
+/* ==========================================================
+   24. ICON PICTURES  (the drawings used by the sidebar icons)
+   Each picture is written ONCE here and used in section 22 / 23.
+   (The "\" at the end of a line only continues the long text.)
+   ========================================================== */
+:root {
+    /* Dashboard (4 squares) */
+    --icon-adminDashboard: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E\
+%3Crect x='3' y='3' width='7' height='7'/%3E\
+%3Crect x='14' y='3' width='7' height='7'/%3E\
+%3Crect x='14' y='14' width='7' height='7'/%3E\
+%3Crect x='3' y='14' width='7' height='7'/%3E\
+%3C/svg%3E\
+");
+    /* Users (people) */
+    --icon-userManagement: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E\
+%3Cpath d='M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2'/%3E\
+%3Ccircle cx='9' cy='7' r='4'/%3E\
+%3Cpath d='M23 21v-2a4 4 0 00-3-3.87'/%3E\
+%3Cpath d='M16 3.13a4 4 0 010 7.75'/%3E\
+%3C/svg%3E\
+");
+    /* Courses (open book) */
+    --icon-coursesManagement: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E\
+%3Cpath d='M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z'/%3E\
+%3Cpath d='M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z'/%3E\
+%3C/svg%3E\
+");
+    /* Reports (bar chart) */
+    --icon-adminReports: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E\
+%3Cline x1='18' y1='20' x2='18' y2='10'/%3E\
+%3Cline x1='12' y1='20' x2='12' y2='4'/%3E\
+%3Cline x1='6' y1='20' x2='6' y2='14'/%3E\
+%3C/svg%3E\
+");
+    /* Lessons (page with lines) */
+    --icon-lessonManagement: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E\
+%3Cpath d='M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z'/%3E\
+%3Cpolyline points='14 2 14 8 20 8'/%3E\
+%3Cline x1='16' y1='13' x2='8' y2='13'/%3E\
+%3Cline x1='16' y1='17' x2='8' y2='17'/%3E\
+%3C/svg%3E\
+");
+    /* Quizzes (circle with a question mark) */
+    --icon-quizManagement: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E\
+%3Ccircle cx='12' cy='12' r='10'/%3E\
+%3Cpath d='M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3'/%3E\
+%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E\
+%3C/svg%3E\
+");
+}
