@@ -33,6 +33,15 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkBackToCourse;
 
         /// <summary>
+        /// LblStatus control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label LblStatus;
+
+        /// <summary>
         /// PnlBuilderError control.
         /// </summary>
         /// <remarks>
@@ -67,15 +76,6 @@ namespace WAPP_EduCore.pages.Tutor
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button BtnPublishAssessment;
-
-        /// <summary>
-        /// BtnSaveAssessmentDraft control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button BtnSaveAssessmentDraft;
 
         /// <summary>
         /// BtnSaveInteractive control.

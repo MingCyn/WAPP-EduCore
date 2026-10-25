@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="forumManagement.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.WebForm3" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="quizManagement.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.quizManagement" %>
 
 <!DOCTYPE html>
 

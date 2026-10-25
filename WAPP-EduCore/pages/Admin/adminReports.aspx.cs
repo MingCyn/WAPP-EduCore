@@ -528,7 +528,8 @@ namespace WAPP_EduCore.pages.Admin
 
             lblEnrol.Text = totalEnrol.ToString("N0");
             lblEnrolNote.Text = "Across " + cohort.Rows.Count + " published courses";
-            lblDone.Text = totalDone.ToString("N0");
+            // The box shows how many (published) courses there are right now
+            lblDone.Text = GetNumber("SELECT COUNT(*) FROM public.courses WHERE status::text ILIKE 'publish%'").ToString("N0");
 
             if (cohort.Rows.Count == 0)
             {
