@@ -21,15 +21,14 @@ namespace WAPP_EduCore
             }
         }
 
-        private void BindCoursesFromSupabase()
+private void BindCoursesFromSupabase()
         {
             string connString = ConfigurationManager.ConnectionStrings["SupabasePostgres"].ConnectionString;
 
-            // Added c.course_id here so the repeater can link to courseOverview.aspx?id=...
             string query = @"SELECT c.course_id, c.title, c.category, c.duration, c.course_img, u.full_name AS tutor_name 
                  FROM courses c 
                  LEFT JOIN users u ON c.user_id = u.user_id 
-                 WHERE lower(c.status) = 'published'
+                 WHERE TRIM(lower(c.status)) = 'published'
                  LIMIT 4";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(connString))
@@ -41,7 +40,26 @@ namespace WAPP_EduCore
                         DataTable dt = new DataTable();
                         sda.Fill(dt);
 
-                        // Bind the database rows to the Repeater control
+                        // Normalise the course_img path for browser rendering
+                        foreach (DataRow row in dt.Rows)
+                        {
+                            string img = row["course_img"] as string ?? "";
+                            if (!string.IsNullOrEmpty(img))
+                            {
+                                if (img.StartsWith("~/"))
+                                {
+                                    // Convert ~/ to root-relative path (e.g. /uploads/...)
+                                    img = VirtualPathUtility.ToAbsolute(img);
+                                }
+                                else if (!img.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !img.StartsWith("/"))
+                                {
+                                    // If it's just "uploads/courses/...", prepend a slash
+                                    img = "/" + img.TrimStart('/');
+                                }
+                                row["course_img"] = img;
+                            }
+                        }
+
                         RepeaterCourses.DataSource = dt;
                         RepeaterCourses.DataBind();
                     }

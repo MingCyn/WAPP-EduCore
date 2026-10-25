@@ -42,7 +42,7 @@ namespace WAPP_EduCore.pages.Student
         private void LoadPage(long courseId)
         {
             string courseSql =
-                "SELECT c.course_id, c.title, c.course_description, c.duration, c.course_level, c.course_img, " +
+                "SELECT c.course_id, c.title, c.course_description, c.duration, c.course_level, c.course_img, c.reference::text AS reference_json, " +
                 "  COALESCE(u.full_name, 'TBA') AS instructor, " +
                 "  (SELECT COUNT(*) FROM enrollment e WHERE e.course_id = c.course_id) AS student_count, " +
                 "  EXISTS (SELECT 1 FROM enrollment e2 WHERE e2.course_id = c.course_id AND e2.user_id = @uid) AS is_enrolled " +
@@ -51,10 +51,10 @@ namespace WAPP_EduCore.pages.Student
                 "WHERE c.course_id = @cid AND lower(c.status) = 'published'";
 
             DataTable course = Db.Query(courseSql, new Dictionary<string, object>
-            {
-                { "@uid", UserId },
-                { "@cid", courseId }
-            });
+    {
+        { "@uid", UserId },
+        { "@cid", courseId }
+    });
 
             if (course.Rows.Count == 0)
             {
@@ -90,6 +90,26 @@ namespace WAPP_EduCore.pages.Student
             rptLearn.DataSource = points;
             rptLearn.DataBind();
             pnlLearn.Visible = points.Count > 0;
+
+            // --- Parse and bind the JSON reference column ---
+            string refJson = Convert.ToString(row["reference_json"]);
+            List<string> references = new List<string>();
+            if (!string.IsNullOrWhiteSpace(refJson))
+            {
+                try
+                {
+                    references = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<List<string>>(refJson) ?? new List<string>();
+                }
+                catch
+                {
+                    // Fallback if it's stored as plain text or handles different formats
+                    references.Add(refJson);
+                }
+            }
+            rptReferences.DataSource = references;
+            rptReferences.DataBind();
+            pnlReferences.Visible = references.Count > 0;
+            // ------------------------------------------------
 
             if (IsGuest)
             {

@@ -390,6 +390,7 @@ h1, h2, h3, h4, p {
     transition: box-shadow .2s, transform .2s;
 }
 
+
     .course-card:hover {
         box-shadow: 0 14px 30px -12px rgba(15, 23, 42, .25);
         transform: translateY(-3px);

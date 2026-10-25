@@ -102,8 +102,7 @@
                     <%-- Wrapped the card inside an anchor tag lin<a href="Default.aspx">Default.aspx</a>king to courseOverview with the specific course ID --%>
                     <a href="pages/Student/courseOverview.aspx?id=<%# Eval("course_id") %>" class="course-card-link" style="text-decoration: none; color: inherit; display: block;">
                         <article class="course-card">
-                            <div class="course-thumb" style="background-image: url('<%# Eval("course_img") %>'); background-size: cover; background-position: center;"></div>
-                            <div class="course-body">
+<div class="course-thumb" style="background-image: url('<%# Eval("course_img") %>'); background-size: cover; background-position: center;"></div>                            <div class="course-body">
                                 <span class="category-tag"><%# Eval("category") %></span>
                                 <h4><%# Eval("title") %></h4>
                                 <span class="tutor"><%# Eval("tutor_name") %></span>

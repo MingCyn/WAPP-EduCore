@@ -123,6 +123,24 @@ namespace WAPP_EduCore.pages.Student
         protected global::System.Web.UI.WebControls.Repeater rptLearn;
 
         /// <summary>
+        /// pnlReferences control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlReferences;
+
+        /// <summary>
+        /// rptReferences control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater rptReferences;
+
+        /// <summary>
         /// pnlNoLessons control.
         /// </summary>
         /// <remarks>
