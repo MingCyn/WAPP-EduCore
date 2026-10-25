@@ -162,8 +162,9 @@
     <Content Include="pages\Admin\adminDashboard.aspx" />
     <Content Include="pages\Admin\adminReports.aspx" />
     <Content Include="pages\Admin\adminSettings.aspx" />
+    <Content Include="pages\Admin\lessonManagement.aspx" />
+    <Content Include="pages\Admin\quizManagement.aspx" />
     <Content Include="pages\Admin\userManagement.aspx" />
-    <Content Include="pages\Admin\forumManagement.aspx" />
     <Content Include="pages\Admin\coursesManagement.aspx" />
     <Content Include="pages\General\courseOverview.aspx" />
     <Content Include="pages\General\discussion.aspx" />
@@ -312,19 +313,26 @@
     <Compile Include="pages\Admin\adminSettings.aspx.designer.cs">
       <DependentUpon>adminSettings.aspx</DependentUpon>
     </Compile>
+    <Compile Include="pages\Admin\lessonManagement.aspx.cs">
+      <DependentUpon>lessonManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Admin\lessonManagement.aspx.designer.cs">
+      <DependentUpon>lessonManagement.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Admin\quizManagement.aspx.cs">
+      <DependentUpon>quizManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Admin\quizManagement.aspx.designer.cs">
+      <DependentUpon>quizManagement.aspx</DependentUpon>
+    </Compile>
     <Compile Include="pages\Admin\userManagement.aspx.cs">
       <DependentUpon>userManagement.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="pages\Admin\userManagement.aspx.designer.cs">
       <DependentUpon>userManagement.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\Admin\forumManagement.aspx.cs">
-      <DependentUpon>forumManagement.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\Admin\forumManagement.aspx.designer.cs">
-      <DependentUpon>forumManagement.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Admin\coursesManagement.aspx.cs">
       <DependentUpon>coursesManagement.aspx</DependentUpon>
