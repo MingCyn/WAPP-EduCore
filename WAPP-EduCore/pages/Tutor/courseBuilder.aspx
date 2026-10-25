@@ -270,10 +270,30 @@
                 </div>
                 <p class="form-hint" style="margin: -8px 0 20px;">Will be saved as: <strong id="durationPreview">-</strong></p>
 
+                <%-- Dynamic Learning Outcomes field --%>
+                <div class="form-group">
+                    <label class="form-label">Learning Outcomes</label>
+                    <div id="outcomesContainer">
+                        <!-- Dynamic inputs will be injected here -->
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="addOutcomeInput()" style="margin-top: 8px;">+ Add Outcome</button>
+                    <span class="form-hint" style="margin-top: 6px;">Each box represents a new line in the database so the student view can read them point by point.</span>
+                </div>
+
+                <%-- NEW: References Dynamic Input Field --%>
+                <div class="form-group">
+                    <label class="form-label">References</label>
+                    <div id="referencesContainer">
+                        <!-- Dynamic inputs will be injected here -->
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="addReferenceInput()" style="margin-top: 8px;">+ Add Reference</button>
+                    <span class="form-hint" style="margin-top: 6px;">Add source references or citations for this course.</span>
+                </div>
+
                 <div class="form-group">
                     <label class="form-label">Course image</label>
                     <img id="ImgCourseCurrent" runat="server" visible="false" alt="Current course image"
-                         style="display:block; width:100%; max-height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;" />
+                        style="display: block; width: 100%; max-height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;" />
                     <label class="dropzone" for="FileCourseImg">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
                         <span><strong>Click to choose an image</strong> or drag it here</span>
@@ -504,6 +524,87 @@
 
         var link = document.querySelector('.nav-link[href="courses.aspx"]');
         if (link) link.classList.add('active');
+
+        // Function to add a new outcome input row
+        function addOutcomeInput(value = '') {
+            var container = document.getElementById('outcomesContainer');
+            var div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.gap = '8px';
+            div.style.marginBottom = '8px';
+
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.name = 'learningOutcome';
+            input.className = 'form-control';
+            input.placeholder = 'e.g. Identify variables and write a clear hypothesis';
+            input.value = value;
+
+            var removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-cancel';
+            removeBtn.style.padding = '0 12px';
+            removeBtn.textContent = '✕';
+            removeBtn.onclick = function () {
+                if (container.children.length > 1) {
+                    container.removeChild(div);
+                } else {
+                    input.value = '';
+                }
+            };
+
+            div.appendChild(input);
+            div.appendChild(removeBtn);
+            container.appendChild(div);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var container = document.getElementById('outcomesContainer');
+            if (container && container.children.length === 0) {
+                addOutcomeInput();
+            }
+        });
+
+// Function to add a new reference input row
+function addReferenceInput(value = '') {
+    var container = document.getElementById('referencesContainer');
+    var div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.gap = '8px';
+    div.style.marginBottom = '8px';
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.name = 'courseReference';
+    input.className = 'form-control';
+    input.placeholder = 'e.g. Gan, W. Y. et al. (2019). Biology Form 4 KSSM.';
+    input.value = value;
+
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-cancel';
+    removeBtn.style.padding = '0 12px';
+    removeBtn.textContent = '✕';
+    removeBtn.onclick = function () {
+        if (container.children.length > 1) {
+            container.removeChild(div);
+        } else {
+            input.value = '';
+        }
+    };
+
+    div.appendChild(input);
+    div.appendChild(removeBtn);
+    container.appendChild(div);
+}
+
+// Ensure at least one reference box appears if empty on load
+document.addEventListener('DOMContentLoaded', function () {
+    var refContainer = document.getElementById('referencesContainer');
+    if (refContainer && refContainer.children.length === 0) {
+        addReferenceInput();
+    }
+});
     </script>
 </body>
 </html>

@@ -49,11 +49,12 @@ namespace WAPP_EduCore.pages.Tutor
         }
 
         private const string SqlCourse =
-            "SELECT title, category, duration, course_level, course_img, status " +
+            "SELECT title, category, duration, course_level, course_img, status, course_description, reference " +
             "FROM courses WHERE course_id = @cid AND user_id = @uid";
 
         private const string SqlCourseUpdate =
             "UPDATE courses SET title = @title, category = @topic, duration = @duration, course_level = @level, " +
+            "course_description = @desc, reference = CAST(@reference AS jsonb), " +
             "course_img = COALESCE(CAST(@img AS text), course_img), updated_at = now() " +
             "WHERE course_id = @cid AND user_id = @uid";
 
@@ -154,8 +155,8 @@ namespace WAPP_EduCore.pages.Tutor
         {
             using (NpgsqlConnection conn = OpenConnection())
             {
-                string courseTitle, topic, duration, level, image, status;
-                if (!TryGetCourse(conn, out courseTitle, out topic, out duration, out level, out image, out status))
+                string courseTitle, topic, duration, level, image, status, description, referenceJson;
+                if (!TryGetCourse(conn, out courseTitle, out topic, out duration, out level, out image, out status, out description, out referenceJson))
                 {
                     Response.Redirect(CourseListPage);
                     return;
@@ -181,6 +182,62 @@ namespace WAPP_EduCore.pages.Tutor
                     TxtCourseTitle.Text = courseTitle == DraftTitle ? "" : courseTitle;
                     TxtCourseTopic.Text = topic;
 
+                    // 1. Load Learning Outcomes
+                    if (!string.IsNullOrWhiteSpace(description))
+                    {
+                        var rawOutcomes = description.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        var cleanedOutcomes = new List<string>();
+                        foreach (var item in rawOutcomes)
+                        {
+                            string trimmed = item.Trim();
+                            if (trimmed.Length > 0) cleanedOutcomes.Add(trimmed);
+                        }
+
+                        string jsArray = new JavaScriptSerializer().Serialize(cleanedOutcomes);
+                        string script = "window.addEventListener('load', function() { " +
+                                        "  var container = document.getElementById('outcomesContainer');" +
+                                        "  container.innerHTML = '';" +
+                                        "  var items = " + jsArray + ";" +
+                                        "  if(items.length > 0) {" +
+                                        "    items.forEach(function(val) { addOutcomeInput(val); });" +
+                                        "  } else { addOutcomeInput(); }" +
+                                        "});";
+                        ClientScript.RegisterStartupScript(GetType(), "loadOutcomes", script, true);
+                    }
+                    else
+                    {
+                        string script = "window.addEventListener('load', function() { addOutcomeInput(); });";
+                        ClientScript.RegisterStartupScript(GetType(), "defaultOutcome", script, true);
+                    }
+
+                    // 2. Load References from JSON Array
+                    if (!string.IsNullOrWhiteSpace(referenceJson))
+                    {
+                        try
+                        {
+                            var refs = new JavaScriptSerializer().Deserialize<List<string>>(referenceJson);
+                            if (refs != null && refs.Count > 0)
+                            {
+                                string jsRefArray = new JavaScriptSerializer().Serialize(refs);
+                                string refScript = "window.addEventListener('load', function() { " +
+                                                   "  var refContainer = document.getElementById('referencesContainer');" +
+                                                   "  refContainer.innerHTML = '';" +
+                                                   "  var refItems = " + jsRefArray + ";" +
+                                                   "  if(refItems.length > 0) {" +
+                                                   "    refItems.forEach(function(val) { addReferenceInput(val); });" +
+                                                   "  } else { addReferenceInput(); }" +
+                                                   "});";
+                                ClientScript.RegisterStartupScript(GetType(), "loadReferences", refScript, true);
+                            }
+                        }
+                        catch { /* Fallback if deserialization fails */ }
+                    }
+                    else
+                    {
+                        string refScript = "window.addEventListener('load', function() { addReferenceInput(); });";
+                        ClientScript.RegisterStartupScript(GetType(), "defaultReference", refScript, true);
+                    }
+
                     string weeks, hours;
                     ParseDuration(duration, out weeks, out hours);
                     SelectIfPresent(DdlCourseWeeks, weeks);
@@ -205,9 +262,9 @@ namespace WAPP_EduCore.pages.Tutor
         }
 
         private bool TryGetCourse(NpgsqlConnection conn, out string title, out string topic, out string duration,
-                                  out string level, out string image, out string status)
+                                out string level, out string image, out string status, out string description, out string referenceJson)
         {
-            title = topic = duration = level = image = status = "";
+            title = topic = duration = level = image = status = description = referenceJson = "";
             using (var cmd = new NpgsqlCommand(SqlCourse, conn))
             {
                 cmd.Parameters.AddWithValue("cid", courseId);
@@ -221,6 +278,8 @@ namespace WAPP_EduCore.pages.Tutor
                     level = r.IsDBNull(3) ? "" : Convert.ToString(r[3]);
                     image = r.IsDBNull(4) ? "" : Convert.ToString(r[4]);
                     status = r.IsDBNull(5) ? "" : Convert.ToString(r[5]);
+                    description = r.IsDBNull(6) ? "" : Convert.ToString(r[6]);
+                    referenceJson = r.IsDBNull(7) ? "" : Convert.ToString(r[7]);
                     return true;
                 }
             }
@@ -329,7 +388,6 @@ namespace WAPP_EduCore.pages.Tutor
                     thumbSrc = SafeImageUrl(lesson.VideoUrl);
                 }
 
-                // Assigns the URL directly to the ASP:Image control
                 ImgVideoThumb.ImageUrl = thumbSrc;
             }
 
@@ -779,6 +837,36 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
+            // Capture Learning Outcomes
+            string[] rawOutcomes = Request.Unvalidated.Form.GetValues("learningOutcome");
+            string combinedDescription = "";
+            if (rawOutcomes != null)
+            {
+                var outcomeList = new List<string>();
+                foreach (var outcome in rawOutcomes)
+                {
+                    string trimmed = outcome.Trim();
+                    if (!string.IsNullOrEmpty(trimmed)) outcomeList.Add(trimmed);
+                }
+                combinedDescription = string.Join(Environment.NewLine, outcomeList);
+            }
+
+            // Capture References and serialize to JSON array format
+            string[] rawReferences = Request.Unvalidated.Form.GetValues("courseReference");
+            var referenceList = new List<string>();
+            if (rawReferences != null)
+            {
+                foreach (var r in rawReferences)
+                {
+                    string trimmedRef = r.Trim();
+                    if (!string.IsNullOrEmpty(trimmedRef))
+                    {
+                        referenceList.Add(trimmedRef);
+                    }
+                }
+            }
+            string referenceJson = referenceList.Count > 0 ? new JavaScriptSerializer().Serialize(referenceList) : null;
+
             string newImage, imageError;
             if (!TrySaveCourseImage(out newImage, out imageError))
             {
@@ -798,6 +886,8 @@ namespace WAPP_EduCore.pages.Tutor
                     cmd.Parameters.AddWithValue("topic", topic);
                     cmd.Parameters.AddWithValue("duration", duration);
                     cmd.Parameters.AddWithValue("level", level);
+                    cmd.Parameters.AddWithValue("desc", combinedDescription.Length == 0 ? (object)DBNull.Value : combinedDescription);
+                    cmd.Parameters.AddWithValue("reference", referenceJson == null ? (object)DBNull.Value : referenceJson);
                     cmd.Parameters.AddWithValue("img", newImage == null ? (object)DBNull.Value : newImage);
                     cmd.Parameters.AddWithValue("cid", courseId);
                     cmd.Parameters.AddWithValue("uid", userId);
