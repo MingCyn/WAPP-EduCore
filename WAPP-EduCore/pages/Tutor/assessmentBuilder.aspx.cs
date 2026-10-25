@@ -145,22 +145,61 @@ namespace WAPP_EduCore.pages.Tutor
             SaveAssessment(publish: true);
         }
 
-        protected void BtnSaveAssessmentDraft_Click(object sender, EventArgs e)
+        private void ShowStatus(string message, bool isError = true)
         {
-            SaveAssessment(publish: false);
+            LblStatus.Text = Server.HtmlEncode(message);
+            LblStatus.Visible = true;
+
+            if (isError)
+            {
+                // Inline error styling matching your UI theme
+                LblStatus.Style["background-color"] = "#fdf2f2";
+                LblStatus.Style["color"] = "#991b1b";
+                LblStatus.Style["border"] = "1px solid #fecaca";
+            }
+            else
+            {
+                // Success styling
+                LblStatus.Style["background-color"] = "#f0fdf4";
+                LblStatus.Style["color"] = "#166534";
+                LblStatus.Style["border"] = "1px solid #bbf7d0";
+            }
         }
 
         private void SaveAssessment(bool publish)
         {
             if (lessonId <= 0 || !LessonBelongsToCourse())
             {
-                ShowStatus("Open the assessment builder from a lesson in Course Builder.");
+                ShowStatus("Open the assessment builder from a lesson in Course Builder.", true);
                 return;
             }
 
             var form = Request.Unvalidated.Form;
             string title = (form["assessTitle"] ?? "").Trim();
-            if (string.IsNullOrEmpty(title)) title = "Untitled Assessment";
+
+            // 1. Validation: Ensure Assessment Title is provided before saving/publishing
+            if (string.IsNullOrEmpty(title))
+            {
+                ShowStatus("Please enter an Assessment Title before saving.", true);
+                return;
+            }
+
+            // 2. Validation: Ensure at least one question prompt is submitted
+            string[] prompts = form.GetValues("prompt") ?? new string[0];
+            int validQuestionCount = 0;
+            foreach (var p in prompts)
+            {
+                if (!string.IsNullOrWhiteSpace(p))
+                {
+                    validQuestionCount++;
+                }
+            }
+
+            if (validQuestionCount == 0)
+            {
+                ShowStatus("Cannot save an assessment without at least one question.", true);
+                return;
+            }
 
             int passingScore;
             string passText = (form["assessPass"] ?? "50").Replace("%", "").Trim();
@@ -187,22 +226,26 @@ namespace WAPP_EduCore.pages.Tutor
                     }
                     else
                     {
+                        // Clean insert: only insert what the quiz table actually needs (Title, Passing Score, Lesson ID)
                         quizId = ExecuteScalar(conn, transaction,
                             "INSERT INTO quiz (quiz_title, passing_score, lesson_id) VALUES (@title, @pass, @lesson) RETURNING quiz_id",
                             new Dictionary<string, object>
                             {
-                                { "title", title }, { "pass", passingScore }, { "lesson", lessonId }
+                                { "title", title },
+                                { "pass", passingScore },
+                                { "lesson", lessonId }
                             });
 
                         Execute(conn, transaction, "UPDATE public.lesson SET quiz_id = @quiz WHERE lesson_id = @lesson AND course_id = @course",
                             new Dictionary<string, object>
                             {
-                                { "quiz", quizId }, { "lesson", lessonId }, { "course", courseId }
+                                { "quiz", quizId },
+                                { "lesson", lessonId },
+                                { "course", courseId }
                             });
                     }
 
                     // Save questions submitted from form inputs
-                    string[] prompts = form.GetValues("prompt") ?? new string[0];
                     string[] difficulties = form.GetValues("difficulty") ?? new string[0];
                     string[] pointsArr = form.GetValues("points") ?? new string[0];
                     string[] optA = form.GetValues("optA") ?? new string[0];
@@ -245,7 +288,7 @@ namespace WAPP_EduCore.pages.Tutor
                 }
             }
 
-            ShowStatus("Assessment saved successfully.");
+            ShowStatus("Assessment saved successfully.", false);
         }
 
         private long GetLessonQuizId(NpgsqlConnection conn, NpgsqlTransaction transaction)
@@ -281,20 +324,12 @@ namespace WAPP_EduCore.pages.Tutor
 
         protected void BtnSaveInteractive_Click(object sender, EventArgs e)
         {
-            ShowStatus("Interactive object configuration saved.");
+            ShowStatus("Interactive object configuration saved.", false);
         }
 
         protected void BtnSaveLab_Click(object sender, EventArgs e)
         {
-            ShowStatus("Virtual lab configuration saved.");
-        }
-
-        private void ShowStatus(string message)
-        {
-            // Optional: If you don't have a LblStatus control in your ASPX, 
-            // you can safely handle or output via client script or log.
-            // Make sure to add <asp:Label ID="LblStatus" runat="server" Visible="false" /> to your ASPX if you want to use this.
-            ClientScript.RegisterStartupScript(this.GetType(), "alert", $"alert('{message.Replace("'", "\\'")}');", true);
+            ShowStatus("Virtual lab configuration saved.", false);
         }
     }
 }

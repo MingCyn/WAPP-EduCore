@@ -30,6 +30,9 @@
                     </div>
                 </div>
 
+                <!-- Inline Status / Error Message Banner -->
+                <asp:Label ID="LblStatus" runat="server" Visible="false" Style="display: block; margin-bottom: 20px; padding: 12px 16px; border-radius: 6px; font-weight: 500;" />
+
                 <!-- Error state panel if accessed incorrectly -->
                 <asp:Panel ID="PnlBuilderError" runat="server" Visible="false" CssClass="ab-card" Style="text-align: center; padding: 40px; margin-top: 20px;">
                     <h3 style="color: #d9534f; margin-bottom: 10px;">Course or Lesson Not Selected</h3>
@@ -184,15 +187,18 @@
 
                                     <div class="ab-switch-row">
                                         <span>Randomize Question Order</span>
-                                        <label class="ab-switch"><input type="checkbox" name="randomize" /><span class="ab-slider"></span></label>
+                                        <label class="ab-switch">
+                                            <input type="checkbox" name="randomize" /><span class="ab-slider"></span></label>
                                     </div>
                                     <div class="ab-switch-row">
                                         <span>Show Explanations</span>
-                                        <label class="ab-switch"><input type="checkbox" name="showExplanations" checked="checked" /><span class="ab-slider"></span></label>
+                                        <label class="ab-switch">
+                                            <input type="checkbox" name="showExplanations" checked="checked" /><span class="ab-slider"></span></label>
                                     </div>
                                     <div class="ab-switch-row">
                                         <span>Allow Retries</span>
-                                        <label class="ab-switch"><input type="checkbox" name="allowRetries" checked="checked" /><span class="ab-slider"></span></label>
+                                        <label class="ab-switch">
+                                            <input type="checkbox" name="allowRetries" checked="checked" /><span class="ab-slider"></span></label>
                                     </div>
 
                                     <div class="ab-field ab-field-top">
@@ -201,8 +207,8 @@
                                     </div>
                                 </div>
 
-                                <asp:Button ID="BtnPublishAssessment" runat="server" Text="Publish Assessment" CssClass="ab-btn ab-btn-primary" OnClick="BtnPublishAssessment_Click" />
-                                <asp:Button ID="BtnSaveAssessmentDraft" runat="server" Text="Save as Draft" CssClass="ab-btn ab-btn-outline" OnClick="BtnSaveAssessmentDraft_Click" />
+                                <!-- Only keep the main publish/save button -->
+                                <asp:Button ID="BtnPublishAssessment" runat="server" Text="Save Assessment" CssClass="ab-btn ab-btn-primary" OnClick="BtnPublishAssessment_Click" />
                             </aside>
 
                         </div>
@@ -367,13 +373,11 @@
                         <label class="ab-option">
                             <input type="radio" name="correct___UID__" value="C" />
                             <span class="ab-radio"></span><span class="ab-letter">C.</span>
-                            <span class="ab-radio"></span><span class="ab-letter">C.</span>
                             <input type="text" name="optC" class="ab-option-input" placeholder="Option C" />
                             <span class="ab-correct-badge">CORRECT ANSWER</span>
                         </label>
                         <label class="ab-option">
                             <input type="radio" name="correct___UID__" value="D" />
-                            <span class="ab-radio"></span><span class="ab-letter">D.</span>
                             <span class="ab-radio"></span><span class="ab-letter">D.</span>
                             <input type="text" name="optD" class="ab-option-input" placeholder="Option D" />
                             <span class="ab-correct-badge">CORRECT ANSWER</span>

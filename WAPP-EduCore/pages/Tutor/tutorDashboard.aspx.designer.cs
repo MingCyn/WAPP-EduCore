@@ -33,30 +33,75 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.Panel pnlNavContainer;
 
         /// <summary>
-        /// BtnGrade1 control.
+        /// LblStatus control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button BtnGrade1;
+        protected global::System.Web.UI.WebControls.Label LblStatus;
 
         /// <summary>
-        /// BtnGrade2 control.
+        /// RptCourses control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button BtnGrade2;
+        protected global::System.Web.UI.WebControls.Repeater RptCourses;
 
         /// <summary>
-        /// BtnGrade3 control.
+        /// PnlNoCourses control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button BtnGrade3;
+        protected global::System.Web.UI.WebControls.Panel PnlNoCourses;
+
+        /// <summary>
+        /// PnlStudentsTable control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlStudentsTable;
+
+        /// <summary>
+        /// RptStudents control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater RptStudents;
+
+        /// <summary>
+        /// PnlNoStudents control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlNoStudents;
+
+        /// <summary>
+        /// RptRecent control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater RptRecent;
+
+        /// <summary>
+        /// PnlNoRecent control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlNoRecent;
     }
 }
