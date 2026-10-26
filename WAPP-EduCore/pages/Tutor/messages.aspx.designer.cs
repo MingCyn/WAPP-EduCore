@@ -42,6 +42,24 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.DropDownList DdlCourse;
 
         /// <summary>
+        /// BtnResetFilter control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button BtnResetFilter;
+
+        /// <summary>
+        /// BtnFilterUnanswered control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton BtnFilterUnanswered;
+
+        /// <summary>
         /// RptThreads control.
         /// </summary>
         /// <remarks>
@@ -60,31 +78,22 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.Panel PnlNoThreads;
 
         /// <summary>
-        /// DdlThread control.
+        /// DdlAnnounceCourse control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList DdlThread;
+        protected global::System.Web.UI.WebControls.DropDownList DdlAnnounceCourse;
 
         /// <summary>
-        /// TxtReply control.
+        /// DdlAnnounceLesson control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox TxtReply;
-
-        /// <summary>
-        /// BtnPostReply control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button BtnPostReply;
+        protected global::System.Web.UI.WebControls.DropDownList DdlAnnounceLesson;
 
         /// <summary>
         /// TxtAnnounceTitle control.
@@ -112,23 +121,5 @@ namespace WAPP_EduCore.pages.Tutor
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button BtnPostAnnouncement;
-
-        /// <summary>
-        /// ChkFlagContent control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlInputCheckBox ChkFlagContent;
-
-        /// <summary>
-        /// ChkApproveFirst control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlInputCheckBox ChkApproveFirst;
     }
 }

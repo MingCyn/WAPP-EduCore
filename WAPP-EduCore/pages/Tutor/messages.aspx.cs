@@ -10,53 +10,74 @@ namespace WAPP_EduCore.pages.Tutor
 {
     public partial class messages : System.Web.UI.Page
     {
-        // ------------------------------------------------------------------
-        // Settings (same values as the other tutor pages)
-        // ------------------------------------------------------------------
         private const string ConnectionName = "SupabasePostgres";
         private const string SessionUserKey = "UserID";
         private const string SessionRoleKey = "UserRole";
         private const string LoginPage = "~/auth/login.aspx";
 
-        // While developing, the real database message is shown if the course list cannot be loaded.
-        // Set to false before you deploy.
         private const bool ShowDatabaseErrors = true;
 
-        // The tutor's own courses (for the course picker)
         private const string SqlTutorCourses =
-            "SELECT course_id, title FROM courses WHERE user_id = @uid ORDER BY title";
+            "SELECT course_id, title, category FROM courses WHERE user_id = @uid ORDER BY title";
 
-        // Counters shown in the toolbar
-        protected int ActiveThreads, UnansweredCount, FlaggedCount;
+        private const string SqlTutorLessons =
+            "SELECT lesson_id, lesson_title FROM lesson WHERE course_id = @cid ORDER BY created_at, lesson_id";
 
+        private const string SqlDiscussionThreads =
+            "SELECT p.post_id, p.title, p.content, p.created_at, " +
+            "       u.full_name, " +
+            "       (SELECT COUNT(*) FROM discussion_replies r WHERE r.post_id = p.post_id) AS reply_count " +
+            "FROM discussion_posts p " +
+            "JOIN users u ON p.user_id = u.user_id " +
+            "WHERE (@cid = 0 OR p.course_id = @cid) " +
+            "  AND p.course_id IN (SELECT course_id FROM courses WHERE user_id = @uid) " +
+            "ORDER BY p.created_at DESC";
+
+        private const string SqlThreadReplies =
+            "SELECT r.reply_id, r.content, r.created_at, u.full_name " +
+            "FROM discussion_replies r " +
+            "JOIN users u ON r.user_id = u.user_id " +
+            "WHERE r.post_id = @pid " +
+            "ORDER BY r.created_at ASC";
+
+        private const string SqlInsertReply =
+            "INSERT INTO discussion_replies (post_id, user_id, content, created_at) VALUES (@pid, @uid, @content, NOW())";
+
+        private const string SqlInsertAnnouncement =
+            "INSERT INTO discussion_posts (user_id, course_id, lesson_id, title, content, post_type, created_at) " +
+            "VALUES (@uid, @cid, @lid, @title, @content, 'Announcement', NOW())";
+
+        protected int ActiveThreads, UnansweredCount;
         private int userId;
 
-        // ------------------------------------------------------------------
-        // One thread card
-        // ------------------------------------------------------------------
+        public class ReplyRow
+        {
+            public int ReplyId { get; set; }
+            public string Author { get; set; }
+            public string Initials { get; set; }
+            public string Content { get; set; }
+            public string When { get; set; }
+        }
+
         public class ThreadRow
         {
             public int ThreadId { get; set; }
             public string Author { get; set; }
             public string Initials { get; set; }
-            public int ColorIndex { get; set; }          // 0-3 -> .fm-c0 ... .fm-c3 (shared with the student page)
+            public int ColorIndex { get; set; }
             public string When { get; set; }
             public string Title { get; set; }
             public string Excerpt { get; set; }
             public int Replies { get; set; }
             public string RepliesText { get; set; }
-            public string StatusKey { get; set; }        // answered | unanswered | flagged
+            public string StatusKey { get; set; }
             public string StatusLabel { get; set; }
             public string StatusClass { get; set; }
-            public bool IsFlagged { get; set; }
+            public List<ReplyRow> ReplyList { get; set; }
         }
 
-        // ------------------------------------------------------------------
-        // Page load
-        // ------------------------------------------------------------------
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Signed-in tutors only
             string role = Convert.ToString(Session[SessionRoleKey]);
             if (!int.TryParse(Convert.ToString(Session[SessionUserKey]), out userId) || userId <= 0 ||
                 !role.Equals("Tutor", StringComparison.OrdinalIgnoreCase))
@@ -65,12 +86,16 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            if (!IsPostBack) LoadCourses();
+            if (!IsPostBack)
+            {
+                ViewState["UnansweredOnly"] = false;
+                LoadFilterCourses();
+                LoadAnnouncementCourses();
+            }
             LoadThreads();
         }
 
-        // Course picker: "All my courses" + every course owned by this tutor
-        private void LoadCourses()
+        private void LoadFilterCourses()
         {
             DdlCourse.Items.Add(new ListItem("All my courses", "0"));
             try
@@ -90,106 +115,231 @@ namespace WAPP_EduCore.pages.Tutor
                     }
                 }
             }
-            catch (NpgsqlException ex)
+            catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                var pg = ex as PostgresException;
-                ShowNote("Your courses could not be loaded." +
-                         (ShowDatabaseErrors ? " (" + (pg != null ? pg.MessageText : ex.Message) + ")" : ""), true);
             }
         }
 
-        // Builds the thread cards, the counters and the Quick Reply "Target Thread" list.
-        // Runs on every request so the counters are always right.
+        private void LoadAnnouncementCourses()
+        {
+            try
+            {
+                using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
+                using (var cmd = new NpgsqlCommand(SqlTutorCourses, conn))
+                {
+                    cmd.Parameters.AddWithValue("uid", userId);
+                    conn.Open();
+                    using (NpgsqlDataReader r = cmd.ExecuteReader())
+                    {
+                        DdlAnnounceCourse.Items.Clear();
+                        DdlAnnounceCourse.Items.Add(new ListItem("Select Course", ""));
+
+                        while (r.Read())
+                        {
+                            string courseId = Convert.ToString(r[0]);
+                            string title = r.IsDBNull(1) ? "(Untitled course)" : Convert.ToString(r[1]);
+                            string category = r.IsDBNull(2) ? "General" : Convert.ToString(r[2]);
+                            DdlAnnounceCourse.Items.Add(new ListItem($"{title} [{category}]", courseId));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+            }
+        }
+
+        protected void DdlAnnounceCourse_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            DdlAnnounceLesson.Items.Clear();
+            DdlAnnounceLesson.Items.Add(new ListItem("Select Lesson (Optional)", ""));
+
+            if (int.TryParse(DdlAnnounceCourse.SelectedValue, out int courseId) && courseId > 0)
+            {
+                try
+                {
+                    using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
+                    using (var cmd = new NpgsqlCommand(SqlTutorLessons, conn))
+                    {
+                        cmd.Parameters.AddWithValue("cid", courseId);
+                        conn.Open();
+                        using (NpgsqlDataReader r = cmd.ExecuteReader())
+                        {
+                            while (r.Read())
+                            {
+                                string lessonId = Convert.ToString(r[0]);
+                                string lessonTitle = r.IsDBNull(1) ? "(Untitled Lesson)" : Convert.ToString(r[1]);
+                                DdlAnnounceLesson.Items.Add(new ListItem(lessonTitle, lessonId));
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.ToString());
+                }
+            }
+        }
+
         private void LoadThreads()
         {
-            // The course filter is DdlCourse.SelectedValue ("0" = all courses). It is passed to GetThreads
-            // so the real query can use it.
             int courseFilter;
             int.TryParse(DdlCourse.SelectedValue, out courseFilter);
 
-            List<ThreadRow> threads = GetThreads(courseFilter);
+            List<ThreadRow> allThreads = GetThreadsFromDatabase(courseFilter);
 
-            ActiveThreads = threads.Count;
-            UnansweredCount = threads.FindAll(t => t.StatusKey == "unanswered").Count;
-            FlaggedCount = threads.FindAll(t => t.StatusKey == "flagged").Count;
+            ActiveThreads = allThreads.Count;
+            UnansweredCount = allThreads.FindAll(t => t.StatusKey == "unanswered").Count;
 
-            RptThreads.DataSource = threads;
+            bool unansweredOnly = ViewState["UnansweredOnly"] != null && (bool)ViewState["UnansweredOnly"];
+            List<ThreadRow> displayThreads = unansweredOnly ? allThreads.FindAll(t => t.StatusKey == "unanswered") : allThreads;
+
+            RptThreads.DataSource = displayThreads;
             RptThreads.DataBind();
-            PnlNoThreads.Visible = threads.Count == 0;
-
-            // Keep the tutor's choice in Quick Reply while the list is rebuilt
-            string keep = IsPostBack ? Request.Form[DdlThread.UniqueID] : null;
-            DdlThread.Items.Clear();
-            foreach (ThreadRow t in threads)
-                DdlThread.Items.Add(new ListItem(t.Title, t.ThreadId.ToString(CultureInfo.InvariantCulture)));
-            if (keep != null && DdlThread.Items.FindByValue(keep) != null) DdlThread.SelectedValue = keep;
+            PnlNoThreads.Visible = displayThreads.Count == 0;
         }
 
-        // ------------------------------------------------------------------
-        // SAMPLE DATA - replace this method with the real query once the forum tables are connected.
-        // It returns the same ThreadRow shape the page already uses, so nothing else has to change.
-        // ------------------------------------------------------------------
-        private List<ThreadRow> GetThreads(int courseId)
+        private List<ThreadRow> GetThreadsFromDatabase(int courseId)
         {
-            DateTime now = DateTime.UtcNow;
-            return new List<ThreadRow>
+            var threads = new List<ThreadRow>();
+            try
             {
-                MakeThread(1, "Aarav Mehta", now.AddMinutes(-10), "Difficulty understanding Red-Black Tree rotations",
-                    "I have reviewed module 2 twice, but the concept of left-right double rotations is still confusing...", 2, false),
-                MakeThread(2, "Dev Patel", now.AddHours(-4), "Pointer manipulation error on Linked List exercise",
-                    "I get a Segfault when reversing the next pointers in singly linked list sandbox. Is my loop condition correct?", 0, false),
-                MakeThread(3, "Siddharth Rao", now.AddDays(-1), "Solution code leaked in general thread!",
-                    "Someone posted the direct solution to BST balancing Lab in the general discussion channel.", 1, true),
-                MakeThread(4, "Nisha Patel", now.AddDays(-2), "Modulo hash collision strategy",
-                    "Is standard linear probing enough for our assignment performance benchmark or should we implement double hashing?", 4, false)
-            };
-        }
+                using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
+                using (var cmd = new NpgsqlCommand(SqlDiscussionThreads, conn))
+                {
+                    cmd.Parameters.AddWithValue("cid", courseId);
+                    cmd.Parameters.AddWithValue("uid", userId);
+                    conn.Open();
 
-        private static ThreadRow MakeThread(int id, string author, DateTime whenUtc, string title, string excerpt, int replies, bool flagged)
-        {
-            string key = flagged ? "flagged" : (replies > 0 ? "answered" : "unanswered");
-            return new ThreadRow
-            {
-                ThreadId = id,
-                Author = author,
-                Initials = GetInitials(author),
-                ColorIndex = id % 4,
-                When = RelativeTime(whenUtc),
-                Title = title,
-                Excerpt = excerpt,
-                Replies = replies,
-                RepliesText = replies == 1 ? "1 reply" : replies + " replies",
-                StatusKey = key,
-                StatusLabel = key.ToUpperInvariant(),
-                StatusClass = key,
-                IsFlagged = flagged
-            };
-        }
+                    using (NpgsqlDataReader r = cmd.ExecuteReader())
+                    {
+                        int index = 0;
+                        while (r.Read())
+                        {
+                            int threadId = r.GetInt32(0);
+                            string title = r.IsDBNull(1) ? "(Untitled Thread)" : r.GetString(1);
+                            string content = r.IsDBNull(2) ? "" : r.GetString(2);
+                            DateTime createdAtUtc = r.GetDateTime(3);
+                            string author = r.IsDBNull(4) ? "Unknown User" : r.GetString(4);
+                            int replies = Convert.ToInt32(r[5]);
 
-        // ------------------------------------------------------------------
-        // Buttons
-        // ------------------------------------------------------------------
-        protected void DdlCourse_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            // Nothing else to do: Page_Load already rebuilt the list for the newly chosen course.
-        }
+                            var replyList = LoadRepliesForPost(threadId);
 
-        protected void BtnPostReply_Click(object sender, EventArgs e)
-        {
-            if (DdlThread.Items.Count == 0 || string.IsNullOrEmpty(DdlThread.SelectedValue))
-            {
-                ShowNote("Choose a thread to reply to.", true);
-                return;
+                            string key = replies > 0 ? "answered" : "unanswered";
+
+                            threads.Add(new ThreadRow
+                            {
+                                ThreadId = threadId,
+                                Author = author,
+                                Initials = GetInitials(author),
+                                ColorIndex = index++ % 4,
+                                When = RelativeTime(createdAtUtc),
+                                Title = title,
+                                Excerpt = content,
+                                Replies = replies,
+                                RepliesText = replies == 1 ? "1 reply" : replies + " replies",
+                                StatusKey = key,
+                                StatusLabel = key.ToUpperInvariant(),
+                                StatusClass = key,
+                                ReplyList = replyList
+                            });
+                        }
+                    }
+                }
             }
-            if (TxtReply.Text.Trim().Length == 0)
+            catch (Exception ex)
             {
-                ShowNote("Please write a reply first.", true);
-                return;
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
             }
 
-            // TODO: save the reply to the forum replies table
-            ShowNote("Replies are not saved yet: the discussion tables are not connected to this page.", false);
+            return threads;
+        }
+
+        private List<ReplyRow> LoadRepliesForPost(int postId)
+        {
+            var list = new List<ReplyRow>();
+            try
+            {
+                using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
+                using (var cmd = new NpgsqlCommand(SqlThreadReplies, conn))
+                {
+                    cmd.Parameters.AddWithValue("pid", postId);
+                    conn.Open();
+                    using (NpgsqlDataReader r = cmd.ExecuteReader())
+                    {
+                        while (r.Read())
+                        {
+                            string author = r.IsDBNull(3) ? "Unknown" : r.GetString(3);
+                            list.Add(new ReplyRow
+                            {
+                                ReplyId = r.GetInt32(0),
+                                Content = r.IsDBNull(1) ? "" : r.GetString(1),
+                                When = RelativeTime(r.GetDateTime(2)),
+                                Author = author,
+                                Initials = GetInitials(author)
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+            }
+            return list;
+        }
+
+        protected void DdlCourse_SelectedIndexChanged(object sender, EventArgs e) { }
+
+        protected void BtnResetFilter_Click(object sender, EventArgs e)
+        {
+            DdlCourse.SelectedValue = "0";
+            ViewState["UnansweredOnly"] = false;
+            LoadThreads();
+        }
+
+        protected void BtnFilterUnanswered_Click(object sender, EventArgs e)
+        {
+            bool current = ViewState["UnansweredOnly"] != null && (bool)ViewState["UnansweredOnly"];
+            ViewState["UnansweredOnly"] = !current;
+            LoadThreads();
+        }
+
+        protected void RptThreads_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            if (e.CommandName == "PostInlineReply")
+            {
+                if (!int.TryParse(e.CommandArgument.ToString(), out int postId)) return;
+
+                TextBox txtBox = e.Item.FindControl("TxtInlineReply") as TextBox;
+                if (txtBox == null || string.IsNullOrWhiteSpace(txtBox.Text))
+                {
+                    ShowNote("Please write a reply first.", true);
+                    return;
+                }
+
+                try
+                {
+                    using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
+                    using (var cmd = new NpgsqlCommand(SqlInsertReply, conn))
+                    {
+                        cmd.Parameters.AddWithValue("pid", postId);
+                        cmd.Parameters.AddWithValue("uid", userId);
+                        cmd.Parameters.AddWithValue("content", txtBox.Text.Trim());
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    ShowNote("Reply posted successfully!", false);
+                    LoadThreads();
+                }
+                catch (Exception)
+                {
+                    ShowNote("Your reply could not be saved.", true);
+                }
+            }
         }
 
         protected void BtnPostAnnouncement_Click(object sender, EventArgs e)
@@ -200,8 +350,43 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            // TODO: save the announcement to the announcements table
-            ShowNote("Announcements are not saved yet: the announcements table is not connected to this page.", false);
+            if (!int.TryParse(DdlAnnounceCourse.SelectedValue, out int courseId) || courseId <= 0)
+            {
+                ShowNote("Please select a target course for the announcement.", true);
+                return;
+            }
+
+            object lessonIdParam = DBNull.Value;
+            if (int.TryParse(DdlAnnounceLesson.SelectedValue, out int lessonId) && lessonId > 0)
+            {
+                lessonIdParam = lessonId;
+            }
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
+                using (var cmd = new NpgsqlCommand(SqlInsertAnnouncement, conn))
+                {
+                    cmd.Parameters.AddWithValue("uid", userId);
+                    cmd.Parameters.AddWithValue("cid", courseId);
+                    cmd.Parameters.AddWithValue("lid", lessonIdParam);
+                    cmd.Parameters.AddWithValue("title", TxtAnnounceTitle.Text.Trim());
+                    cmd.Parameters.AddWithValue("content", TxtAnnounceBody.Text.Trim());
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+
+                TxtAnnounceTitle.Text = "";
+                TxtAnnounceBody.Text = "";
+                DdlAnnounceCourse.SelectedIndex = 0;
+                DdlAnnounceLesson.Items.Clear();
+                DdlAnnounceLesson.Items.Add(new ListItem("Select Lesson (Optional)", ""));
+                ShowNote("Announcement posted successfully!", false);
+            }
+            catch (Exception)
+            {
+                ShowNote("Your announcement could not be saved.", true);
+            }
         }
 
         private void ShowNote(string message, bool isError)
@@ -211,9 +396,6 @@ namespace WAPP_EduCore.pages.Tutor
             LblNote.Visible = true;
         }
 
-        // ------------------------------------------------------------------
-        // Helpers
-        // ------------------------------------------------------------------
         private static string GetInitials(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return "?";
@@ -227,15 +409,10 @@ namespace WAPP_EduCore.pages.Tutor
         {
             TimeSpan span = DateTime.UtcNow - utc;
             if (span.TotalMinutes < 1) return "just now";
-            if (span.TotalMinutes < 60) return Plural((int)span.TotalMinutes, "min") + " ago";
-            if (span.TotalHours < 24) return Plural((int)span.TotalHours, "hr") + " ago";
-            if (span.TotalDays < 30) return Plural((int)span.TotalDays, "day") + " ago";
+            if (span.TotalMinutes < 60) return (int)span.TotalMinutes + "m ago";
+            if (span.TotalHours < 24) return (int)span.TotalHours + "h ago";
+            if (span.TotalDays < 30) return (int)span.TotalDays + "d ago";
             return utc.ToLocalTime().ToString("d MMM yyyy", CultureInfo.InvariantCulture);
-        }
-
-        private static string Plural(int n, string unit)
-        {
-            return n + " " + unit + (n == 1 ? "" : "s");
         }
     }
 }

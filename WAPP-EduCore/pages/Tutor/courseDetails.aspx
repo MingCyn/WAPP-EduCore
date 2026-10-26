@@ -194,7 +194,7 @@
                                                     <%# Eval("TitleHtml") %>
                                                     <span class="cd-item-host"><%#: Eval("HostText") %></span>
                                                 </span>
-                                                <asp:LinkButton runat="server" CommandName="delete" CommandArgument='<%# Eval("Id") %>' CssClass="cd-remove" CausesValidation="false" ToolTip="Remove" OnClientClick="return confirm('Remove this reference?');">
+                                                <asp:LinkButton runat="server" CommandName="delete" CommandArgument='<%# Eval("Id") %>' CssClass="cd-remove" CausesValidation="false" ToolTip="Remove" OnClientClick='<%# "showDeleteModal(" + Eval("Id") + ", \"reference\"); return false;" %>'>
                                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                                                 </asp:LinkButton>
                                             </li>
