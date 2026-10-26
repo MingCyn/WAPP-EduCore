@@ -27,4 +27,7 @@
         <p class="guest-msg">Log in to enroll in courses and track your progress</p>
         <asp:HyperLink ID="lnkSidebarLogin" runat="server" NavigateUrl="~/Auth/login.aspx" CssClass="sidebar-login-btn">Log In</asp:HyperLink>
     </asp:Panel>
+
+    <%@ Register Src="~/pages/Shared/ChatWidget.ascx" TagName="ChatWidget" TagPrefix="uc" %>
+    <uc:ChatWidget ID="ChatWidget1" runat="server" />
 </div>
