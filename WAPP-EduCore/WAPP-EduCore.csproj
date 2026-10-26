@@ -150,6 +150,7 @@
     <Content Include="Content\Site.css" />
     <Content Include="Content\navDashboard.css" />
     <Content Include="Content\student.css" />
+    <Content Include="Content\chatbot.css" />
     <Content Include="Default.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />

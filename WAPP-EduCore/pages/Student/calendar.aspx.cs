@@ -12,7 +12,9 @@ namespace WAPP_EduCore.pages.Student
 {
     public partial class calendar : System.Web.UI.Page
     {
+        // Malaysia is UTC+8. The database does the time zone conversion, so no hour maths is done here.
         private const int UtcOffsetHours = 8;
+        private const string Tz = "Asia/Kuala_Lumpur";
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
         private const int StartHour = 8;
@@ -35,8 +37,8 @@ namespace WAPP_EduCore.pages.Student
             public string Title;
             public string Type;
             public string Course;
-            public DateTime Start;
-            public DateTime End;
+            public DateTime Start;   // Malaysia wall-clock time
+            public DateTime End;     // Malaysia wall-clock time
         }
 
         private string _view;
@@ -143,19 +145,23 @@ namespace WAPP_EduCore.pages.Student
         {
             if (IsGuest) return new List<Ev>();
 
-            DateTime fromUtc = DateTime.SpecifyKind(rangeStart.AddHours(-UtcOffsetHours), DateTimeKind.Utc);
-            DateTime toUtc = DateTime.SpecifyKind(rangeEnd.AddHours(-UtcOffsetHours), DateTimeKind.Utc);
-
+            // The database converts both ways: the range (Malaysia time) to real moments for the
+            // filter, and each stored moment back to Malaysia wall-clock time for display.
             DataTable t = Db.Query(
-                "SELECT e.event_id, e.event_title, e.event_type, e.start_time, e.end_time, c.title AS course_title " +
+                "SELECT e.event_id, e.event_title, e.event_type, " +
+                "  (e.start_time AT TIME ZONE '" + Tz + "') AS start_local, " +
+                "  (e.end_time AT TIME ZONE '" + Tz + "') AS end_local, " +
+                "  c.title AS course_title " +
                 "FROM calendar_events e LEFT JOIN courses c ON c.course_id = e.course_id " +
-                "WHERE e.user_id = @uid AND e.start_time >= @from AND e.start_time < @to " +
+                "WHERE e.user_id = @uid " +
+                "  AND e.start_time >= (CAST(@from AS timestamp) AT TIME ZONE '" + Tz + "') " +
+                "  AND e.start_time <  (CAST(@to AS timestamp) AT TIME ZONE '" + Tz + "') " +
                 "ORDER BY e.start_time",
                 new Dictionary<string, object>
                 {
                     { "@uid", UserId },
-                    { "@from", fromUtc },
-                    { "@to", toUtc }
+                    { "@from", rangeStart.ToString("yyyy-MM-dd HH:mm:ss", Inv) },
+                    { "@to", rangeEnd.ToString("yyyy-MM-dd HH:mm:ss", Inv) }
                 });
 
             var list = new List<Ev>();
@@ -167,8 +173,8 @@ namespace WAPP_EduCore.pages.Student
                     Title = Convert.ToString(r["event_title"]),
                     Type = Convert.ToString(r["event_type"]),
                     Course = Convert.ToString(r["course_title"]),
-                    Start = ToLocal(r["start_time"]),
-                    End = ToLocal(r["end_time"])
+                    Start = Convert.ToDateTime(r["start_local"]),
+                    End = Convert.ToDateTime(r["end_local"])
                 });
             }
             return list;
@@ -306,7 +312,9 @@ namespace WAPP_EduCore.pages.Student
             try
             {
                 DataTable t = Db.Query(
-                    "SELECT event_id, event_title, event_type, start_time FROM calendar_events " +
+                    "SELECT event_id, event_title, event_type, " +
+                    "  (start_time AT TIME ZONE '" + Tz + "') AS start_local " +
+                    "FROM calendar_events " +
                     "WHERE user_id = @uid AND start_time >= now() ORDER BY start_time LIMIT 5",
                     new Dictionary<string, object> { { "@uid", UserId } });
 
@@ -319,7 +327,7 @@ namespace WAPP_EduCore.pages.Student
                         Type = type,
                         Css = TypeCss(type),
                         Title = Convert.ToString(r["event_title"]),
-                        When = ToLocal(r["start_time"]).ToString("MMM d, h:mm tt", Inv)
+                        When = Convert.ToDateTime(r["start_local"]).ToString("MMM d, h:mm tt", Inv)
                     });
                 }
             }
@@ -398,17 +406,21 @@ namespace WAPP_EduCore.pages.Student
                     if (en.Rows.Count > 0) courseId = cid;
                 }
 
+                // The times are sent as plain Malaysia wall-clock text, and the database turns them
+                // into the right moment with AT TIME ZONE. So 09:00 typed is stored as 01:00 UTC.
                 Db.Execute(
                     "INSERT INTO calendar_events (user_id, course_id, event_title, event_type, start_time, end_time) " +
-                    "VALUES (@uid, @cid, @t, @type, @s, @e)",
+                    "VALUES (@uid, @cid, @t, @type, " +
+                    "  (CAST(@s AS timestamp) AT TIME ZONE '" + Tz + "'), " +
+                    "  (CAST(@e AS timestamp) AT TIME ZONE '" + Tz + "'))",
                     new Dictionary<string, object>
                     {
-                { "@uid", UserId },
-                { "@cid", courseId },
-                { "@t", title },
-                { "@type", ddlType.SelectedValue },
-                { "@s", DateTime.SpecifyKind(startLocal.AddHours(-UtcOffsetHours), DateTimeKind.Utc) },
-                { "@e", DateTime.SpecifyKind(endLocal.AddHours(-UtcOffsetHours), DateTimeKind.Utc) }
+                        { "@uid", UserId },
+                        { "@cid", courseId },
+                        { "@t", title },
+                        { "@type", ddlType.SelectedValue },
+                        { "@s", startLocal.ToString("yyyy-MM-dd HH:mm:ss", Inv) },
+                        { "@e", endLocal.ToString("yyyy-MM-dd HH:mm:ss", Inv) }
                     });
             }
             catch (Exception ex)
@@ -438,12 +450,6 @@ namespace WAPP_EduCore.pages.Student
         private static DateTime MondayOf(DateTime d)
         {
             return d.AddDays(-(((int)d.DayOfWeek + 6) % 7));
-        }
-
-        private static DateTime ToLocal(object utcValue)
-        {
-            DateTime dt = DateTime.SpecifyKind(Convert.ToDateTime(utcValue), DateTimeKind.Utc);
-            return dt.AddHours(UtcOffsetHours);
         }
 
         private static DateTime EffectiveEnd(Ev ev)
