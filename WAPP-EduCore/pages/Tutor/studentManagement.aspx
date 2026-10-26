@@ -118,6 +118,20 @@
             white-space: nowrap;
             text-align: center;
         }
+
+        /* ON TRACK = green box with dark green words */
+        .data-table .badge.status-on-track {
+            background: #DCFCE7;
+            color: #14532D;
+            font-weight: 700;
+        }
+
+        /* NEEDS ATTENTION = light yellow box with DARK brown words (easy to read) */
+        .data-table .badge.status-attention {
+            background: #FEF3C7;
+            color: #78350F;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>

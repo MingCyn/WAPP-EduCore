@@ -127,14 +127,16 @@ namespace WAPP_EduCore.pages.Tutor
             return list;
         }
 
-        // The rules for the status (change the numbers if you want):
-        //   At Risk          = progress below 40%  OR  score below 50%
-        //   Needs Attention  = progress below 60%  OR  score below 70%
-        //   On Track         = everything else
+        // The rules for the status (it only looks at the progress = enrollment.progression).
+        // Change the numbers if you want:
+        //   At Risk          = progress below 30%
+        //   Needs Attention  = progress from 30% to 50%
+        //   On Track         = everything else (above 50%)
+        // (the score is still given to this function, but it is not used for the status anymore)
         private string WorkOutStatus(int progress, int score)
         {
-            if (progress < 40 || (score >= 0 && score < 50)) return "At Risk";
-            if (progress < 60 || (score >= 0 && score < 70)) return "Needs Attention";
+            if (progress < 30) return "At Risk";
+            if (progress <= 50) return "Needs Attention";
             return "On Track";
         }
 
