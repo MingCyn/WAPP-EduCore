@@ -174,14 +174,7 @@
     <Content Include="pages\Admin\quizManagement.aspx" />
     <Content Include="pages\Admin\userManagement.aspx" />
     <Content Include="pages\Admin\coursesManagement.aspx" />
-    <Content Include="pages\General\courseOverview.aspx" />
-    <Content Include="pages\General\discussion.aspx" />
-    <Content Include="pages\General\messages.aspx" />
-    <Content Include="pages\General\quiz.aspx" />
-    <Content Include="pages\General\coursesDirectory.aspx" />
-    <Content Include="pages\General\calendar.aspx" />
     <Content Include="Content\course.css" />
-    <Content Include="pages\General\lesson.aspx" />
     <Content Include="pages\Shared\ChatWidget.ascx" />
     <Content Include="pages\Shared\Sidebar.ascx" />
     <Content Include="pages\Student\calendar.aspx" />
@@ -205,7 +198,6 @@
     <Content Include="pages\Tutor\studentManagement.aspx" />
     <Content Include="pages\Tutor\tutorDashboard.aspx" />
     <Content Include="pages\Tutor\tutorNav.aspx" />
-    <Content Include="pages\Shared\navDashboard.ascx" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -354,55 +346,6 @@
     </Compile>
     <Compile Include="pages\Admin\coursesManagement.aspx.designer.cs">
       <DependentUpon>coursesManagement.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\General\courseOverview.aspx.cs">
-      <DependentUpon>courseOverview.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\General\courseOverview.aspx.designer.cs">
-      <DependentUpon>courseOverview.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\General\discussion.aspx.cs">
-      <DependentUpon>discussion.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\General\discussion.aspx.designer.cs">
-      <DependentUpon>discussion.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\General\messages.aspx.cs">
-      <DependentUpon>messages.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\General\messages.aspx.designer.cs">
-      <DependentUpon>messages.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\General\quiz.aspx.cs">
-      <DependentUpon>quiz.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\General\quiz.aspx.designer.cs">
-      <DependentUpon>quiz.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\General\coursesDirectory.aspx.cs">
-      <DependentUpon>coursesDirectory.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\General\coursesDirectory.aspx.designer.cs">
-      <DependentUpon>coursesDirectory.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\General\calendar.aspx.cs">
-      <DependentUpon>calendar.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\General\calendar.aspx.designer.cs">
-      <DependentUpon>calendar.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\General\lesson.aspx.cs">
-      <DependentUpon>lesson.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\General\lesson.aspx.designer.cs">
-      <DependentUpon>lesson.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Shared\ChatHandler.ashx.cs">
       <DependentUpon>ChatHandler.ashx</DependentUpon>
@@ -587,13 +530,6 @@
     </Compile>
     <Compile Include="testconnection.aspx.designer.cs">
       <DependentUpon>testconnection.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\Shared\navDashboard.ascx.cs">
-      <DependentUpon>navDashboard.ascx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\Shared\navDashboard.ascx.designer.cs">
-      <DependentUpon>navDashboard.ascx</DependentUpon>
     </Compile>
     <Compile Include="ViewSwitcher.ascx.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>
