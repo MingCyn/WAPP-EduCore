@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/student-upgrade.css" rel="stylesheet" />
 <style>
         a.course-card{
             display: flex;
@@ -101,8 +102,7 @@
                                             <div class="meta">
                                                 <h4><%#: Eval("Title") %></h4>
                                                 <small>Tutor: <%#: Eval("Tutor") %></small>
-                                                <div class="progress"><span style='width:<%# Eval("Percent") %>%'></span></div>
-                                                <small><%# Eval("Percent") %>% complete</small>
+                                                <div class="progress"><span style='<%# "width: " + Eval("Percent") + "%;" %>'></span></div>                                                <small><%# Eval("Percent") %>% complete</small>
                                             </div>
                                         </a>
                                     </ItemTemplate>
@@ -159,8 +159,7 @@
                                 <asp:Repeater ID="rptAch" runat="server">
                                     <ItemTemplate>
                                         <li>
-                                            <div style="width:36px;height:36px;border-radius:8px;background:<%# Eval("Tint") %>"></div>
-                                            <div>
+                                            <div style='<%# "width:36px;height:36px;border-radius:8px;background:" + Eval("Tint") + ";" %>'></div>                                            <div>
                                                 <strong><%#: Eval("Title") %></strong>
                                                 <div style="color:#7b8697;font-size:13px"><%#: Eval("Sub") %></div>
                                             </div>

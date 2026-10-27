@@ -146,9 +146,11 @@
     <Content Include="Content\courseDetails.css" />
     <Content Include="Content\courses.css" />
     <Content Include="Content\dashboard.css" />
+    <Content Include="Content\fx.js" />
     <Content Include="Content\messages.css" />
     <Content Include="Content\Site.css" />
     <Content Include="Content\navDashboard.css" />
+    <Content Include="Content\student-upgrade.css" />
     <Content Include="Content\student.css" />
     <Content Include="Content\chatbot.css" />
     <Content Include="Default.aspx" />

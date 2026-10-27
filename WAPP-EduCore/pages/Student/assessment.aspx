@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/student-upgrade.css" rel="stylesheet" />
+    <script src="/Content/fx.js"></script>
 </head>
 <body>
     <form id="form1" runat="server">
@@ -81,12 +83,24 @@
                                     </ItemTemplate>
                                 </asp:Repeater>
                             </div>
-                            <asp:Button ID="btnSubmit" runat="server" Text="Submit Quiz"
-                                CssClass="btn-start" OnClick="btnSubmit_Click"
-                                OnClientClick="return confirm('Submit your quiz? Unanswered questions will count as wrong.');" />
+                           <asp:Button ID="btnSubmit" runat="server" Text="Submit Quiz"
+                                CssClass="btn-start" OnClientClick="openSubmitModal(); return false;" />
                         </div>
                     </div>
                 </asp:Panel>
+
+                <div id="submitModal" class="modal-back">
+            <div class="modal-box">
+                <div class="modal-head">
+                    <h3>Submit Assessment</h3>
+                </div>
+                <p class="modal-text">Are you sure you want to submit your quiz? Unanswered questions will count as wrong.</p>
+                <div class="modal-buttons">
+                    <button type="button" class="cl-btn-ghost" onclick="closeSubmitModal()">Cancel</button>
+                    <asp:Button ID="btnConfirmSubmit" runat="server" Text="Yes, Submit" CssClass="cl-btn-solid" OnClick="btnSubmit_Click" />
+                </div>
+            </div>
+        </div>
 
                 <asp:Panel ID="pnlResult" runat="server" Visible="false" CssClass="result-box">
                     <div class="access-label">Your Result</div>
@@ -107,5 +121,16 @@
             </main>
         </div>
     </form>
+
+<script type="text/javascript">
+function openSubmitModal() {
+    var modal = document.getElementById('submitModal');
+    if (modal) modal.classList.add('open');
+}
+function closeSubmitModal() {
+    var modal = document.getElementById('submitModal');
+    if (modal) modal.classList.remove('open');
+}
+</script>
 </body>
 </html>

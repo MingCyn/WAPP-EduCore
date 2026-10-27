@@ -195,6 +195,15 @@ namespace WAPP_EduCore.pages.Student
         protected global::System.Web.UI.WebControls.Button btnSubmit;
 
         /// <summary>
+        /// btnConfirmSubmit control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnConfirmSubmit;
+
+        /// <summary>
         /// pnlResult control.
         /// </summary>
         /// <remarks>

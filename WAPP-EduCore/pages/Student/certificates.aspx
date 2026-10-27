@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/student-upgrade.css" rel="stylesheet" />
+    <script src="/Content/fx.js"></script>
     <style>
         .cf-summary{margin:0 0 4px;font-size:14px;color:#6b7385}
         .cf-h{margin:28px 0 14px;font-family:'Merriweather',Georgia,serif;font-size:20px;color:#111c3d}

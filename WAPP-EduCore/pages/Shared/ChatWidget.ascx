@@ -1,5 +1,4 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="ChatWidget.ascx.cs" Inherits="WAPP_EduCore.pages.Shared.ChatWidget" %>
-
 <link href="<%= ResolveUrl("~/Content/chatbot.css") %>" rel="stylesheet" type="text/css" />
 
 <button type="button" id="chatFab" title="Ask the assistant" aria-label="Open chat assistant">
@@ -24,11 +23,11 @@
 <script>
 // @ts-nocheck
 (function () {
-  // move the widget out of the sidebar so no parent can trap or clip it
-  ['chatFab', 'chatBox'].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el && el.parentNode !== document.body) document.body.appendChild(el);
-  });
+    // move the widget out of the sidebar so no parent can trap or clip it
+    ['chatFab', 'chatBox'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && el.parentNode !== document.body) document.body.appendChild(el);
+    });
 
     var url = '<%= ResolveUrl("~/pages/Shared/ChatHandler.ashx") %>';
     var fab = document.getElementById('chatFab');
@@ -46,18 +45,20 @@
         if (box.style.display === 'flex') input.focus();
     };
 
-    // eyes follow the mouse
+    // eyes follow the mouse (Fixed syntax)
     document.addEventListener('mousemove', function (e) {
         var r = fab.getBoundingClientRect();
-        var dx = (e.clientX - (r.left + r.width / 2)) / window.innerWidth;
-        var dy = (e.clientY - (r.top + r.height / 2)) / window.innerHeight;
+        var centerX = r.left + r.width / 2;
+        var centerY = r.top + r.height / 2;
+        var dx = (e.clientX - centerX) / window.innerWidth;
+        var dy = (e.clientY - centerY) / window.innerHeight;
         eyes.style.transform = 'translate(' + (dx * 10) + 'px,' + (dy * 7) + 'px)';
     });
 
     function add(text, who) {
         var d = document.createElement('div');
         d.className = 'cm ' + who;
-        d.textContent = text;              // textContent (not innerHTML) to prevent XSS
+        d.textContent = text; // textContent (not innerHTML) to prevent XSS
         msgs.appendChild(d);
         msgs.scrollTop = msgs.scrollHeight;
         return d;

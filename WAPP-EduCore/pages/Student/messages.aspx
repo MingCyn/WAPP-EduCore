@@ -12,6 +12,8 @@
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
     <%-- The forum styles that used to be inline here now live in the shared messages.css (also used by Tutor/messages.aspx) --%>
     <link href="../../Content/messages.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/student-upgrade.css" rel="stylesheet" />
+    <script src="/Content/fx.js"></script>
 </head>
 <body>
     <form id="form1" runat="server">
