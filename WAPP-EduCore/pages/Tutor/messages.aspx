@@ -83,7 +83,6 @@
 
                 <div class="fm-ttabs">
                     <a href="messages.aspx" class="fm-ttab active">Discussion Moderation</a>
-                    <a href="calendar.aspx" class="fm-ttab">My Calendar</a>
                 </div>
 
                 <asp:Label ID="LblNote" runat="server" CssClass="fm-note" Visible="false" />

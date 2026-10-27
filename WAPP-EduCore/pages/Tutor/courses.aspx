@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet" />
     <link href="../../Content/dashboard.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/courseBuilder.css?v=4" rel="stylesheet" type="text/css" />
-    <link href="../../Content/courses.css?v=3" rel="stylesheet" type="text/css" />
+    <link href="../../Content/courses.css?v=4" rel="stylesheet" type="text/css" />
 </head>
 <body>
     <form id="form1" runat="server">
@@ -120,13 +120,13 @@
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
                                             Edit
                                         </a>
-                                        <asp:LinkButton ID="BtnDeleteDraft" runat="server" CssClass="cc-delete-draft" 
-                                            CommandName="DeleteDraft" CommandArgument='<%# Eval("CourseId") %>' 
-                                            Visible='<%# Eval("StatusKey").ToString() == "draft" %>'
-                                            OnClientClick="return confirm('Are you sure you want to delete this draft?');" CausesValidation="false">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                        <button type="button" class="cc-delete-draft"
+                                            onclick='<%# "openDeleteModal(" + Eval("CourseId") + ");" %>'
+                                            <%# Eval("StatusKey").ToString() == "draft" ? "" : "style=\"display:none;\"" %>>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                             Delete
-                                        </asp:LinkButton>
+                                        </button>
                                     </div>
                                 </div>
                             </ItemTemplate>
@@ -140,10 +140,46 @@
 
             </main>
         </div>
+
+        <!-- Custom Delete Confirmation Modal -->
+        <div class="modal-overlay" id="modalDeleteDraft" aria-hidden="true">
+            <div class="modal" role="dialog" aria-modal="true">
+                <h3 class="modal-title" style="color: #991b1b;">Delete Draft Course?</h3>
+                <div class="modal-error-box">
+                    Are you sure you want to delete this draft? This action cannot be undone.
+                </div>
+                <asp:HiddenField ID="HdnDeleteCourseId" runat="server" />
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalDeleteDraft')">Cancel</button>
+                    <asp:Button ID="BtnConfirmDeleteCourse" runat="server" OnClick="BtnConfirmDeleteCourse_Click" Text="Yes, Delete" CssClass="btn btn-error-red" CausesValidation="false" />
+                </div>
+            </div>
+        </div>
     </form>
 
     <script>
         // @ts-nocheck
+        function openModal(id) {
+            var m = document.getElementById(id);
+            if (!m) return;
+            m.classList.add('open');
+            m.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+        }
+        function closeModal(id) {
+            var m = document.getElementById(id);
+            if (!m) return;
+            m.classList.remove('open');
+            m.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        }
+
+        function openDeleteModal(courseId) {
+            var hdn = document.getElementById('<%= HdnDeleteCourseId.ClientID %>');
+            if (hdn) hdn.value = courseId;
+            openModal('modalDeleteDraft');
+        }
+
         (function () {
             var grid = document.getElementById('ccGrid');
             if (!grid) return;

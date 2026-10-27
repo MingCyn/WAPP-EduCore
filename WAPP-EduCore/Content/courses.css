@@ -394,9 +394,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
     height: 29px;
-    padding: 0 12px;
+    padding: 0 14px;
     font-family: 'Inter', sans-serif;
     font-size: 12px;
     font-weight: 600;
@@ -406,11 +406,12 @@
     border-radius: 4px;
     text-decoration: none;
     cursor: pointer;
+    box-sizing: border-box;
     transition: background-color 0.15s, border-color 0.15s;
 }
 
     .cc-delete-draft:hover {
-        background-color: #fdf2f2; /* Soft red tint on hover */
+        background-color: #fdf2f2;
         border-color: #f5c6cb;
     }
 
@@ -418,8 +419,8 @@
         width: 14px;
         height: 14px;
         color: #dc3545;
+        flex-shrink: 0;
     }
-
 .cc-footer {
     font-size: 12px;
     color: #6b7285;

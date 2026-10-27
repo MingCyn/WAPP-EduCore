@@ -75,7 +75,8 @@ namespace WAPP_EduCore.pages.Tutor
         {
             if (!TryGetUserId(out userId))
             {
-                Response.Redirect(LoginPage);
+                Response.Redirect(LoginPage, false);
+                Context.ApplicationInstance.CompleteRequest();
                 return;
             }
 
@@ -83,6 +84,11 @@ namespace WAPP_EduCore.pages.Tutor
 
             if (IsPostBack) return;
 
+            LoadAndBindCourses();
+        }
+
+        private void LoadAndBindCourses()
+        {
             List<CourseRow> courseList;
             try
             {
@@ -339,11 +345,36 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            Response.Redirect("courseBuilder.aspx?courseId=" + newId + "&edit=1");
+            Response.Redirect("courseBuilder.aspx?courseId=" + newId + "&edit=1", false);
+            Context.ApplicationInstance.CompleteRequest();
+        }
+
+        protected void BtnConfirmDeleteCourse_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(HdnDeleteCourseId.Value, out int courseIdToDelete) && courseIdToDelete > 0)
+            {
+                try
+                {
+                    using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
+                    using (var cmd = new NpgsqlCommand(SqlDeleteDraft, conn))
+                    {
+                        cmd.Parameters.AddWithValue("cid", courseIdToDelete);
+                        cmd.Parameters.AddWithValue("uid", userId);
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+                    ReloadList();
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage("Could not delete draft: " + ex.Message);
+                }
+            }
         }
 
         protected void RptCourses_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
+            // Kept for backward compatibility if any command triggers it directly
             if (e.CommandName == "DeleteDraft")
             {
                 int courseIdToDelete = Convert.ToInt32(e.CommandArgument);
