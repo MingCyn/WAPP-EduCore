@@ -15,6 +15,26 @@
         .status-pill.pending { background-color: #e8ecfb; color: #2a4494; }
         .btn[disabled] { opacity: 0.6; cursor: default; }
         .live-notice { margin-bottom: 16px; }
+
+        /* Breadcrumb navigation styling */
+        .breadcrumb-nav {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .breadcrumb-nav a {
+            color: #4f46e5;
+            text-decoration: none;
+        }
+        .breadcrumb-nav a:hover {
+            text-decoration: underline;
+        }
+        .breadcrumb-separator {
+            color: #cbd5e1;
+        }
     </style>
 </head>
 <body>
@@ -25,6 +45,17 @@
             <% Server.Execute("tutorNav.aspx", false); %>
 
             <main class="dashboard-container">
+
+                <!-- Guiding Breadcrumb Navigation -->
+                <div class="breadcrumb-nav">
+                    <a href="courses.aspx">My Courses</a>
+                    <span class="breadcrumb-separator">&gt;</span>
+                    <a href='courseDetails.aspx?courseId=<%= CourseIdValue %>'>
+                        <asp:Label ID="LitCrumbTitle" runat="server" Text="Course Details" />
+                    </a>
+                    <span class="breadcrumb-separator">&gt;</span>
+                    <span style="color: #1e293b; font-weight: 500;">Course Builder</span>
+                </div>
 
                 <!-- Page header -->
                 <div class="page-header">
@@ -106,7 +137,6 @@
 
                                 <!-- Video -->
                                 <asp:Panel ID="PnlVideo" runat="server" CssClass="component-card" Visible="false">
-                                    <!-- Image Thumbnail Control -->
                                     <div class="video-thumb-container">
                                         <asp:Image ID="ImgVideoThumb" runat="server" CssClass="component-thumbnail" AlternateText="Video Thumbnail" />
                                     </div>
@@ -280,7 +310,7 @@
                     <span class="form-hint" style="margin-top: 6px;">Each box represents a new line in the database so the student view can read them point by point.</span>
                 </div>
 
-                <%-- NEW: References Dynamic Input Field --%>
+                <%-- References Dynamic Input Field --%>
                 <div class="form-group">
                     <label class="form-label">References</label>
                     <div id="referencesContainer">
@@ -297,9 +327,9 @@
                     <label class="dropzone" for="FileCourseImg">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
                         <span><strong>Click to choose an image</strong> or drag it here</span>
-                        <span class="form-hint">JPG, PNG or WEBP, up to 2 MB</span>
+                        <span class="form-hint">JPG or PNG, up to 2 MB</span>
                         <span class="dropzone-file" id="courseImgName">No new file selected</span>
-                        <asp:FileUpload ID="FileCourseImg" runat="server" CssClass="dropzone-input" accept="image/png,image/jpeg,image/webp" />
+                        <asp:FileUpload ID="FileCourseImg" runat="server" CssClass="dropzone-input" accept="image/png,image/jpeg" />
                     </label>
                     <img id="imgNewPreview" alt="New course image preview"
                          style="display:none; width:100%; max-height:150px; object-fit:cover; border-radius:8px; margin-top:10px;" />
@@ -565,46 +595,45 @@
             }
         });
 
-// Function to add a new reference input row
-function addReferenceInput(value = '') {
-    var container = document.getElementById('referencesContainer');
-    var div = document.createElement('div');
-    div.style.display = 'flex';
-    div.style.gap = '8px';
-    div.style.marginBottom = '8px';
+        // Function to add a new reference input row
+        function addReferenceInput(value = '') {
+            var container = document.getElementById('referencesContainer');
+            var div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.gap = '8px';
+            div.style.marginBottom = '8px';
 
-    var input = document.createElement('input');
-    input.type = 'text';
-    input.name = 'courseReference';
-    input.className = 'form-control';
-    input.placeholder = 'e.g. Gan, W. Y. et al. (2019). Biology Form 4 KSSM.';
-    input.value = value;
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.name = 'courseReference';
+            input.className = 'form-control';
+            input.placeholder = 'e.g. Gan, W. Y. et al. (2019). Biology Form 4 KSSM.';
+            input.value = value;
 
-    var removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.className = 'btn btn-cancel';
-    removeBtn.style.padding = '0 12px';
-    removeBtn.textContent = '✕';
-    removeBtn.onclick = function () {
-        if (container.children.length > 1) {
-            container.removeChild(div);
-        } else {
-            input.value = '';
+            var removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-cancel';
+            removeBtn.style.padding = '0 12px';
+            removeBtn.textContent = '✕';
+            removeBtn.onclick = function () {
+                if (container.children.length > 1) {
+                    container.removeChild(div);
+                } else {
+                    input.value = '';
+                }
+            };
+
+            div.appendChild(input);
+            div.appendChild(removeBtn);
+            container.appendChild(div);
         }
-    };
 
-    div.appendChild(input);
-    div.appendChild(removeBtn);
-    container.appendChild(div);
-}
-
-// Ensure at least one reference box appears if empty on load
-document.addEventListener('DOMContentLoaded', function () {
-    var refContainer = document.getElementById('referencesContainer');
-    if (refContainer && refContainer.children.length === 0) {
-        addReferenceInput();
-    }
-});
+        document.addEventListener('DOMContentLoaded', function () {
+            var refContainer = document.getElementById('referencesContainer');
+            if (refContainer && refContainer.children.length === 0) {
+                addReferenceInput();
+            }
+        });
     </script>
 </body>
 </html>

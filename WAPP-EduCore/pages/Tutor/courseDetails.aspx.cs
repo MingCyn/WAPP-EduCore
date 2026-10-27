@@ -580,38 +580,69 @@ namespace WAPP_EduCore.pages.Tutor
             savedPath = null;
             error = null;
             HttpPostedFile file = FileCourseImg.PostedFile;
-            if (file == null || file.ContentLength == 0) return true;
 
-            if (file.ContentLength > MaxImageBytes) { error = "The image must be 2 MB or smaller."; return false; }
+            if (file == null || file.ContentLength == 0)
+                return true; // No new file uploaded
 
-            var head = new byte[12];
-            int read = file.InputStream.Read(head, 0, head.Length);
-            file.InputStream.Position = 0;
+            // Enforce single file selection safeguard
+            if (FileCourseImg.PostedFiles != null && FileCourseImg.PostedFiles.Count > 1)
+            {
+                error = "Please upload only one image file at a time.";
+                return false;
+            }
 
-            string extension = DetectImageExtension(head, read);
-            if (extension == null) { error = "Please choose a JPG, PNG or WEBP image."; return false; }
+            if (file.ContentLength > MaxImageBytes)
+            {
+                error = "The image must be 2 MB or smaller.";
+                return false;
+            }
 
             try
             {
+                var head = new byte[12];
+                int read = file.InputStream.Read(head, 0, head.Length);
+                file.InputStream.Position = 0; // Reset stream pointer
+
+                string extension = DetectImageExtension(head, read);
+                if (extension == null)
+                {
+                    error = "Please choose a valid JPG, PNG or WEBP image format.";
+                    return false;
+                }
+
                 string folder = Server.MapPath(ImageFolder);
-                Directory.CreateDirectory(folder);
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+
                 string fileName = courseId + "-" + Guid.NewGuid().ToString("N") + extension;
-                file.SaveAs(Path.Combine(folder, fileName));
+                string fullPath = Path.Combine(folder, fileName);
+
+                file.SaveAs(fullPath);
                 savedPath = ImageFolder + fileName;
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                error = "The image could not be saved on the server.";
+                System.Diagnostics.Debug.WriteLine("File Upload Exception: " + ex.ToString());
+                error = "The image could not be saved due to a server error.";
                 return false;
             }
+        }
+
+        // Event handler when the tutor clicks the "X" button on the current image preview
+        protected void BtnRemoveImg_Click(object sender, EventArgs e)
+        {
+            HfRemoveImage.Value = "true";
+            PnlCurrentImg.Visible = false; // Hide preview instantly on UI
+            ReopenCourseInfoDialog("Image marked for removal. Click 'Save changes' to apply.");
         }
 
         private static string DetectImageExtension(byte[] head, int length)
         {
             if (length >= 3 && head[0] == 0xFF && head[1] == 0xD8 && head[2] == 0xFF) return ".jpg";
             if (length >= 8 && head[0] == 0x89 && head[1] == 0x50 && head[2] == 0x4E && head[3] == 0x47 && head[4] == 0x0D && head[5] == 0x0A && head[6] == 0x1A && head[7] == 0x0A) return ".png";
-            if (length >= 12 && head[0] == (byte)'R' && head[1] == (byte)'I' && head[2] == (byte)'F' && head[3] == (byte)'F' && head[8] == (byte)'W' && head[9] == (byte)'E' && head[10] == (byte)'B' && head[11] == (byte)'P') return ".webp";
             return null;
         }
 
@@ -897,34 +928,79 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            string newImage, imageError;
-            if (!TrySaveCourseImage(out newImage, out imageError))
+            string newImage = null;
+            string imageError = null;
+            bool removeRequested = HfRemoveImage.Value == "true";
+
+            // If a new file is uploaded, process it
+            if (FileCourseImg.HasFile)
             {
-                ReopenCourseInfoDialog(imageError);
-                return;
+                if (!TrySaveCourseImage(out newImage, out imageError))
+                {
+                    ReopenCourseInfoDialog(imageError);
+                    return;
+                }
             }
 
             string duration = FormatDuration(weeks, hours);
+            string oldImage = "";
 
             try
             {
                 int rows;
                 using (NpgsqlConnection conn = OpenConnection())
-                using (var cmd = new NpgsqlCommand(SqlCourseInfoUpdate, conn))
                 {
-                    cmd.Parameters.AddWithValue("title", title);
-                    cmd.Parameters.AddWithValue("topic", topic);
-                    cmd.Parameters.AddWithValue("duration", duration);
-                    cmd.Parameters.AddWithValue("level", level);
-                    cmd.Parameters.AddWithValue("img", newImage == null ? (object)DBNull.Value : newImage);
-                    cmd.Parameters.AddWithValue("cid", courseId);
-                    cmd.Parameters.AddWithValue("uid", userId);
-                    rows = cmd.ExecuteNonQuery();
+                    // 1. Fetch current image path from DB
+                    using (var selectCmd = new NpgsqlCommand("SELECT course_img FROM courses WHERE course_id = @cid AND user_id = @uid", conn))
+                    {
+                        selectCmd.Parameters.AddWithValue("cid", courseId);
+                        selectCmd.Parameters.AddWithValue("uid", userId);
+                        object dbImg = selectCmd.ExecuteScalar();
+                        if (dbImg != null && dbImg != DBNull.Value)
+                        {
+                            oldImage = Convert.ToString(dbImg);
+                        }
+                    }
+
+                    // Determine image parameter value for update query
+                    object imgParam;
+                    if (removeRequested && !FileCourseImg.HasFile)
+                    {
+                        imgParam = DBNull.Value; // Clear image if requested and no new file uploaded
+                    }
+                    else if (newImage != null)
+                    {
+                        imgParam = newImage;     // Use newly uploaded image path
+                    }
+                    else
+                    {
+                        imgParam = DBNull.Value; // Keep existing via COALESCE logic in SQL update
+                    }
+
+                    // 2. Perform update query
+                    string updateSql = "UPDATE courses SET title = @title, category = @topic, duration = @duration, course_level = @level, " +
+                                       (removeRequested && !FileCourseImg.HasFile ? "course_img = NULL, " : "course_img = COALESCE(CAST(@img AS text), course_img), ") +
+                                       "updated_at = now() WHERE course_id = @cid AND user_id = @uid";
+
+                    using (var cmd = new NpgsqlCommand(updateSql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("title", title);
+                        cmd.Parameters.AddWithValue("topic", topic);
+                        cmd.Parameters.AddWithValue("duration", duration);
+                        cmd.Parameters.AddWithValue("level", level);
+                        if (!removeRequested || FileCourseImg.HasFile)
+                        {
+                            cmd.Parameters.AddWithValue("img", newImage == null ? (object)DBNull.Value : newImage);
+                        }
+                        cmd.Parameters.AddWithValue("cid", courseId);
+                        cmd.Parameters.AddWithValue("uid", userId);
+                        rows = cmd.ExecuteNonQuery();
+                    }
                 }
 
                 if (rows == 0)
                 {
-                    DeleteStoredImage(newImage);
+                    if (newImage != null) DeleteStoredImage(newImage);
                     ReopenCourseInfoDialog("This course could not be found.");
                     return;
                 }
@@ -932,7 +1008,7 @@ namespace WAPP_EduCore.pages.Tutor
             catch (NpgsqlException ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                DeleteStoredImage(newImage);
+                if (newImage != null) DeleteStoredImage(newImage);
 
                 var pg = ex as PostgresException;
                 string detail = pg != null ? pg.MessageText : ex.Message;
@@ -940,10 +1016,18 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            if (newImage != null) DeleteStoredImage(currentImage);
+            // 3. Clean up physical files from disk if replaced or removed
+            if (!string.IsNullOrWhiteSpace(oldImage))
+            {
+                if (removeRequested || newImage != null)
+                {
+                    DeleteStoredImage(oldImage);
+                }
+            }
 
             Response.Redirect(Request.RawUrl);
         }
+
         protected void BtnConfirmDelete_Click(object sender, EventArgs e)
         {
             string deleteType = HfDeleteType.Value;

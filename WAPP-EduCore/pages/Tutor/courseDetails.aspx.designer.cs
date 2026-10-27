@@ -303,6 +303,42 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.DropDownList DdlCourseHours;
 
         /// <summary>
+        /// PnlCurrentImg control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlCurrentImg;
+
+        /// <summary>
+        /// LitCurrentImgPreview control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal LitCurrentImgPreview;
+
+        /// <summary>
+        /// BtnRemoveImg control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton BtnRemoveImg;
+
+        /// <summary>
+        /// HfRemoveImage control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField HfRemoveImage;
+
+        /// <summary>
         /// FileCourseImg control.
         /// </summary>
         /// <remarks>

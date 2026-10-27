@@ -287,13 +287,31 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Course image</label>
-                    <label class="dropzone" for="FileCourseImg">
-                        <span><strong>Click to choose an image</strong> or drag it here</span>
-                        <span class="form-hint">JPG, PNG or WEBP, up to 2 MB</span>
-                        <asp:FileUpload ID="FileCourseImg" runat="server" CssClass="dropzone-input" accept="image/png,image/jpeg,image/webp" />
-                    </label>
-                </div>
+                    <!-- Course Image Section inside your Modal -->
+                    <label>Course image</label>
+                    <div style="margin-bottom: 12px;">
+                        <!-- Current Image Row with 'X' aligned to the right -->
+                        <asp:Panel ID="PnlCurrentImg" runat="server" CssClass="current-img-row" Style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <asp:Literal ID="LitCurrentImgPreview" runat="server" />
+                                <span style="font-size: 13px; color: #475569; font-weight: 500;">Current image</span>
+                            </div>
+                            <asp:LinkButton ID="BtnRemoveImg" runat="server" CssClass="btn-remove-badge" OnClick="BtnRemoveImg_Click" ToolTip="Remove current image" style="background: #dc2626; color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 13px; font-weight: bold;">&times;</asp:LinkButton>
+                        </asp:Panel>
+                        <asp:HiddenField ID="HfRemoveImage" runat="server" Value="false" />
+                    </div>
+
+                    <!-- Upload Box with Live Preview Support -->
+                    <div class="dropzone-container" style="border: 2px dashed #cbd5e1; padding: 16px; text-align: center; border-radius: 8px; background: #ffffff;">
+                        <asp:FileUpload ID="FileCourseImg" runat="server" CssClass="form-control-file" onchange="previewUploadedImage(this);" />
+                        <small class="form-text text-muted" style="display: block; margin-top: 6px;">JPG or PNG, up to 2 MB (Select 1 image)</small>
+
+                        <!-- Live Preview Container for newly picked file -->
+                        <div id="newImagePreviewContainer" style="display: none; margin-top: 10px; align-items: center; justify-content: center; gap: 8px;">
+                            <img id="imgPreviewTag" src="" alt="New preview" style="max-height: 60px; border-radius: 4px; border: 1px solid #cbd5e1;" />
+                            <span id="lblFileName" style="font-size: 12px; color: #1e293b;"></span>
+                        </div>
+                    </div>
 
                 <div class="modal-actions">
                     <button type="button" class="btn btn-cancel" onclick="closeModal('modalCourseInfo')">Cancel</button>
@@ -368,6 +386,39 @@
             document.getElementById('confirmDeleteMessage').textContent = msg;
 
             openModal('modalConfirmDelete');
+        }
+
+        function removeCurrentImage() {
+            var previewPanel = document.getElementById('<%= PnlCurrentImg.ClientID %>');
+            var removeField = document.getElementById('<%= HfRemoveImage.ClientID %>');
+            if (previewPanel) previewPanel.style.display = 'none';
+            if (removeField) removeField.value = 'true';
+        }
+
+        function previewUploadedImage(input) {
+            var container = document.getElementById('newImagePreviewContainer');
+            var imgTag = document.getElementById('imgPreviewTag');
+            var nameSpan = document.getElementById('lblFileName');
+
+            if (input.files && input.files[0]) {
+                // Check file count enforcement
+                if (input.files.length > 1) {
+                    alert("Please select only one image.");
+                    input.value = "";
+                    container.style.display = 'none';
+                    return;
+                }
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    imgTag.src = e.target.result;
+                    nameSpan.textContent = input.files[0].name;
+                    container.style.display = 'flex';
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                container.style.display = 'none';
+            }
         }
 
         document.querySelectorAll('.modal-overlay').forEach(function (o) {

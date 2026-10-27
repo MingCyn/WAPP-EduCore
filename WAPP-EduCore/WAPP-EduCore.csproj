@@ -198,7 +198,6 @@
     <Content Include="pages\Tutor\courseDetails.aspx" />
     <Content Include="pages\Tutor\courses.aspx" />
     <Content Include="pages\Tutor\messages.aspx" />
-    <Content Include="pages\Tutor\studentPerformance.aspx" />
     <Content Include="pages\Tutor\studentManagement.aspx" />
     <Content Include="pages\Tutor\tutorDashboard.aspx" />
     <Content Include="pages\Tutor\tutorNav.aspx" />
@@ -533,13 +532,6 @@
     </Compile>
     <Compile Include="pages\Tutor\messages.aspx.designer.cs">
       <DependentUpon>messages.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="pages\Tutor\studentPerformance.aspx.cs">
-      <DependentUpon>studentPerformance.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="pages\Tutor\studentPerformance.aspx.designer.cs">
-      <DependentUpon>studentPerformance.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Tutor\studentManagement.aspx.cs">
       <DependentUpon>studentManagement.aspx</DependentUpon>

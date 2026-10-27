@@ -8,9 +8,8 @@
         <a href="tutorDashboard.aspx" class="nav-link">Dashboard</a>
         <a href="courses.aspx" class="nav-link">My Courses</a>
         <a href="studentManagement.aspx" class="nav-link">Students</a>
-        <a href="assessmentBuilder.aspx" class="nav-link">Assessments</a>
-        <a href="analytics.aspx" class="nav-link">Analytics</a>
         <a href="messages.aspx" class="nav-link">Messages</a>
+        <a href="analytics.aspx" class="nav-link">Account</a>
     </nav>
     <div class="nav-profile">
         <span class="profile-name"><%: DisplayName %></span>

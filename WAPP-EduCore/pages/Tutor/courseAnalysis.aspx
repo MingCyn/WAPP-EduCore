@@ -55,7 +55,7 @@
                 <!-- Enrolled Students & Progress Table Section -->
                 <section class="ca-section">
                     <div class="ca-card-head">
-                        <h2 class="ca-section-title">Enrolled Students Roster & Progress</h2>
+                        <h2 class="ca-section-title">Enrolled Students List & Progress</h2>
                     </div>
 
                     <asp:Panel ID="PnlStudentList" runat="server">
