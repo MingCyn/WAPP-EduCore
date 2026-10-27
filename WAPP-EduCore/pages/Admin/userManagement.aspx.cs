@@ -352,6 +352,9 @@ namespace WAPP_EduCore.pages.Admin
 
             try
             {
+                // Make sure the "profile" table exists (the database may need it when a user is added)
+                EnsureProfileTable();
+
                 // Same as signup.aspx: the password is saved the same way
                 RunSql(@"INSERT INTO public.users (full_name, email, dob, gender, password_hash, role)
                          VALUES (@name, @email, @dob, @gender, @password, @role)",
@@ -371,9 +374,12 @@ namespace WAPP_EduCore.pages.Admin
             }
             catch (Exception ex)
             {
-                lblAddError.Text = ex.Message.Contains("users_email_key")
-                    ? "This email address is already registered."
-                    : "Could not add the user: " + ex.Message;
+                if (ex.Message.Contains("users_email_key"))
+                    lblAddError.Text = "This email address is already registered.";
+                else if (ex.Message.Contains("42P01"))
+                    lblAddError.Text = "Could not add the user: the database wants a table that is missing (" + ex.Message + "). Please create that table in Supabase.";
+                else
+                    lblAddError.Text = "Could not add the user: " + ex.Message;
                 ReopenPopup("addModal");
             }
         }
@@ -528,6 +534,38 @@ namespace WAPP_EduCore.pages.Admin
         {
             if (value == null || value == DBNull.Value) return "—";
             return Convert.ToDateTime(value).ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+        }
+
+        // Makes the "profile" table if it is not there yet.
+        // Why? Supabase may have a rule (trigger) that fills the profile table
+        // every time a new user is added. If the table is missing, we get error 42P01.
+        // "IF NOT EXISTS" = do nothing when the table is already there (so it is safe to run every time).
+        private void EnsureProfileTable()
+        {
+            try
+            {
+                RunSql(@"CREATE TABLE IF NOT EXISTS public.profile (
+                            profile_id          integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                            user_id             integer,
+                            phone               text,
+                            program             text,
+                            learning_preference text,
+                            daily_goal_hours    numeric,
+                            high_contrast       boolean DEFAULT false,
+                            large_font          boolean DEFAULT false,
+                            reduced_motion      boolean DEFAULT false
+                         )");
+
+                // One profile per user. The database rule that fills this table uses
+                // "ON CONFLICT (user_id)", and that only works when user_id is UNIQUE.
+                // (Without this we get error 42P10.) Safe to run again and again.
+                RunSql("CREATE UNIQUE INDEX IF NOT EXISTS profile_user_id_key ON public.profile (user_id)");
+            }
+            catch
+            {
+                // Could not create it (maybe no permission). Do nothing here,
+                // the Add User code below will show the real error to the admin.
+            }
         }
 
         // Does this table have this column?
