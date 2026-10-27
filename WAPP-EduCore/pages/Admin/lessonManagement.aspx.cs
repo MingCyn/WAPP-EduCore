@@ -404,12 +404,7 @@ namespace WAPP_EduCore.pages.Admin
             {
                 string content = BuildContent("", video, text);
 
-                RunSql(@"INSERT INTO public.lesson (course_id, lesson_title, lesson_description, lesson_content)
-                         VALUES (@cid, @title, CAST(@desc AS text), CAST(@content AS jsonb))",
-                    new NpgsqlParameter("@cid", courseId),
-                    new NpgsqlParameter("@title", title),
-                    new NpgsqlParameter("@desc", description == "" ? (object)DBNull.Value : description),
-                    new NpgsqlParameter("@content", content));
+                InsertLesson(courseId, title, description, content);
 
                 ShowMessage("Created! \"" + title + "\" was added to the course.", true);
 
@@ -423,6 +418,56 @@ namespace WAPP_EduCore.pages.Admin
             {
                 lblAddError.Text = "Could not create the lesson: " + ex.Message;
                 ReopenPopup("addModal");
+            }
+        }
+
+        // Puts the new lesson in the database.
+        // Problem we fixed: "duplicate key value violates unique constraint lesson_pkey".
+        // It happens when the lessons were added with their own numbers (imported), so the
+        // database counter that gives the NEXT lesson_id is behind and gives a number that is already used.
+        //   Try 1: the normal way (the database picks lesson_id).
+        //   Try 2: if the number is already used, move the counter to the biggest lesson_id, then try again.
+        //   Try 3: if the table has no counter at all, use  biggest lesson_id + 1  ourselves.
+        private void InsertLesson(int courseId, string title, string description, string content)
+        {
+            string normalSql = @"INSERT INTO public.lesson (course_id, lesson_title, lesson_description, lesson_content)
+                                 VALUES (@cid, @title, CAST(@desc AS text), CAST(@content AS jsonb))";
+
+            // (the same 4 values are used every time, so we make them in a small list)
+            Func<NpgsqlParameter[]> values = delegate ()
+            {
+                return new NpgsqlParameter[] {
+                    new NpgsqlParameter("@cid", courseId),
+                    new NpgsqlParameter("@title", title),
+                    new NpgsqlParameter("@desc", description == "" ? (object)DBNull.Value : description),
+                    new NpgsqlParameter("@content", content)
+                };
+            };
+
+            try
+            {
+                RunSql(normalSql, values());                         // Try 1
+            }
+            catch (PostgresException ex)
+            {
+                // 23505 = number already used,   23502 = no number was given (no counter)
+                if (ex.SqlState != "23505" && ex.SqlState != "23502") throw;
+
+                try
+                {
+                    // Try 2: move the counter forward (does nothing when there is no counter)
+                    RunSql(@"SELECT setval(pg_get_serial_sequence('public.lesson', 'lesson_id'),
+                                           (SELECT COALESCE(MAX(lesson_id), 1) FROM public.lesson))
+                             WHERE pg_get_serial_sequence('public.lesson', 'lesson_id') IS NOT NULL");
+                    RunSql(normalSql, values());
+                }
+                catch (PostgresException)
+                {
+                    // Try 3: choose the number ourselves
+                    RunSql(@"INSERT INTO public.lesson (lesson_id, course_id, lesson_title, lesson_description, lesson_content)
+                             SELECT COALESCE(MAX(lesson_id), 0) + 1, @cid, @title, CAST(@desc AS text), CAST(@content AS jsonb)
+                             FROM public.lesson", values());
+                }
             }
         }
 
