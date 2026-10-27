@@ -25,7 +25,7 @@ namespace WAPP_EduCore.pages.Student
                 if (Request.QueryString["saved"] == "1")
                     ShowMessage("Your changes have been saved.", true);
                 if (Request.QueryString["pw"] == "1")
-                    ShowPasswordMessage("Your password has been updated.", true);
+                    ShowPasswordMessage("Your password has been updated successfully.", true);
             }
         }
 
@@ -107,8 +107,18 @@ namespace WAPP_EduCore.pages.Student
         // ---------- Change Password ----------
         protected void btnPassword_Click(object sender, EventArgs e)
         {
+            string currentPw = txtCurrentPw.Text.Trim();
+            string newPw = txtNewPw.Text.Trim();
+            string confirmPw = txtConfirmPw.Text.Trim();
+
+            if (string.IsNullOrEmpty(currentPw) || string.IsNullOrEmpty(newPw) || string.IsNullOrEmpty(confirmPw))
+            {
+                ShowPasswordMessage("All password fields are required.", false);
+                return;
+            }
+
             AccountService.Result r = AccountService.ChangePassword(
-                UserId, txtCurrentPw.Text, txtNewPw.Text, txtConfirmPw.Text);
+                UserId, currentPw, newPw, confirmPw);
 
             if (!r.Ok)
             {
@@ -131,7 +141,7 @@ namespace WAPP_EduCore.pages.Student
         private void ShowMessage(string text, bool ok)
         {
             pnlMsg.Visible = true;
-            pnlMsg.CssClass = "msg " + (ok ? "ok" : "error");
+            pnlMsg.CssClass = "msg-box " + (ok ? "success" : "error");
             litMsg.Text = text;
             ClientScript.RegisterStartupScript(GetType(), "toTop", "window.scrollTo(0,0);", true);
         }
@@ -139,7 +149,7 @@ namespace WAPP_EduCore.pages.Student
         private void ShowPasswordMessage(string text, bool ok)
         {
             pnlPwMsg.Visible = true;
-            pnlPwMsg.CssClass = "msg " + (ok ? "ok" : "error");
+            pnlPwMsg.CssClass = "msg-box " + (ok ? "success" : "error");
             litPwMsg.Text = text;
         }
     }

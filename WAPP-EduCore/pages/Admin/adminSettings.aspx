@@ -11,214 +11,44 @@
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
 
-    <!-- Our own styles (sidebar, top bar, message banner...) -->
+    <!-- Core admin styles & Shared settings design stylesheet -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
+    <link href="../../Content/settings.css" rel="stylesheet" type="text/css" />
 
-    <!-- ==================================================
-         STYLES ONLY THIS PAGE NEEDS (so admin.css does not change)
-         ================================================== -->
+    <!-- Sidebar and alignment styles matching adminReports.aspx -->
     <style type="text/css">
-
-        /* ---------- The dark banner with the big initials ---------- */
-        .st-banner {
+        /* ---------- Sidebar: a little icon before every menu name ---------- */
+        .sidebar a.menu-item {
             display: flex;
             align-items: center;
-            gap: 18px;
-            padding: 24px 28px;
-            margin-bottom: 22px;
-            background: #0f1a46;
-            color: #fff;
-            border-radius: 14px;
-        }
-
-        .st-avatar {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: #2a4496;
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .st-banner h3 {
-            margin: 0 0 4px;
-            font-family: 'Merriweather', Georgia, serif;
-            font-size: 20px;
-        }
-
-        .st-banner small {
-            display: block;
-            margin-top: 2px;
-            color: #cbd8ee;
-            font-size: 13px;
-        }
-
-        /* ---------- Two columns of white cards ---------- */
-        .st-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);    /* left (Personal Information) : right (Account & Security) = 1.6 : 1. Make the 1.6 bigger to make the left side wider */
-            gap: 22px;
-        }
-
-        .st-card {
-            padding: 22px 24px;
-            background: #fff;
-            border: 1px solid #ebe7e1;
-            border-radius: 12px;
-        }
-
-        .st-card h3 {
-            margin: 0 0 16px;
-            font-family: 'Merriweather', Georgia, serif;
-            font-size: 18px;
-            color: #111c3d;
-        }
-
-        /* ---------- Fields ---------- */
-        .st-field {
-            margin-bottom: 14px;
-        }
-
-        .st-field label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 13px;
-            color: #59637a;
-        }
-
-        .st-field input[type=text],
-        .st-field input[type=email],
-        .st-field input[type=date],
-        .st-field input[type=password],
-        .st-field select {
-            width: 100%;
-            height: 40px;
-            padding: 0 12px;
-            border: 1px solid #e3e3e3;
-            border-radius: 8px;
-            background: #fbfbfb;
-            font-family: inherit;
-            font-size: 14px;
-            color: #16223b;
-            box-sizing: border-box;
-        }
-
-        /* The little arrow of the Role dropdown, a bit away from the right edge */
-        .st-field select {
-            appearance: none;
-            -webkit-appearance: none;
-            padding-right: 40px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            background-size: 14px;
-        }
-
-        /* The Role box can only be read (it cannot be changed) */
-        .st-field input.readonly {
-            background: #F1F3F9;
-            color: #64748B;
-            cursor: not-allowed;
-        }
-
-        .st-field input:focus,
-        .st-field select:focus {
-            outline: none;
-            border-color: #4f67cc;
-        }
-
-        .st-hint {
-            margin-top: 6px;
-            font-size: 12px;
-            color: #8a8478;
-        }
-
-        /* ---------- Password box with the eye button INSIDE it ---------- */
-        .pw-wrap {
-            position: relative;
-        }
-
-        .pw-wrap input {
-            padding-right: 44px !important;    /* keep the typing away from the eye */
-        }
-
-        .pw-eye {
-            position: absolute;
-            top: 50%;
-            right: 10px;
-            transform: translateY(-50%);
-            padding: 4px;
-            background: none;
-            border: none;
-            color: #64748B;
-            cursor: pointer;
-            line-height: 0;
-        }
-
-        .pw-eye:hover {
-            color: #4f67cc;
-        }
-
-        .pw-eye .eye-open {
-            display: none;                     /* the open eye is shown only while the password is visible */
-        }
-
-        /* ---------- Buttons ---------- */
-        .st-actions {
-            display: flex;
-            justify-content: flex-end;
             gap: 12px;
-            margin-top: 22px;
         }
 
-        .st-btn-solid {
-            padding: 10px 20px;
-            border: 0;
-            border-radius: 8px;
-            background: #243f86;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .st-btn-solid:hover {
-            background: #1b3270;
-        }
-
-        .st-btn-ghost {
-            padding: 10px 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background: #fff;
-            color: #16223b;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        @media (max-width: 1000px) {
-            .st-grid {
-                grid-template-columns: 1fr;
-            }
+        .menu-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         /* ---------- The avatar + drop-down menu (top right) ---------- */
         .user-menu {
             position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .user-btn {
             display: flex;
             align-items: center;
-            gap: 6px;
             padding: 0;
             background: none;
             border: none;
-            color: var(--grey);
             cursor: pointer;
         }
 
@@ -227,7 +57,7 @@
         }
 
         .user-dropdown {
-            display: none;                 /* hidden until JavaScript adds "open" */
+            display: none;
             position: absolute;
             right: 0;
             top: 44px;
@@ -260,51 +90,36 @@
         .user-dropdown a.logout {
             color: #DC2626;
         }
-
-        /* ---------- Sidebar: a little icon before every menu name ---------- */
-        .sidebar a.menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;                  /* space between the icon and the name */
-        }
-
-        .menu-icon {
-            width: 18px;
-            height: 18px;
-            flex-shrink: 0;
-            fill: none;
-            stroke: currentColor;       /* the icon has the same color as the name */
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
     </style>
 
     <!-- ==================================================
          JAVASCRIPT
          ================================================== -->
     <script type="text/javascript">
-
         // ----- The drop-down menu at the top right -----
         function toggleUserMenu(event) {
-            event.stopPropagation();   // so the click does not reach "document" below
-            document.getElementById('userDropdown').classList.toggle('open');
+            event.stopPropagation();
+            var dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.toggle('open');
         }
 
         document.addEventListener('click', function () {
-            document.getElementById('userDropdown').classList.remove('open');
+            var dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.remove('open');
         });
 
         // ----- The eye button: show / hide a password -----
-        // boxId = the id of the password box,  button = the eye that was clicked
         function togglePassword(boxId, button) {
             var box = document.getElementById(boxId);
-            var showIt = (box.type == 'password');          // hidden now? then show it
+            if (!box) return;
 
-            box.type = showIt ? 'text' : 'password';        // text = you can read it
-            // slash = hidden (click to show),  open eye = visible (click to hide)
-            button.querySelector('.eye-slash').style.display = showIt ? 'none' : 'block';
-            button.querySelector('.eye-open').style.display = showIt ? 'block' : 'none';
+            var showIt = (box.type == 'password');
+            box.type = showIt ? 'text' : 'password';
+
+            var slash = button.querySelector('.eye-slash');
+            var open = button.querySelector('.eye-open');
+            if (slash) slash.style.display = showIt ? 'none' : 'block';
+            if (open) open.style.display = showIt ? 'block' : 'none';
         }
     </script>
 </head>
@@ -312,9 +127,8 @@
 <body>
     <form id="form1" runat="server">
 
-
         <!-- ==================================================
-             PART 1 : SIDEBAR (dark menu on the left)
+             PART 1 : ADMIN SIDEBAR (dark menu on the left)
              ================================================== -->
         <div class="sidebar">
             <img src="../../images/logo.png" alt="EduCore" class="logo" />
@@ -360,7 +174,7 @@
             <div class="topbar">
                 <div>
                     <h1>Manage Account</h1>
-                    <p>Manage your profile information, learning habits, and security rules.</p>
+                    <p>Manage your profile information and security settings.</p>
                 </div>
 
                 <div class="user-menu">
@@ -368,7 +182,7 @@
                         <span class="avatar"><%= AdminInitials %></span>
                     </button>
 
-                    <!-- The 2 options -->
+                    <!-- The dropdown options -->
                     <div class="user-dropdown" id="userDropdown">
                         <a href="adminSettings.aspx">Manage Account</a>
                         <asp:LinkButton ID="lnkLogout" runat="server" CssClass="logout" CausesValidation="false" OnClick="lnkLogout_Click">Logout</asp:LinkButton>
@@ -378,8 +192,8 @@
 
             <div class="content">
 
-                <!-- Green / red message after saving -->
-                <asp:Panel ID="pnlMsg" runat="server" Visible="false" CssClass="msg ok">
+                <!-- Shared message box design matching settings.css -->
+                <asp:Panel ID="pnlMsg" runat="server" Visible="false" CssClass="msg-box">
                     <asp:Literal ID="litMsg" runat="server" Mode="Encode"></asp:Literal>
                 </asp:Panel>
 
@@ -402,7 +216,7 @@
                     <!-- ---------- LEFT COLUMN ---------- -->
                     <div>
 
-                        <!-- Personal Information (no phone number) -->
+                        <!-- Personal Information -->
                         <div class="st-card">
                             <h3>Personal Information</h3>
 
@@ -436,7 +250,7 @@
                         <div class="st-card">
                             <h3>Account &amp; Security</h3>
 
-                            <asp:Panel ID="pnlPwMsg" runat="server" Visible="false" CssClass="msg error">
+                            <asp:Panel ID="pnlPwMsg" runat="server" Visible="false" CssClass="msg-box">
                                 <asp:Literal ID="litPwMsg" runat="server" Mode="Encode"></asp:Literal>
                             </asp:Panel>
 
@@ -478,7 +292,7 @@
                             </div>
 
                             <asp:Button ID="btnPassword" runat="server" Text="Change Password"
-                                CssClass="st-btn-solid" CausesValidation="false" OnClick="btnPassword_Click" />
+                                CssClass="st-btn-solid" OnClick="btnPassword_Click" />
                         </div>
 
                     </div>

@@ -148,6 +148,7 @@
     <Content Include="Content\dashboard.css" />
     <Content Include="Content\fx.js" />
     <Content Include="Content\messages.css" />
+    <Content Include="Content\settings.css" />
     <Content Include="Content\Site.css" />
     <Content Include="Content\navDashboard.css" />
     <Content Include="Content\student-upgrade.css" />
@@ -200,6 +201,7 @@
     <Content Include="pages\Tutor\courseDetails.aspx" />
     <Content Include="pages\Tutor\courses.aspx" />
     <Content Include="pages\Tutor\messages.aspx" />
+    <Content Include="pages\Tutor\settings.aspx" />
     <Content Include="pages\Tutor\studentManagement.aspx" />
     <Content Include="pages\Tutor\tutorDashboard.aspx" />
     <Content Include="pages\Tutor\tutorNav.aspx" />
@@ -534,6 +536,13 @@
     </Compile>
     <Compile Include="pages\Tutor\messages.aspx.designer.cs">
       <DependentUpon>messages.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Tutor\settings.aspx.cs">
+      <DependentUpon>settings.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Tutor\settings.aspx.designer.cs">
+      <DependentUpon>settings.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Tutor\studentManagement.aspx.cs">
       <DependentUpon>studentManagement.aspx</DependentUpon>
