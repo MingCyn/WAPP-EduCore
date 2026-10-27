@@ -83,10 +83,10 @@ namespace WAPP_EduCore.pages.Admin
             {
                 cmd.Connection = conn;
 
-                if (Session["user_id"] != null)
+                if (CurrentUserId() > 0)
                 {
                     cmd.CommandText = "SELECT user_id, full_name FROM public.users WHERE user_id = @id";
-                    cmd.Parameters.AddWithValue("@id", Convert.ToInt32(Session["user_id"]));
+                    cmd.Parameters.AddWithValue("@id", CurrentUserId());
                 }
                 else
                 {
@@ -105,7 +105,7 @@ namespace WAPP_EduCore.pages.Admin
                         if (words.Length == 1)
                             AdminInitials = words[0].Substring(0, 1).ToUpper();
                         else if (words.Length > 1)
-                            AdminInitials = (words[0].Substring(0, 1) + words[words.Length - 1].Substring(0, 1)).ToUpper();
+                            AdminInitials = words[0].Substring(0, 1).ToUpper();
                     }
                 }
             }
@@ -118,22 +118,38 @@ namespace WAPP_EduCore.pages.Admin
         private void RefreshTopicList()
         {
             string keep = ddlTopic.SelectedValue;     // remember what was chosen
+            string keepAdd = ddlAddTopic.SelectedValue;     // the Create popup dropdown remembers its choice too
+            string keepEdit = ddlEditTopic.SelectedValue;   // the Edit popup dropdown remembers its choice too
 
             DataTable topics = GetTable("SELECT DISTINCT category FROM public.courses WHERE category IS NOT NULL AND category <> '' ORDER BY category");
 
             ddlTopic.Items.Clear();
             ddlTopic.Items.Add(new ListItem("All topics", ""));
 
+            ddlAddTopic.Items.Clear();
+            ddlAddTopic.Items.Add(new ListItem("Select topic", ""));
+
+            ddlEditTopic.Items.Clear();
+            ddlEditTopic.Items.Add(new ListItem("Select topic", ""));
+
             StringBuilder options = new StringBuilder();
             foreach (DataRow r in topics.Rows)
             {
                 string topic = r["category"].ToString();
                 ddlTopic.Items.Add(new ListItem(topic, topic));
+                ddlAddTopic.Items.Add(new ListItem(topic, topic));    // same topics in the Create popup
+                ddlEditTopic.Items.Add(new ListItem(topic, topic));   // same topics in the Edit popup
                 options.Append("<option value='" + Server.HtmlEncode(topic) + "'></option>");
             }
 
             if (ddlTopic.Items.FindByValue(keep) != null)
                 ddlTopic.SelectedValue = keep;        // choose it again
+
+            if (ddlAddTopic.Items.FindByValue(keepAdd) != null)
+                ddlAddTopic.SelectedValue = keepAdd;
+
+            if (ddlEditTopic.Items.FindByValue(keepEdit) != null)
+                ddlEditTopic.SelectedValue = keepEdit;
 
             litTopicOptions.Text = options.ToString();
         }
@@ -209,13 +225,21 @@ namespace WAPP_EduCore.pages.Admin
             // level = the course_level column (SPM / IGCSE), or empty when there is no such column
             string levelPart = ColumnExists("course_level") ? "COALESCE(c.course_level::text, '')" : "''";
 
+            // status = "draft" or "published" (empty when there is no such column)
+            string statusPart = ColumnExists("status") ? "COALESCE(c.status::text, '')" : "''";
+
+            // reference = the list of books, saved as text like  ["Book one", "Book two"]
+            string referencePart = ColumnExists("reference") ? "COALESCE(c.\"reference\"::text, '')" : "''";
+
             DataTable table = new DataTable();
             string sql =
                 @"SELECT c.course_id, c.title, c.category, c.duration::text AS duration, c.created_at,
                          COALESCE(l.n, 0) AS lessons,
                          CASE WHEN c.course_img::text ~ '^(https?://|/|~/)' THEN c.course_img::text ELSE '' END AS img,
                          " + descriptionPart + @" AS description,
-                         " + levelPart + @" AS level"
+                         " + levelPart + @" AS level,
+                         " + statusPart + @" AS status,
+                         " + referencePart + @" AS reference"
                 + FromAndWhere +
                 @" ORDER BY c.course_id ASC
                    LIMIT @size OFFSET @skip";   // ASC = smallest first (1, 2, 3...)
@@ -276,6 +300,9 @@ namespace WAPP_EduCore.pages.Admin
             string description = r["description"].ToString();
             int lessons = Convert.ToInt32(r["lessons"]);
 
+            // "published" stays published, everything else counts as a draft
+            string status = (r["status"].ToString().Trim().ToLower() == "published") ? "published" : "draft";
+
             string img = r["img"].ToString();
             if (img.StartsWith("~/")) img = ResolveUrl(img);      // ~/images/a.png  ->  /images/a.png
 
@@ -289,6 +316,8 @@ namespace WAPP_EduCore.pages.Admin
             sb.Append(Attr("description", description));
             sb.Append(Attr("level", r["level"].ToString()));
             sb.Append(Attr("lessons", lessons.ToString()));
+            sb.Append(Attr("status", status));
+            sb.Append(Attr("reference", r["reference"].ToString()));
             sb.Append(Attr("created", FormatDate(r["created_at"])));
             sb.Append(Attr("img", img));
             sb.Append(">");
@@ -304,6 +333,12 @@ namespace WAPP_EduCore.pages.Admin
                 sb.Append("<td><span class='badge pending'>No lessons</span></td>");
             else
                 sb.Append("<td>" + lessons + "</td>");
+
+            // Status: green "Published" or red "Draft"
+            if (status == "published")
+                sb.Append("<td><span class='badge published'>Published</span></td>");
+            else
+                sb.Append("<td><span class='badge draft'>Draft</span></td>");
 
             sb.Append("<td class='grey-text'>" + FormatDate(r["created_at"]) + "</td>");
 
@@ -349,7 +384,7 @@ namespace WAPP_EduCore.pages.Admin
             if (!int.TryParse(hfEditId.Value, out id)) return;
 
             string name = txtEditTitle.Text.Trim();
-            string topic = txtEditTopic.Text.Trim();
+            string topic = ddlEditTopic.SelectedValue.Trim();   // picked from the dropdown
             string description = txtEditDescription.Text.Trim();
 
             if (name == "")
@@ -399,6 +434,20 @@ namespace WAPP_EduCore.pages.Admin
                 parameters.Add(new NpgsqlParameter("@level", ddlEditLevel.SelectedValue == "" ? (object)DBNull.Value : ddlEditLevel.SelectedValue));
             }
 
+            // Save the status: "draft" (unpublished) or "published"
+            if (ColumnExists("status"))
+            {
+                sql += ", status = @status";
+                parameters.Add(TextParameter("@status", ddlEditStatus.SelectedValue == "published" ? "published" : "draft"));
+            }
+
+            // Save the references as a list (one reference per line in the box)
+            if (ColumnExists("reference"))
+            {
+                sql += ", \"reference\" = @reference";
+                parameters.Add(TextParameter("@reference", ReferencesToJson(txtEditReferences.Text)));
+            }
+
             // Remember WHEN it was changed
             if (ColumnExists("updated_at"))
                 sql += ", updated_at = now()";
@@ -445,7 +494,7 @@ namespace WAPP_EduCore.pages.Admin
             lblAddError.Text = "";
 
             string name = txtAddTitle.Text.Trim();
-            string topic = txtAddTopic.Text.Trim();
+            string topic = ddlAddTopic.SelectedValue.Trim();   // picked from the dropdown
             string description = txtAddDescription.Text.Trim();
 
             if (name == "")
@@ -515,6 +564,22 @@ namespace WAPP_EduCore.pages.Admin
                     parameters.Add(new NpgsqlParameter("@description", description));
                 }
 
+                // Status: "draft" (unpublished) or "published"
+                if (ColumnExists("status"))
+                {
+                    columns.Add("status");
+                    values.Add("@status");
+                    parameters.Add(TextParameter("@status", ddlAddStatus.SelectedValue == "published" ? "published" : "draft"));
+                }
+
+                // References: one per line in the box, saved as a list
+                if (ColumnExists("reference") && ReferencesToJson(txtAddReferences.Text) != "")
+                {
+                    columns.Add("\"reference\"");
+                    values.Add("@reference");
+                    parameters.Add(TextParameter("@reference", ReferencesToJson(txtAddReferences.Text)));
+                }
+
                 // If the table also remembers WHO made the course, save the admin's id
                 if (adminId > 0 && ColumnExists("user_id"))
                 {
@@ -533,7 +598,9 @@ namespace WAPP_EduCore.pages.Admin
                 // clear the boxes
                 txtAddTitle.Text = "";
                 txtAddDescription.Text = "";
-                txtAddTopic.Text = "";
+                ddlAddTopic.SelectedIndex = 0;
+                txtAddReferences.Text = "";
+                ddlAddStatus.SelectedIndex = 0;
                 ddlAddWeeks.SelectedIndex = 0;
                 ddlAddHours.SelectedIndex = 0;
             }
@@ -833,6 +900,48 @@ namespace WAPP_EduCore.pages.Admin
             return p;
         }
 
+        // A text value for a column that can be text OR json OR an enum.
+        // "Unknown" tells the database: "you decide how to read this". Empty text = nothing (NULL).
+        private NpgsqlParameter TextParameter(string name, string text)
+        {
+            NpgsqlParameter p = new NpgsqlParameter(name, NpgsqlDbType.Unknown);
+            p.Value = (text == "") ? (object)DBNull.Value : text;
+            return p;
+        }
+
+        // Turns the lines the admin typed into a list the database keeps:
+        //   Book one
+        //   Book two        ->   ["Book one", "Book two"]
+        // Empty lines are skipped. No lines at all -> "" (nothing).
+        private string ReferencesToJson(string text)
+        {
+            string[] lines = text.Replace("\r", "").Split('\n');
+
+            List<string> items = new List<string>();
+            foreach (string line in lines)
+            {
+                string clean = line.Trim();
+                if (clean != "") items.Add("\"" + JsonSafe(clean) + "\"");
+            }
+
+            if (items.Count == 0) return "";
+            return "[" + string.Join(", ", items.ToArray()) + "]";
+        }
+
+        // Puts a backslash before the letters that would break the list:  "  and  \
+        private string JsonSafe(string text)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (char ch in text)
+            {
+                if (ch == '"') sb.Append("\\\"");
+                else if (ch == '\\') sb.Append("\\\\");
+                else if (ch < ' ') sb.Append(' ');          // tabs and other hidden characters become a space
+                else sb.Append(ch);
+            }
+            return sb.ToString();
+        }
+
         // Shows a green (ok) or red (error) message at the top
         private void ShowMessage(string text, bool ok)
         {
@@ -910,6 +1019,20 @@ namespace WAPP_EduCore.pages.Admin
                 cmd.Parameters.AddRange(parameters);
                 cmd.ExecuteNonQuery();
             }
+        }
+
+        // =====================================================
+        //  WHO IS LOGGED IN?  (used by every admin page)
+        //  The login page saves the user number in Session["UserID"].
+        //  (Session["user_id"] is also checked, in case an older page saved it.)
+        //  Gives back 0 when nobody is logged in.
+        // =====================================================
+        private int CurrentUserId()
+        {
+            int id;
+            if (int.TryParse(Convert.ToString(Session["UserID"]), out id) && id > 0) return id;
+            if (int.TryParse(Convert.ToString(Session["user_id"]), out id) && id > 0) return id;
+            return 0;
         }
     }
 }

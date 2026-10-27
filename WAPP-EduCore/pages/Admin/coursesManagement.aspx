@@ -26,6 +26,17 @@
             background-size: 14px;
         }
 
+        /* Green "Published" and red "Draft" badges (the Status column) */
+        .badge.published {
+            background: #DCFCE7;
+            color: #15803D;
+        }
+
+        .badge.draft {
+            background: #FEE2E2;
+            color: #B91C1C;
+        }
+
         /* A blue "New" badge */
         .badge.new {
             background: #EEF2FF;
@@ -220,6 +231,29 @@
         function show(id, text)  { document.getElementById(id).innerText = text; }                 // put text in a box
         function orDash(text)    { return (text == null || text == '') ? '—' : text; }             // empty -> a dash
 
+        // The Status column holds "published" or "draft".
+        // Anything that is not "published" is shown as a draft.
+        function cleanStatus(text) { return (text == 'published') ? 'published' : 'draft'; }
+
+        // Put the green "Published" or red "Draft" badge in a box
+        function showStatus(id, text) {
+            var box = document.getElementById(id);
+            var status = cleanStatus(text);
+            box.innerText = (status == 'published') ? 'Published' : 'Draft';
+            box.className = 'badge ' + status;
+        }
+
+        // The references are saved in the database like a list:  ["Book one", "Book two"]
+        // This turns that list into plain lines (one reference per line)
+        function referencesToLines(text) {
+            if (text == null || text == '') { return ''; }
+            try {
+                var list = JSON.parse(text);
+                if (Array.isArray(list)) { return list.join('\n'); }
+            } catch (e) { }
+            return text;     // not a list: just show the text as it is
+        }
+
         // Put a picture in a picture box (or show the words "No picture" when there is none)
         function setPicture(imgId, textId, link) {
             var picture = document.getElementById(imgId);
@@ -291,6 +325,10 @@
             show('dCreated',  row.getAttribute('data-created'));
             show('dId',       id);
 
+            // Status (green / red) and the references (one per line)
+            showStatus('dStatus', row.getAttribute('data-status'));
+            show('dReferences', orDash(referencesToLines(row.getAttribute('data-reference'))));
+
             // The description (hidden when the course has none)
             var description = row.getAttribute('data-description');
             show('dDesc', description);
@@ -343,8 +381,8 @@
             document.getElementById(previewId).innerText = text;
         }
 
-        function previewAdd()  { showPreview('ddlAddLevel',  'txtAddTopic',  'txtAddTitle',  'addPreview'); }
-        function previewEdit() { showPreview('ddlEditLevel', 'txtEditTopic', 'txtEditTitle', 'editPreview'); }
+        function previewAdd()  { showPreview('ddlAddLevel',  'ddlAddTopic',  'txtAddTitle',  'addPreview'); }
+        function previewEdit() { showPreview('ddlEditLevel', 'ddlEditTopic', 'txtEditTitle', 'editPreview'); }
 
         window.addEventListener('load', function () { previewAdd(); previewEdit(); });
 
@@ -365,11 +403,15 @@
 
             document.getElementById('ddlEditLevel').value = info.level;
             document.getElementById('txtEditTitle').value = info.name;
-            document.getElementById('txtEditTopic').value = row.getAttribute('data-topic');
+            document.getElementById('ddlEditTopic').value = row.getAttribute('data-topic');   // pick the topic from the list
 
             // Weeks + hours: the saved numbers, or "Select weeks" / "Select hours" when there is nothing saved
             document.getElementById('ddlEditWeeks').value = info.weeks;
             document.getElementById('ddlEditHours').value = info.hours;
+
+            // Status ("draft" or "published") and the references (one per line)
+            document.getElementById('ddlEditStatus').value = cleanStatus(row.getAttribute('data-status'));
+            document.getElementById('txtEditReferences').value = referencesToLines(row.getAttribute('data-reference'));
 
             // The picture the course has now (the file box is cleared)
             setPicture('editImg', 'editImgText', row.getAttribute('data-img'));
@@ -551,6 +593,7 @@
                                 <th>Topic</th>
                                 <th>Duration</th>
                                 <th>Lessons</th>
+                                <th>Status</th>
                                 <th>Created</th>
                                 <th>Actions</th>
                             </tr>
@@ -644,6 +687,12 @@
                     <div class="info-label">Duration (saved as)</div>
                     <div class="info-value" id="dDuration"></div>
 
+                    <div class="info-label">Status</div>
+                    <div class="info-value"><span id="dStatus" class="badge draft">Draft</span></div>
+
+                    <div class="info-label">References</div>
+                    <div class="info-value" id="dReferences"></div>
+
                     <div class="info-label">Created</div>
                     <div class="info-value" id="dCreated"></div>
 
@@ -699,7 +748,8 @@
 
                 <div class="form-field">
                     <label>Topic</label>
-                    <asp:TextBox ID="txtEditTopic" runat="server" ClientIDMode="Static" CssClass="input" list="topicList" oninput="previewEdit()"></asp:TextBox>
+                    <!-- A dropdown (the admin picks a topic, cannot type). C# fills it with the same topics as the Create popup list. -->
+                    <asp:DropDownList ID="ddlEditTopic" runat="server" ClientIDMode="Static" CssClass="input" onchange="previewEdit()"></asp:DropDownList>
                 </div>
 
                 <div class="form-hint" id="editPreview"></div>
@@ -714,6 +764,21 @@
                         <label>Hours per week (1-24)</label>
                         <asp:DropDownList ID="ddlEditHours" runat="server" ClientIDMode="Static" CssClass="input"><asp:ListItem Value="">Select hours</asp:ListItem><asp:ListItem Value="1">1</asp:ListItem><asp:ListItem Value="2">2</asp:ListItem><asp:ListItem Value="3">3</asp:ListItem><asp:ListItem Value="4">4</asp:ListItem><asp:ListItem Value="5">5</asp:ListItem><asp:ListItem Value="6">6</asp:ListItem><asp:ListItem Value="7">7</asp:ListItem><asp:ListItem Value="8">8</asp:ListItem><asp:ListItem Value="9">9</asp:ListItem><asp:ListItem Value="10">10</asp:ListItem><asp:ListItem Value="11">11</asp:ListItem><asp:ListItem Value="12">12</asp:ListItem><asp:ListItem Value="13">13</asp:ListItem><asp:ListItem Value="14">14</asp:ListItem><asp:ListItem Value="15">15</asp:ListItem><asp:ListItem Value="16">16</asp:ListItem><asp:ListItem Value="17">17</asp:ListItem><asp:ListItem Value="18">18</asp:ListItem><asp:ListItem Value="19">19</asp:ListItem><asp:ListItem Value="20">20</asp:ListItem><asp:ListItem Value="21">21</asp:ListItem><asp:ListItem Value="22">22</asp:ListItem><asp:ListItem Value="23">23</asp:ListItem><asp:ListItem Value="24">24</asp:ListItem></asp:DropDownList>
                     </div>
+                </div>
+
+                <!-- Draft = students cannot see it.  Published = students can see it. -->
+                <div class="form-field">
+                    <label>Status</label>
+                    <asp:DropDownList ID="ddlEditStatus" runat="server" ClientIDMode="Static" CssClass="input">
+                        <asp:ListItem Text="Unpublished (draft)" Value="draft"></asp:ListItem>
+                        <asp:ListItem Text="Published" Value="published"></asp:ListItem>
+                    </asp:DropDownList>
+                </div>
+
+                <!-- One reference (book) per line. C# saves them as a list. -->
+                <div class="form-field">
+                    <label>References (one per line)</label>
+                    <asp:TextBox ID="txtEditReferences" runat="server" ClientIDMode="Static" TextMode="MultiLine" Rows="4" CssClass="input textarea" placeholder="Author (year). Book title. Publisher."></asp:TextBox>
                 </div>
 
                 <div class="modal-buttons">
@@ -770,7 +835,8 @@
 
                     <div class="form-field">
                         <label>Topic</label>
-                        <asp:TextBox ID="txtAddTopic" runat="server" ClientIDMode="Static" CssClass="input" list="topicList" placeholder="Pick one or type a new topic" oninput="previewAdd()"></asp:TextBox>
+                        <!-- A dropdown (the admin picks a topic, cannot type). C# fills it with the topics from the database. -->
+                        <asp:DropDownList ID="ddlAddTopic" runat="server" ClientIDMode="Static" CssClass="input" onchange="previewAdd()"></asp:DropDownList>
                     </div>
 
                     <div class="form-hint" id="addPreview"></div>
@@ -785,6 +851,21 @@
                             <label>Hours per week (1-24)</label>
                             <asp:DropDownList ID="ddlAddHours" runat="server" ClientIDMode="Static" CssClass="input"><asp:ListItem Value="">Select hours</asp:ListItem><asp:ListItem Value="1">1</asp:ListItem><asp:ListItem Value="2">2</asp:ListItem><asp:ListItem Value="3">3</asp:ListItem><asp:ListItem Value="4">4</asp:ListItem><asp:ListItem Value="5">5</asp:ListItem><asp:ListItem Value="6">6</asp:ListItem><asp:ListItem Value="7">7</asp:ListItem><asp:ListItem Value="8">8</asp:ListItem><asp:ListItem Value="9">9</asp:ListItem><asp:ListItem Value="10">10</asp:ListItem><asp:ListItem Value="11">11</asp:ListItem><asp:ListItem Value="12">12</asp:ListItem><asp:ListItem Value="13">13</asp:ListItem><asp:ListItem Value="14">14</asp:ListItem><asp:ListItem Value="15">15</asp:ListItem><asp:ListItem Value="16">16</asp:ListItem><asp:ListItem Value="17">17</asp:ListItem><asp:ListItem Value="18">18</asp:ListItem><asp:ListItem Value="19">19</asp:ListItem><asp:ListItem Value="20">20</asp:ListItem><asp:ListItem Value="21">21</asp:ListItem><asp:ListItem Value="22">22</asp:ListItem><asp:ListItem Value="23">23</asp:ListItem><asp:ListItem Value="24">24</asp:ListItem></asp:DropDownList>
                         </div>
+                    </div>
+
+                    <!-- Draft = students cannot see it.  Published = students can see it. -->
+                    <div class="form-field">
+                        <label>Status</label>
+                        <asp:DropDownList ID="ddlAddStatus" runat="server" ClientIDMode="Static" CssClass="input">
+                            <asp:ListItem Text="Unpublished (draft)" Value="draft"></asp:ListItem>
+                            <asp:ListItem Text="Published" Value="published"></asp:ListItem>
+                        </asp:DropDownList>
+                    </div>
+
+                    <!-- One reference (book) per line. C# saves them as a list. -->
+                    <div class="form-field">
+                        <label>References (one per line)</label>
+                        <asp:TextBox ID="txtAddReferences" runat="server" TextMode="MultiLine" Rows="4" CssClass="input textarea" placeholder="Author (year). Book title. Publisher."></asp:TextBox>
                     </div>
 
                     <div class="form-error">

@@ -285,13 +285,13 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.DropDownList ddlEditLevel;
 
         /// <summary>
-        /// txtEditTopic control.
+        /// ddlEditTopic control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtEditTopic;
+        protected global::System.Web.UI.WebControls.DropDownList ddlEditTopic;
 
         /// <summary>
         /// ddlEditWeeks control.
@@ -310,6 +310,24 @@ namespace WAPP_EduCore.pages.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.DropDownList ddlEditHours;
+
+        /// <summary>
+        /// ddlEditStatus control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddlEditStatus;
+
+        /// <summary>
+        /// txtEditReferences control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtEditReferences;
 
         /// <summary>
         /// btnSaveEdit control.
@@ -366,13 +384,13 @@ namespace WAPP_EduCore.pages.Admin
         protected global::System.Web.UI.WebControls.DropDownList ddlAddLevel;
 
         /// <summary>
-        /// txtAddTopic control.
+        /// ddlAddTopic control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtAddTopic;
+        protected global::System.Web.UI.WebControls.DropDownList ddlAddTopic;
 
         /// <summary>
         /// ddlAddWeeks control.
@@ -391,6 +409,24 @@ namespace WAPP_EduCore.pages.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.DropDownList ddlAddHours;
+
+        /// <summary>
+        /// ddlAddStatus control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddlAddStatus;
+
+        /// <summary>
+        /// txtAddReferences control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtAddReferences;
 
         /// <summary>
         /// lblAddError control.

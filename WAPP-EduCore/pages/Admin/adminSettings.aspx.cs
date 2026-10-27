@@ -55,8 +55,8 @@ namespace WAPP_EduCore.pages.Admin
         // =====================================================
         private int GetAdminId()
         {
-            if (Session["user_id"] != null)
-                return Convert.ToInt32(Session["user_id"]);
+            if (CurrentUserId() > 0)
+                return CurrentUserId();
 
             object result = GetValue("SELECT user_id FROM public.users WHERE role = 'Admin' ORDER BY user_id LIMIT 1");
             return (result == null) ? 0 : Convert.ToInt32(result);
@@ -89,14 +89,14 @@ namespace WAPP_EduCore.pages.Admin
                 litSince.Text = "—";
         }
 
-        // "Maya Chen" -> "MC"  (first letter of the first word + first letter of the last word)
+        // "Maya Chen" -> "M"  (first letter of the name (big letter, like Z for zhilin))
         private string MakeInitials(string fullName)
         {
             string[] words = fullName.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (words.Length == 0) return "AD";
             if (words.Length == 1) return words[0].Substring(0, 1).ToUpper();
-            return (words[0].Substring(0, 1) + words[words.Length - 1].Substring(0, 1)).ToUpper();
+            return words[0].Substring(0, 1).ToUpper();
         }
 
 
@@ -330,6 +330,20 @@ namespace WAPP_EduCore.pages.Admin
                 cmd.Parameters.AddRange(parameters);
                 return cmd.ExecuteNonQuery();
             }
+        }
+
+        // =====================================================
+        //  WHO IS LOGGED IN?  (used by every admin page)
+        //  The login page saves the user number in Session["UserID"].
+        //  (Session["user_id"] is also checked, in case an older page saved it.)
+        //  Gives back 0 when nobody is logged in.
+        // =====================================================
+        private int CurrentUserId()
+        {
+            int id;
+            if (int.TryParse(Convert.ToString(Session["UserID"]), out id) && id > 0) return id;
+            if (int.TryParse(Convert.ToString(Session["user_id"]), out id) && id > 0) return id;
+            return 0;
         }
     }
 }

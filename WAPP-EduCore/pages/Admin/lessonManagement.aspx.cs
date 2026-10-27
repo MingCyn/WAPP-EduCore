@@ -76,10 +76,10 @@ namespace WAPP_EduCore.pages.Admin
             {
                 cmd.Connection = conn;
 
-                if (Session["user_id"] != null)
+                if (CurrentUserId() > 0)
                 {
                     cmd.CommandText = "SELECT user_id, full_name FROM public.users WHERE user_id = @id";
-                    cmd.Parameters.AddWithValue("@id", Convert.ToInt32(Session["user_id"]));
+                    cmd.Parameters.AddWithValue("@id", CurrentUserId());
                 }
                 else
                 {
@@ -97,7 +97,7 @@ namespace WAPP_EduCore.pages.Admin
                         if (words.Length == 1)
                             AdminInitials = words[0].Substring(0, 1).ToUpper();
                         else if (words.Length > 1)
-                            AdminInitials = (words[0].Substring(0, 1) + words[words.Length - 1].Substring(0, 1)).ToUpper();
+                            AdminInitials = words[0].Substring(0, 1).ToUpper();
                     }
                 }
             }
@@ -784,6 +784,20 @@ namespace WAPP_EduCore.pages.Admin
                 cmd.Parameters.AddRange(parameters);
                 cmd.ExecuteNonQuery();
             }
+        }
+
+        // =====================================================
+        //  WHO IS LOGGED IN?  (used by every admin page)
+        //  The login page saves the user number in Session["UserID"].
+        //  (Session["user_id"] is also checked, in case an older page saved it.)
+        //  Gives back 0 when nobody is logged in.
+        // =====================================================
+        private int CurrentUserId()
+        {
+            int id;
+            if (int.TryParse(Convert.ToString(Session["UserID"]), out id) && id > 0) return id;
+            if (int.TryParse(Convert.ToString(Session["user_id"]), out id) && id > 0) return id;
+            return 0;
         }
     }
 }
