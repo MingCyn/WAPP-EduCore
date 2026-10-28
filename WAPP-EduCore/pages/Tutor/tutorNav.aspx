@@ -9,7 +9,7 @@
         <a href="courses.aspx" class="nav-link">My Courses</a>
         <a href="studentManagement.aspx" class="nav-link">Students</a>
         <a href="messages.aspx" class="nav-link">Messages</a>
-        <a href="settings.aspx" class="nav-link">test</a>
+        <a href="settings.aspx" class="nav-link">test2</a>
     </nav>
     <div class="nav-profile">
         <span class="profile-name"><%: DisplayName %></span>
