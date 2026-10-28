@@ -35,7 +35,7 @@ namespace WAPP_EduCore.pages.Tutor
 
         // Images added inside a lesson
         private const string LessonImageFolder = "~/uploads/lessons/";
-        private const int MaxLessonImageBytes = 5 * 1024 * 1024;   // 5 MB
+        private const int MaxLessonImageBytes = 2 * 1024 * 1024;   // 2 MB
 
         // Lesson content blocks
         private const int MaxBlockChars = 10000;
@@ -929,7 +929,7 @@ namespace WAPP_EduCore.pages.Tutor
 
             if (file.ContentLength > MaxLessonImageBytes)
             {
-                errorMessage = "The image must be 5 MB or smaller.";
+                errorMessage = "The image must be 2 MB or smaller.";
                 return false;
             }
 

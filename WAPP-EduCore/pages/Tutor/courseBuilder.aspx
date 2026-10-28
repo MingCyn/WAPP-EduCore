@@ -667,7 +667,7 @@
                 if (err) err.style.display = 'none';
                 if (!f) { reset(); return; }
                 if (!/^image\/(jpeg|png|webp)$/.test(f.type)) { reset('Please choose a JPG, PNG or WEBP image.'); return; }
-                if (f.size > 5 * 1024 * 1024) { reset('The image must be 5 MB or smaller.'); return; }
+                if (f.size > 2 * 1024 * 1024) { reset('The image must be 2 MB or smaller.'); return; }
 
                 nameEl.textContent = f.name;
                 var reader = new FileReader();
