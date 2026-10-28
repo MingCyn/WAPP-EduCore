@@ -429,4 +429,3 @@ FodyWeavers.xsd
 *.msp
 /WAPP-EduCore/secrets.config
 # Ignore local web configuration containing sensitive keys
-/WAPP-EduCore/Web.config
