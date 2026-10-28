@@ -11,6 +11,8 @@
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/settings.css" rel="stylesheet" type="text/css" />
+        <link href="/Content/student-upgrade.css" rel="stylesheet" />
+
     <script type="text/javascript">
 /** drop-down menu at the top right
  * @param {Event} event */

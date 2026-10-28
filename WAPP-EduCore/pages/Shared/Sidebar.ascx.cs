@@ -11,7 +11,6 @@ namespace WAPP_EduCore.pages.Shared
 {
     public partial class Sidebar : UserControl
     {
-        // Declared by hand because this control has no designer file
         protected HtmlGenericControl lblName;
         protected HtmlGenericControl lblId;
         protected HtmlGenericControl lblInitials;
@@ -19,7 +18,6 @@ namespace WAPP_EduCore.pages.Shared
         protected Panel pnlLoggedIn;
         protected Panel pnlGuest;
         protected LinkButton btnLogout;
-        //protected HtmlAnchor lnkCalendar, lnkMessages, lnkGrades, lnkCertificates, lnkSettings;
 
         protected void Page_Load(object sender, EventArgs e)
         {

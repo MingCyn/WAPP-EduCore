@@ -24,6 +24,15 @@ namespace WAPPEduCore
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
+        /// Sidebar1 control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::WAPP_EduCore.pages.Shared.Sidebar Sidebar1;
+
+        /// <summary>
         /// btnTabPhysics control.
         /// </summary>
         /// <remarks>

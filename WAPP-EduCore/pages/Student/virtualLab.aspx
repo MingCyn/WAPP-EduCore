@@ -1,80 +1,77 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="virtualLab.aspx.cs" Inherits="WAPPEduCore.virtualLab" Async="true" %>
+<%@ Register Src="~/pages/Shared/Sidebar.ascx" TagName="Sidebar" TagPrefix="uc" %>
 
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
+    <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
+    <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/student-upgrade.css" rel="stylesheet" />
     <title>EduCore - Unified Science Virtual Lab</title>
-    <style>
+<style>
         :root {
-            --primary-dark: #0f172a;
-            --accent-blue: #3b82f6;
-            --bg-canvas: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
+            --bg-page: #faf8f5;
+            --nav-bg: #0f1b45;
+            --ink: #0f1a3c;
+            --text: #4a5163;
+            --muted: #7b8194;
+            --border: #e1e4ea;
+            --card: #ffffff;
+            --accent: #4a5fc8;
+            --accent-link: #2f4fc0;
+            --btn: #2a4494;
+            --btn-hover: #1f3377;
+            --serif: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
         }
 
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-canvas);
-            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--ink);
         }
 
         #form1 {
             display: flex;
+            min-height: 100vh;
             width: 100vw;
-            height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
-        .sidebar {
-            width: 260px;
-            min-width: 260px;
-            background-color: var(--primary-dark);
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 24px;
-            box-sizing: border-box;
-            height: 100vh;
-        }
-        .logo-area { font-size: 22px; font-weight: bold; color: #ffffff; margin-bottom: 40px; }
-        .nav-links { list-style: none; padding: 0; margin: 0; }
-        .nav-links li { padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; color: #94a3b8; }
-        .nav-links li.active, .nav-links li:hover { background-color: var(--accent-blue); color: #ffffff; }
-
+        /* Main content offset to match other student pages and clear the sidebar */
         .main-content {
             flex: 1;
+            margin-left: 260px;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
-            padding: 30px;
-            height: 100vh;
+            padding: 40px;
+            min-height: 100vh;
             box-sizing: border-box;
+            background-color: var(--bg-page);
         }
+
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header-title { font-size: 24px; font-weight: bold; display: flex; align-items: center; gap: 12px; }
+        .header-title { font-family: var(--serif); font-size: 24px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 12px; }
         
-        .lab-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
+        .lab-tabs { display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
         .tab-btn {
-            background: #e2e8f0;
-            border: none;
+            background: var(--card);
+            border: 1px solid var(--border);
             padding: 8px 16px;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
-            color: var(--text-muted);
+            color: var(--muted);
             transition: all 0.2s;
+            font-size: 13px;
         }
         .tab-btn.active-tab {
-            background-color: var(--accent-blue);
+            background-color: var(--accent);
             color: white;
+            border-color: var(--accent);
         }
 
         .workspace {
@@ -84,168 +81,163 @@
         }
 
         .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 6px 18px rgba(16,24,40,0.04);
             margin-bottom: 20px;
         }
 
+        .card h3 {
+            font-family: var(--serif);
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 12px;
+        }
+
         .sim-canvas {
-            background: #0b1329;
-            border-radius: 10px;
-            height: 420px; /* Increased from 320px for a taller graph viewport */
+            background: #0f1b45;
+            border-radius: 8px;
+            height: 420px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #94a3b8;
+            color: #c3c9de;
             font-size: 14px;
             position: relative;
         }
 
         .control-group { margin-bottom: 16px; }
-        .control-group label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; }
+        .control-group label { display: block; font-size: 13px; color: var(--text); margin-bottom: 6px; font-weight: 500; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; background-color: #fff; color: var(--ink); font-size: 14px; }
         
         .btn-primary {
-            background-color: #1e3a8a;
+            background-color: var(--btn);
             color: white;
             border: none;
-            padding: 12px;
+            padding: 10px 16px;
             width: 100%;
             border-radius: 6px;
             font-weight: 600;
+            font-size: 13px;
             cursor: pointer;
+            transition: background-color 0.2s;
         }
-        .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-primary:hover { background-color: var(--btn-hover); }
     </style>
 
     <!-- Enhanced Canvas Graph Plotting with Proper Axis Labels -->
     <script type="text/javascript">
-    function drawSimulationGraph(points, xLabel, yLabel) {
-        var canvas = document.getElementById('scienceCanvas');
-        if (!canvas) return;
-        var ctx = canvas.getContext('2d');
-        
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (!points || points.length === 0) return;
+function drawSimulationGraph(points, xLabel, yLabel) {
+    var canvas = document.getElementById('scienceCanvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
 
-        var padding = 55;
-        var w = canvas.width - (padding + 30);
-        var h = canvas.height - (padding + 30);
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!points || points.length === 0) return;
 
-        // Find max bounds for scaling
-        var maxX = Math.max(...points.map(p => p.x)) || 10;
-        var rawMaxY = Math.max(...points.map(p => p.y)) || 10;
-        var maxY = rawMaxY * 1.15;
+    var padding = 55;
+    var w = canvas.width - (padding + 30);
+    var h = canvas.height - (padding + 30);
 
-        // Draw Graph Title
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 13px Segoe UI';
-        ctx.textAlign = 'center';
-        ctx.fillText(yLabel + " vs " + xLabel, canvas.width / 2, 22);
+    // Find max bounds for scaling
+    var maxX = Math.max(...points.map(p => p.x)) || 10;
+    var rawMaxY = Math.max(...points.map(p => p.y)) || 10;
+    var maxY = rawMaxY * 1.15;
 
-        // Draw Axes lines
-        ctx.strokeStyle = '#475569';
-        ctx.lineWidth = 1.5;
+    // Draw Graph Title
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(yLabel + " vs " + xLabel, canvas.width / 2, 22);
+
+    // Draw Axes lines
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(padding, canvas.height - padding);
+    ctx.lineTo(canvas.width - 20, canvas.height - padding); // X axis
+    ctx.moveTo(padding, canvas.height - padding);
+    ctx.lineTo(padding, 35); // Y axis
+    ctx.stroke();
+
+    // Draw Numeric Scale / Ticks (Y-Axis)
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px Segoe UI';
+    ctx.textAlign = 'right';
+    var yTicks = 5;
+    for (let i = 0; i <= yTicks; i++) {
+        var val = (maxY / yTicks) * i;
+        var yPos = (canvas.height - padding) - (h / yTicks) * i;
+        ctx.fillText(val.toFixed(1), padding - 8, yPos + 4);
+
+        // Small tick mark
         ctx.beginPath();
-        ctx.moveTo(padding, canvas.height - padding);
-        ctx.lineTo(canvas.width - 20, canvas.height - padding); // X axis
-        ctx.moveTo(padding, canvas.height - padding);
-        ctx.lineTo(padding, 35); // Y axis
+        ctx.moveTo(padding - 3, yPos);
+        ctx.lineTo(padding, yPos);
         ctx.stroke();
-
-        // Draw Numeric Scale / Ticks (Y-Axis)
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '10px Segoe UI';
-        ctx.textAlign = 'right';
-        var yTicks = 5;
-        for (let i = 0; i <= yTicks; i++) {
-            var val = (maxY / yTicks) * i;
-            var yPos = (canvas.height - padding) - (h / yTicks) * i;
-            ctx.fillText(val.toFixed(1), padding - 8, yPos + 4);
-            
-            // Small tick mark
-            ctx.beginPath();
-            ctx.moveTo(padding - 3, yPos);
-            ctx.lineTo(padding, yPos);
-            ctx.stroke();
-        }
-
-        // Draw Numeric Scale / Ticks (X-Axis)
-        ctx.textAlign = 'center';
-        var xTicks = 5;
-        for (let i = 0; i <= xTicks; i++) {
-            var val = (maxX / xTicks) * i;
-            var xPos = padding + (w / xTicks) * i;
-            ctx.fillText(val.toFixed(1), xPos, canvas.height - padding + 15);
-            
-            // Small tick mark
-            ctx.beginPath();
-            ctx.moveTo(xPos, canvas.height - padding);
-            ctx.lineTo(xPos, canvas.height - padding + 3);
-            ctx.stroke();
-        }
-
-        // Axis Labels
-        ctx.fillStyle = '#cbd5e1';
-        ctx.font = '12px Segoe UI';
-        ctx.textAlign = 'center';
-        ctx.fillText(xLabel || 'X-Axis', padding + (w / 2), canvas.height - 8);
-
-        ctx.save();
-        ctx.translate(16, canvas.height / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillText(yLabel || 'Y-Axis', 0, 0);
-        ctx.restore();
-
-        // Plot Trajectory Curve
-        ctx.strokeStyle = '#3b82f6';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-
-        points.forEach((pt, index) => {
-            var cx = padding + (pt.x / maxX) * w;
-            var cy = (canvas.height - padding) - (pt.y / maxY) * h;
-
-            if (index === 0) ctx.moveTo(cx, cy);
-            else ctx.lineTo(cx, cy);
-        });
-        ctx.stroke();
-
-        // Draw Data Points on Curve
-        ctx.fillStyle = '#60a5fa';
-        points.forEach(pt => {
-            var cx = padding + (pt.x / maxX) * w;
-            var cy = (canvas.height - padding) - (pt.y / maxY) * h;
-            ctx.beginPath();
-            ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-            ctx.fill();
-        });
     }
-    </script>
+
+    // Draw Numeric Scale / Ticks (X-Axis)
+    ctx.textAlign = 'center';
+    var xTicks = 5;
+    for (let i = 0; i <= xTicks; i++) {
+        var val = (maxX / xTicks) * i;
+        var xPos = padding + (w / xTicks) * i;
+        ctx.fillText(val.toFixed(1), xPos, canvas.height - padding + 15);
+
+        // Small tick mark
+        ctx.beginPath();
+        ctx.moveTo(xPos, canvas.height - padding);
+        ctx.lineTo(xPos, canvas.height - padding + 3);
+        ctx.stroke();
+    }
+
+    // Axis Labels
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(xLabel || 'X-Axis', padding + (w / 2), canvas.height - 8);
+
+    ctx.save();
+    ctx.translate(16, canvas.height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(yLabel || 'Y-Axis', 0, 0);
+    ctx.restore();
+
+    // Plot Trajectory Curve
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+
+    points.forEach((pt, index) => {
+        var cx = padding + (pt.x / maxX) * w;
+        var cy = (canvas.height - padding) - (pt.y / maxY) * h;
+
+        if (index === 0) ctx.moveTo(cx, cy);
+        else ctx.lineTo(cx, cy);
+    });
+    ctx.stroke();
+
+    // Draw Data Points on Curve
+    ctx.fillStyle = '#60a5fa';
+    points.forEach(pt => {
+        var cx = padding + (pt.x / maxX) * w;
+        var cy = (canvas.height - padding) - (pt.y / maxY) * h;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+</script>
 </head>
 <body>
     <form id="form1" runat="server">
-        <div class="sidebar">
-            <div>
-                <div class="logo-area">EduCore</div>
-                <ul class="nav-links">
-                    <li>Dashboard</li>
-                    <li class="active">My Courses</li>
-                    <li>Calendar</li>
-                    <li>Messages</li>
-                    <li>Grades</li>
-                    <li>Certificates</li>
-                    <li>Settings</li>
-                </ul>
-            </div>
-            <div style="font-size: 13px; color: #64748b;">
-                Priya Sharma<br/>Student ID: 48922
-            </div>
-        </div>
+        <!-- Replaced hardcoded sidebar with the reusable Sidebar User Control -->
+        <uc:Sidebar ID="Sidebar1" runat="server" />
 
         <div class="main-content">
             <div class="header-top">
@@ -309,13 +301,12 @@
                     </div>
                 </asp:View>
 
-                <!-- TAB 2: CHEMISTRY LAB (Chemical Substance Selector) -->
+                <!-- TAB 2: CHEMISTRY LAB -->
                 <asp:View ID="vwChemistry" runat="server">
                     <div class="workspace">
                         <div>
                             <div class="card">
                                 <div class="sim-canvas">
-                                    <!-- Shared Canvas element reused across tabs -->
                                     <canvas id="CanvasChem" width="560" height="300" style="width: 100%; height: 100%; display:none;"></canvas>
                                     <div id="chemPlaceholder" style="color: #94a3b8; font-size: 14px;">[ Chemistry Reaction Graph Viewport ]</div>
                                 </div>
@@ -359,7 +350,7 @@
                     </div>
                 </asp:View>
 
-                <!-- TAB 3: BIOLOGY LAB (Graph-Related Labs Only) -->
+                <!-- TAB 3: BIOLOGY LAB -->
                 <asp:View ID="vwBiology" runat="server">
                     <div class="workspace">
                         <div>

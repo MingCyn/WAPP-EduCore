@@ -1,64 +1,62 @@
 ﻿/* ==========================================================================
-   EduCore student area: visual upgrade layer
+   EduCore student area: visual upgrade layer (Merriweather & Larger Text)
    Link AFTER admin.css and student.css:
-     <link href="/Content/student-upgrade.css" rel="stylesheet" />
-   Nothing in student.css is removed; this file restyles it, so layout and
-   your ASP.NET class names keep working exactly as before.
+      <link href="/Content/student-upgrade.css" rel="stylesheet" />
    ========================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
 :root {
-    --serif: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif; /* used by messages.css too */
-    --ec-font: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    --serif: 'Merriweather', Georgia, serif;
+    --ec-font: 'Merriweather', Georgia, serif;
     --ec-bg: #f3f5fb;
     --ec-ink: #0e1630;
     --ec-muted: #64708a;
     --ec-line: #e4e8f3;
     --ec-night: #0a1128;
     --ec-night-2: #101a3d;
-    --ec-indigo: #5b5ff0;
-    --ec-blue: #2f6bf0;
-    --ec-cyan: #22d3ee;
+    --ec-indigo: #FF7000;
+    --ec-blue: #FF7000;
+    --ec-cyan: #FF7000;
     --ec-green: #10b981;
-    --ec-grad: linear-gradient(135deg, #5b5ff0 0%, #2f6bf0 60%, #22a6ee 120%);
+    --ec-grad: linear-gradient(135deg, #FF7000 0%, #ff8e3c 100%);
     --ec-ease: cubic-bezier(.22, 1, .36, 1);
     --ec-shadow-1: 0 1px 2px rgba(14, 22, 48, .06), 0 4px 12px -4px rgba(14, 22, 48, .08);
-    --ec-shadow-2: 0 2px 4px rgba(14, 22, 48, .06), 0 14px 28px -10px rgba(14, 22, 48, .16), 0 30px 60px -24px rgba(91, 95, 240, .3);
+    --ec-shadow-2: 0 2px 4px rgba(14, 22, 48, .06), 0 14px 28px -10px rgba(14, 22, 48, .16), 0 30px 60px -24px rgba(255, 112, 0, .25);
 }
 
 /* ---------- Base ---------- */
 body {
     font-family: var(--ec-font);
+    font-size: 16px; /* Base font size increased slightly */
     color: var(--ec-ink);
-    background: radial-gradient(700px 360px at 100% 0%, rgba(91, 95, 240, .10), transparent 65%), radial-gradient(600px 300px at 0% 100%, rgba(34, 211, 238, .08), transparent 65%), var(--ec-bg);
+    background: radial-gradient(700px 360px at 100% 0%, rgba(255, 112, 0, .08), transparent 65%), radial-gradient(600px 300px at 0% 100%, rgba(15, 25, 57, .05), transparent 65%), var(--ec-bg);
     -webkit-font-smoothing: antialiased;
 }
 
 :focus-visible {
-    outline: 2px solid var(--ec-indigo);
+    outline: 2px solid #FF7000;
     outline-offset: 2px;
     border-radius: 6px;
 }
 
 ::selection {
-    background: rgba(91, 95, 240, .3);
+    background: rgba(255, 112, 0, .25);
 }
 
-/* Headings: serif -> Plus Jakarta Sans */
+/* Headings: Merriweather with slightly larger relative scaling */
 .title, .course h4, .course-hero h2, .panel h3, .syllabus-title, .lesson-name, .access-title,
 .quiz-side h3, .q-text, .result-score, .lv-title, .lv-side h3, .lv-right h3, .tutor-name,
 .gr-num, .gr-card h3, .lv-content .lesson-subheading, .modal-head h3 {
     font-family: var(--ec-font);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
 }
 
 .title {
-    font-weight: 800;
+    font-size: 1.6rem;
+    font-weight: 700;
 }
 
-/* ---------- Sidebar: deep midnight with glow ---------- */
+/* ---------- Sidebar ---------- */
 .sidebar {
-    background: radial-gradient(260px 260px at 0% 0%, rgba(91, 95, 240, .35), transparent 70%), radial-gradient(240px 240px at 100% 100%, rgba(34, 211, 238, .14), transparent 70%), linear-gradient(180deg, var(--ec-night-2), var(--ec-night));
+    background: radial-gradient(260px 260px at 0% 0%, rgba(255, 112, 0, .25), transparent 70%), radial-gradient(240px 240px at 100% 100%, rgba(15, 25, 57, .2), transparent 70%), linear-gradient(180deg, var(--ec-night-2), var(--ec-night));
     border-right: 1px solid rgba(255, 255, 255, .06);
     box-shadow: 10px 0 40px -20px rgba(10, 17, 40, .6);
 }
@@ -67,6 +65,7 @@ body {
         position: relative;
         border-radius: 12px;
         color: #b6c2e2;
+        font-size: 15px; /* Sidebar text made bigger */
         font-weight: 600;
         transition: background .25s, color .25s, transform .25s var(--ec-ease);
     }
@@ -79,8 +78,8 @@ body {
 
         .sidebar a.menu-item.active {
             color: #fff;
-            background: linear-gradient(135deg, rgba(91, 95, 240, .85), rgba(47, 107, 240, .65));
-            box-shadow: 0 10px 24px -10px rgba(91, 95, 240, .9), inset 0 1px 0 rgba(255, 255, 255, .2);
+            background: linear-gradient(135deg, #FF7000, #ff8e3c);
+            box-shadow: 0 10px 24px -10px rgba(255, 112, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .2);
         }
 
             .sidebar a.menu-item.active::before {
@@ -92,8 +91,8 @@ body {
                 bottom: 20%;
                 width: 4px;
                 border-radius: 0 4px 4px 0;
-                background: var(--ec-cyan);
-                box-shadow: 0 0 14px var(--ec-cyan);
+                background: #FF7000;
+                box-shadow: 0 0 14px #FF7000;
             }
 
     .sidebar .me {
@@ -121,7 +120,7 @@ body {
     border: 0;
 }
 
-/* ---------- Topbar: frosted, sticky ---------- */
+/* ---------- Topbar ---------- */
 .topbar {
     position: sticky;
     top: 0;
@@ -135,32 +134,35 @@ body {
 .search input {
     border: 1px solid var(--ec-line);
     background: rgba(255, 255, 255, .8);
+    font-size: 15px; /* Input text larger */
     border-radius: 12px;
     transition: border-color .2s, box-shadow .2s, width .3s var(--ec-ease);
 }
 
     .search input:focus {
         outline: none;
-        border-color: var(--ec-indigo);
-        box-shadow: 0 0 0 4px rgba(91, 95, 240, .15);
+        border-color: #FF7000;
+        box-shadow: 0 0 0 4px rgba(255, 112, 0, .15);
     }
 
-/* ---------- Buttons ---------- */
+/* ---------- Buttons (Vivid Orange & Larger Font) ---------- */
 .btn, .btn-start, .btn-solid, .course .btn {
     position: relative;
     overflow: hidden;
-    background: var(--ec-grad);
+    background: #FF7000;
     color: #fff;
+    font-size: 15px; /* Button font size increased */
+    font-weight: 700;
     border-radius: 10px;
-    box-shadow: 0 8px 20px -8px rgba(91, 95, 240, .7), inset 0 1px 0 rgba(255, 255, 255, .22);
+    box-shadow: 0 8px 20px -8px rgba(255, 112, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .25);
     transition: transform .25s var(--ec-ease), box-shadow .25s var(--ec-ease), filter .25s;
 }
 
     .btn:hover, .btn-start:hover, .btn-solid:hover, .course .btn:hover {
-        background: var(--ec-grad);
-        filter: brightness(1.08);
+        background: #FF7000;
+        filter: brightness(1.1);
         transform: translateY(-2px);
-        box-shadow: 0 14px 28px -8px rgba(91, 95, 240, .8), inset 0 1px 0 rgba(255, 255, 255, .28);
+        box-shadow: 0 14px 28px -8px rgba(255, 112, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .3);
     }
 
     .btn:active, .btn-start:active, .btn-solid:active, .course .btn:active, .btn-ghost:active, .pill:active {
@@ -174,15 +176,16 @@ body {
 
 .btn-ghost {
     border-radius: 10px;
+    font-size: 15px;
     border-color: var(--ec-line);
     transition: all .25s var(--ec-ease);
 }
 
     .btn-ghost:hover {
-        border-color: var(--ec-indigo);
-        color: var(--ec-indigo);
+        border-color: #FF7000;
+        color: #FF7000;
         transform: translateY(-1px);
-        box-shadow: 0 8px 18px -10px rgba(91, 95, 240, .5);
+        box-shadow: 0 8px 18px -10px rgba(255, 112, 0, .3);
     }
 
 .fx-ripple {
@@ -204,35 +207,37 @@ body {
 /* ---------- Filter pills ---------- */
 .pill {
     border-color: var(--ec-line);
+    font-size: 14px;
     transition: all .25s var(--ec-ease);
 }
 
     .pill:hover {
-        border-color: var(--ec-indigo);
-        color: var(--ec-indigo);
+        border-color: #FF7000;
+        color: #FF7000;
         transform: translateY(-2px);
     }
 
     .pill.active {
-        background: var(--ec-grad);
+        background: #FF7000;
         border-color: transparent;
         color: #fff;
-        box-shadow: 0 10px 22px -10px rgba(91, 95, 240, .9);
+        box-shadow: 0 10px 22px -10px rgba(255, 112, 0, .6);
     }
 
 .filters select {
     border-color: var(--ec-line);
+    font-size: 14px;
     border-radius: 10px;
     transition: border-color .2s, box-shadow .2s;
 }
 
     .filters select:focus {
         outline: none;
-        border-color: var(--ec-indigo);
-        box-shadow: 0 0 0 4px rgba(91, 95, 240, .15);
+        border-color: #FF7000;
+        box-shadow: 0 0 0 4px rgba(255, 112, 0, .15);
     }
 
-/* ---------- Surfaces: lift + pointer spotlight ---------- */
+/* ---------- Surfaces: lift + spotlight ---------- */
 .course-card, .course, .card, .stat, .gr-stat, .gr-card, .panel, .lesson-row,
 .access-card, .q-card, .tutor-card, .result-box {
     position: relative;
@@ -248,7 +253,7 @@ body {
         position: absolute;
         inset: 0;
         border-radius: inherit;
-        background: radial-gradient(380px circle at var(--mx) var(--my), rgba(91, 95, 240, .13), transparent 45%);
+        background: radial-gradient(380px circle at var(--mx) var(--my), rgba(255, 112, 0, .12), transparent 45%);
         opacity: 0;
         transition: opacity .35s;
         pointer-events: none;
@@ -268,14 +273,13 @@ body {
     .course-card:hover, .course:hover, .stat:hover, .gr-stat:hover, .lesson-row:hover {
         transform: translateY(-6px);
         box-shadow: var(--ec-shadow-2);
-        border-color: rgba(91, 95, 240, .45);
+        border-color: rgba(255, 112, 0, .4);
     }
 
     .lesson-row:hover {
         transform: translateY(-3px);
     }
 
-/* course cards: white surface, glowing thumb overlay, zoom on hover */
 .course {
     background: #fff;
     border: 1px solid var(--ec-line);
@@ -317,29 +321,30 @@ body {
     }
 
     .course .tag, .tag {
-        background: rgba(91, 95, 240, .1);
-        color: var(--ec-indigo);
+        background: rgba(255, 112, 0, .1);
+        color: #FF7000;
+        font-size: 13px; /* Tag text larger */
         border-radius: 999px;
-        padding: 4px 10px;
+        padding: 5px 12px;
     }
 
     .course .duration {
+        font-size: 14px;
         color: var(--ec-muted);
     }
 
-/* peach surfaces -> clean white with indigo accents */
 .access-card, .tutor-card, .gr-stat {
     background: #fff;
     border-color: var(--ec-line);
 }
 
 .access-card {
-    background: linear-gradient(180deg, #fff, #f6f7ff);
+    background: linear-gradient(180deg, #fff, #fff9f5);
 }
 
 .q-chip, .fm-chip {
-    background: rgba(91, 95, 240, .1);
-    color: var(--ec-indigo);
+    background: rgba(255, 112, 0, .1);
+    color: #FF7000;
     border-radius: 999px;
 }
 
@@ -355,10 +360,8 @@ body {
 }
 
 .stat .num, .gr-num, .result-score {
-    background: var(--ec-grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #FF7000;
+    font-size: 1.3em;
 }
 
 /* ---------- Dashboard hero ---------- */
@@ -366,8 +369,9 @@ body {
     position: relative;
     overflow: hidden;
     border-radius: 20px;
-    background: radial-gradient(500px 260px at 90% 0%, rgba(34, 211, 238, .28), transparent 70%), radial-gradient(500px 300px at 10% 100%, rgba(91, 95, 240, .55), transparent 70%), linear-gradient(135deg, #0a1128, #17205a);
+    background: radial-gradient(500px 260px at 90% 0%, rgba(255, 112, 0, .22), transparent 70%), radial-gradient(500px 300px at 10% 100%, rgba(15, 25, 57, .85), transparent 70%), linear-gradient(135deg, #0a1128, #17205a);
     box-shadow: 0 30px 60px -28px rgba(10, 17, 40, .7);
+    color: #fff;
 }
 
     .hero::after {
@@ -387,8 +391,13 @@ body {
     }
 
     .hero h2 {
-        font-weight: 800;
-        letter-spacing: -0.03em;
+        font-size: 2rem; /* Hero header larger */
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .hero p {
+        font-size: 1.1rem; /* Hero description larger */
     }
 
 .course-hero {
@@ -412,18 +421,20 @@ body {
     }
 
 .chip {
-    background: rgba(91, 95, 240, .85);
+    background: #FF7000;
     backdrop-filter: blur(6px);
     border-radius: 999px;
-    padding: 5px 12px;
-}
-
-.hero-avatar {
-    background: var(--ec-grad);
+    padding: 6px 14px;
+    font-size: 14px;
     color: #fff;
 }
 
-/* ---------- Progress: emerald = success ---------- */
+.hero-avatar {
+    background: #FF7000;
+    color: #fff;
+}
+
+/* ---------- Progress ---------- */
 .progress, .course .progress {
     background: #e7ebf5;
     border-radius: 99px;
@@ -431,8 +442,8 @@ body {
 }
 
     .progress > span, .course .progress-bar, .lv-bar-fill {
-        background: linear-gradient(90deg, #059669, #10b981 65%, #6ee7b7);
-        box-shadow: 0 0 12px rgba(16, 185, 129, .55);
+        background: #10b981;
+        box-shadow: 0 0 12px rgba(16, 185, 129, .4);
         border-radius: 99px;
     }
 
@@ -442,20 +453,20 @@ body {
 }
 
 .lv-item.done .lv-check {
-    background: var(--ec-green);
-    border-color: var(--ec-green);
+    background: #10b981;
+    border-color: #10b981;
 }
 
 .lesson-done, .learn-list li::before {
-    color: var(--ec-green);
+    color: #10b981;
 }
 
 .skill-fill {
-    background: var(--ec-grad);
+    background: #FF7000;
 }
 
 .wk-bar {
-    background: linear-gradient(180deg, #5b5ff0, #2f6bf0);
+    background: #FF7000;
     border-radius: 6px 6px 0 0;
     transition: filter .2s, transform .3s var(--ec-ease);
     transform-origin: bottom;
@@ -466,40 +477,41 @@ body {
         transform: scaleY(1.03);
     }
 
-/* heatmap: emerald scale (reads as "streak") */
 .hm {
     background: #eef1f8;
 }
 
 .hm1 {
-    background: #bbf7d0;
+    background: #ffe3d1;
 }
 
 .hm2 {
-    background: #6ee7b7;
+    background: #ffb88a;
 }
 
 .hm3 {
-    background: #34d399;
+    background: #ff9347;
 }
 
 .hm4 {
-    background: #059669;
-    box-shadow: 0 0 10px rgba(16, 185, 129, .5);
+    background: #FF7000;
+    box-shadow: 0 0 10px rgba(255, 112, 0, .4);
 }
 
 .ms-dot {
-    background: var(--ec-indigo);
-    box-shadow: 0 0 0 4px rgba(91, 95, 240, .18);
+    background: #FF7000;
+    box-shadow: 0 0 0 4px rgba(255, 112, 0, .18);
 }
 
 /* ---------- Lesson viewer ---------- */
 .lv-side, .lv-right, .quiz-side {
     background: rgba(255, 255, 255, .8);
     backdrop-filter: blur(12px);
+    font-size: 16px;
 }
 
 .lv-item {
+    font-size: 15px; /* Lesson list item text larger */
     transition: background .2s, transform .2s var(--ec-ease);
 }
 
@@ -508,9 +520,9 @@ body {
     }
 
     .lv-item.current {
-        background: rgba(91, 95, 240, .1);
-        color: var(--ec-indigo);
-        box-shadow: inset 3px 0 0 var(--ec-indigo);
+        background: rgba(255, 112, 0, .08);
+        color: #FF7000;
+        box-shadow: inset 3px 0 0 #FF7000;
     }
 
 .lv-video {
@@ -527,13 +539,14 @@ body {
 .opt {
     border-radius: 12px;
     background: #fff;
+    font-size: 16px; /* Quiz options text larger */
     transition: all .25s var(--ec-ease);
 }
 
     .opt:hover {
-        border-color: var(--ec-indigo);
+        border-color: #FF7000;
         transform: translateX(4px);
-        box-shadow: 0 10px 22px -12px rgba(91, 95, 240, .5);
+        box-shadow: 0 10px 22px -12px rgba(255, 112, 0, .4);
     }
 
     .opt:active {
@@ -541,13 +554,14 @@ body {
     }
 
     .opt.selected {
-        background: rgba(91, 95, 240, .08);
-        border-color: var(--ec-indigo);
+        background: rgba(255, 112, 0, .08);
+        border-color: #FF7000;
     }
 
         .opt.selected .opt-letter, .dot.answered {
-            background: var(--ec-indigo);
-            border-color: var(--ec-indigo);
+            background: #FF7000;
+            border-color: #FF7000;
+            color: #fff;
         }
 
     .opt.correct {
@@ -572,8 +586,8 @@ body {
     }
 
     .dot.current {
-        border-color: var(--ec-indigo);
-        box-shadow: 0 0 0 4px rgba(91, 95, 240, .18);
+        border-color: #FF7000;
+        box-shadow: 0 0 0 4px rgba(255, 112, 0, .18);
     }
 
 @keyframes fx-pop {
@@ -616,7 +630,7 @@ body {
     }
 }
 
-/* ---------- Modal: glass ---------- */
+/* ---------- Modal ---------- */
 .modal-back {
     background: rgba(6, 10, 24, .55);
     -webkit-backdrop-filter: blur(8px);
@@ -629,7 +643,8 @@ body {
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, .6);
     border-radius: 20px;
-    box-shadow: 0 40px 80px -24px rgba(10, 17, 40, .6), 0 0 60px -20px rgba(91, 95, 240, .4);
+    font-size: 16px; /* Modal text larger */
+    box-shadow: 0 40px 80px -24px rgba(10, 17, 40, .6), 0 0 60px -20px rgba(255, 112, 0, .2);
     transform: translateY(16px) scale(.96);
     transition: transform .35s var(--ec-ease);
 }
@@ -640,12 +655,13 @@ body {
 
 /* ---------- Misc polish ---------- */
 .deadline-item, .achievements li {
+    font-size: 15px;
     transition: background .2s, padding .25s var(--ec-ease);
     border-radius: 8px;
 }
 
     .deadline-item:hover, .achievements li:hover {
-        background: rgba(91, 95, 240, .05);
+        background: rgba(255, 112, 0, .05);
         padding-left: 8px;
     }
 
@@ -674,7 +690,7 @@ body {
 }
 
     ::-webkit-scrollbar-thumb:hover {
-        background: #a9b3d1;
+        background: #FF7000;
         background-clip: content-box;
     }
 
@@ -695,7 +711,6 @@ body {
     }
 }
 
-
 /* Styled Cancel Button */
 .cl-btn-ghost {
     padding: 12px 22px;
@@ -704,7 +719,7 @@ body {
     background: #ffffff;
     color: #64748b;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 15px; /* Button text larger */
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -717,45 +732,23 @@ body {
         transform: translateY(-1px);
     }
 
-/* Styled Primary Submit Button with Gradient */
+/* Styled Primary Submit Button with Vivid Orange */
 #btnConfirmSubmit {
     padding: 12px 26px;
     border-radius: 10px;
     border: none;
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    background: #FF7000;
     color: #ffffff;
     font-family: inherit;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 15px; /* Submit button text larger */
+    font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
+    box-shadow: 0 4px 15px rgba(255, 112, 0, 0.35);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
     #btnConfirmSubmit:hover {
-        background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        background: #ff8e3c;
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+        box-shadow: 0 6px 20px rgba(255, 112, 0, 0.5);
     }
-
-@keyframes fadeInModal {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideUpModal {
-    from {
-        opacity: 0;
-        transform: translateY(16px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
