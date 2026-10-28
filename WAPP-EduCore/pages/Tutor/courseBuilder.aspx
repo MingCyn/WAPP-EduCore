@@ -35,6 +35,19 @@
         .breadcrumb-separator {
             color: #cbd5e1;
         }
+
+        /* ---- Lesson content: heading / paragraph / list / image / video, in the order students see them ---- */
+        .block-section { margin-bottom: 22px; }
+        .block-heading { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+        .block-hint { font-size: 12px; color: #6b7285; margin: 0 0 12px; }
+        .block-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; margin-bottom: 8px; background: #ffffff; border: 1px solid #e4e2dd; border-radius: 8px; }
+        .block-type { flex: none; min-width: 88px; padding: 3px 8px; font-size: 11px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.3px; color: #2a4494; background: #e8ecfb; border-radius: 4px; }
+        .block-thumb { flex: none; width: 72px; height: 48px; object-fit: cover; border-radius: 6px; background: #f1f2f6; }
+        .block-preview { flex: 1; min-width: 0; font-size: 13px; line-height: 1.5; color: #3d4260; overflow-wrap: anywhere; }
+        .block-actions { flex: none; display: flex; gap: 6px; }
+        .block-actions .btn { padding: 4px 10px; }
+        .aspNetDisabled { opacity: 0.35; pointer-events: none; }
+        #modalText textarea.form-control { line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -135,70 +148,42 @@
 
                             <div class="component-list">
 
-                                <!-- Video -->
-                                <asp:Panel ID="PnlVideo" runat="server" CssClass="component-card" Visible="false">
-                                    <div class="video-thumb-container">
-                                        <asp:Image ID="ImgVideoThumb" runat="server" CssClass="component-thumbnail" AlternateText="Video Thumbnail" />
-                                    </div>
+                                <%-- ===== Lesson content, saved in lesson.lesson_content in exactly this order ===== --%>
+                                <div class="block-section">
+                                    <h3 class="block-heading">Lesson content</h3>
+                                    <p class="block-hint">Students see the lesson in the order listed here. Use the arrows to move a heading, paragraph, image or video up or down.</p>
 
-                                    <div class="component-body">
-                                        <h3 class="component-title">Lesson Video</h3>
-                                        <p class="component-meta">Video Component <span class="dot-sep">&bull;</span>
-                                            <asp:Literal ID="LitVideoSource" runat="server" /></p>
-                                        <div class="component-actions">
-                                            <asp:Button ID="BtnUploadVideo" runat="server" OnClientClick="openModal('modalUploadVideo'); return false;" Text="Replace Video" CssClass="btn btn-primary btn-sm" />
-                                        </div>
-                                    </div>
-                                </asp:Panel>
+                                    <asp:Repeater ID="RptBlocks" runat="server" OnItemCommand="RptBlocks_ItemCommand">
+                                        <ItemTemplate>
+                                            <div class="block-item">
+                                                <span class="block-type"><%#: Eval("TypeLabel") %></span>
+                                                <asp:PlaceHolder runat="server" Visible='<%# !string.IsNullOrEmpty((string)Eval("ThumbUrl")) %>'>
+                                                    <img class="block-thumb" src='<%#: Eval("ThumbUrl") %>' alt="" />
+                                                </asp:PlaceHolder>
+                                                <div class="block-preview"><%#: Eval("Preview") %></div>
+                                                <div class="block-actions">
+                                                    <asp:LinkButton runat="server" CommandName="up" CommandArgument='<%# Eval("Index") %>' CssClass="btn btn-outline btn-sm" Enabled='<%# (bool)Eval("CanMoveUp") %>' CausesValidation="false" ToolTip="Move up">&uarr;</asp:LinkButton>
+                                                    <asp:LinkButton runat="server" CommandName="down" CommandArgument='<%# Eval("Index") %>' CssClass="btn btn-outline btn-sm" Enabled='<%# (bool)Eval("CanMoveDown") %>' CausesValidation="false" ToolTip="Move down">&darr;</asp:LinkButton>
+                                                    <asp:LinkButton runat="server" CommandName="edit" CommandArgument='<%# Eval("Index") %>' CssClass="btn btn-outline btn-sm" Visible='<%# (bool)Eval("CanEdit") %>' CausesValidation="false">Edit</asp:LinkButton>
+                                                    <%-- Opens the in-page "Delete?" pop-up (no browser dialog) --%>
+                                                    <button type="button" class="btn btn-outline btn-sm" data-index='<%# Eval("Index") %>' data-type='<%#: Eval("TypeKey") %>' data-text='<%#: Eval("Preview") %>' onclick="askRemoveBlock(this)">Delete</button>
+                                                </div>
+                                            </div>
+                                        </ItemTemplate>
+                                    </asp:Repeater>
 
-                                <!-- Paragraph Component -->
-                                <asp:Panel ID="PnlParagraph" runat="server" CssClass="component-card" Visible="false">
-                                    <div class="component-icon text">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M4 6h16M4 12h16M4 18h7" />
-                                        </svg>
-                                    </div>
-                                    <div class="component-body">
-                                        <h3 class="component-title">Text Paragraph</h3>
-                                        <p class="component-meta">
-                                            <asp:Literal ID="LitParagraphMeta" runat="server" /></p>
-                                        <div class="component-actions">
-                                            <button type="button" runat="server" id="BtnEditParagraph" class="btn btn-outline btn-sm" onclick="openModal('modalEditParagraph')">Edit Text</button>
-                                        </div>
-                                    </div>
-                                </asp:Panel>
+                                    <asp:Panel ID="PnlNoBlocks" runat="server" CssClass="component-empty" Visible="false">
+                                        No content yet. Use the buttons below to add a heading and paragraph, an image or a video.
+                                    </asp:Panel>
 
-                                <!-- Table Component -->
-                                <asp:Panel ID="PnlTable" runat="server" CssClass="component-card" Visible="false">
-                                    <div class="component-icon table">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <rect x="3" y="3" width="18" height="18" rx="2" />
-                                            <path d="M3 9h18M3 15h18M9 3v18" />
-                                        </svg>
+                                    <div class="component-add">
+                                        <span>Add:</span>
+                                        <button type="button" class="btn btn-outline btn-sm" onclick="openTextModal()">+ Heading &amp; Paragraph</button>
+                                        <button type="button" class="btn btn-outline btn-sm" onclick="openImageModal()">+ Image</button>
+                                        <button type="button" id="BtnAddVideo" runat="server" class="btn btn-outline btn-sm" onclick="openModal('modalUploadVideo')">+ Video</button>
+                                        <a id="LnkAddQuiz" runat="server" class="btn btn-outline btn-sm">+ Assessment</a>
                                     </div>
-                                    <div class="component-body">
-                                        <h3 class="component-title">
-                                            <asp:Literal ID="LitTableTitle" runat="server" /></h3>
-                                        <p class="component-meta">Data Table Component</p>
-                                        <div class="component-actions">
-                                            <button type="button" runat="server" id="BtnEditTable" class="btn btn-outline btn-sm" onclick="openModal('modalEditTable')">Edit Table</button>
-                                        </div>
-                                    </div>
-                                </asp:Panel>
-
-                                <!-- Interactive object -->
-                                <asp:Panel ID="PnlInteractive" runat="server" CssClass="component-card" Visible="false">
-                                    <div class="component-icon navy">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l5 5-5 5" /><path d="M13 18h6" /></svg>
-                                    </div>
-                                    <div class="component-body">
-                                        <h3 class="component-title"><asp:Literal ID="LitInteractiveTitle" runat="server" /></h3>
-                                        <p class="component-meta"><asp:Literal ID="LitInteractiveMeta" runat="server" /></p>
-                                        <div class="component-actions">
-                                            <a id="LnkInteractive" runat="server" class="btn btn-accent btn-sm">Configure Sandbox</a>
-                                        </div>
-                                    </div>
-                                </asp:Panel>
+                                </div>
 
                                 <!-- Assessment -->
                                 <asp:Panel ID="PnlAssessment" runat="server" CssClass="component-card" Visible="false">
@@ -214,7 +199,20 @@
                                     </div>
                                 </asp:Panel>
 
-                                <!-- Virtual lab -->
+                                <%-- Interactive object and virtual lab: only shown when a lesson already has one (they can no longer be added here) --%>
+                                <asp:Panel ID="PnlInteractive" runat="server" CssClass="component-card" Visible="false">
+                                    <div class="component-icon navy">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l5 5-5 5" /><path d="M13 18h6" /></svg>
+                                    </div>
+                                    <div class="component-body">
+                                        <h3 class="component-title"><asp:Literal ID="LitInteractiveTitle" runat="server" /></h3>
+                                        <p class="component-meta"><asp:Literal ID="LitInteractiveMeta" runat="server" /></p>
+                                        <div class="component-actions">
+                                            <a id="LnkInteractive" runat="server" class="btn btn-accent btn-sm">Configure Sandbox</a>
+                                        </div>
+                                    </div>
+                                </asp:Panel>
+
                                 <asp:Panel ID="PnlLab" runat="server" CssClass="component-card" Visible="false">
                                     <div class="component-icon amber">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5.5 9.5A1.5 1.5 0 0 0 5.8 21h12.4a1.5 1.5 0 0 0 1.3-2.5L14 9V3" /><path d="M7.5 15h9" /></svg>
@@ -227,20 +225,6 @@
                                         </div>
                                     </div>
                                 </asp:Panel>
-
-                                <asp:Panel ID="PnlEmpty" runat="server" CssClass="component-empty" Visible="false">
-                                    This lesson has no components yet. Use the buttons below to add a video, assessment, interactive object or virtual lab.
-                                </asp:Panel>
-
-                                <div id="DivAddRow" runat="server" class="component-add">
-                                    <span>Add:</span>
-                                    <button type="button" id="BtnAddVideo" runat="server" class="btn btn-outline btn-sm" onclick="openModal('modalUploadVideo')">+ Video</button>
-                                    <button type="button" class="btn btn-outline btn-sm" onclick="openModal('modalEditParagraph')">+ Paragraph</button>
-                                    <button type="button" class="btn btn-outline btn-sm" onclick="openModal('modalEditTable')">+ Table</button>
-                                    <a id="LnkAddQuiz" runat="server" class="btn btn-outline btn-sm">+ Assessment</a>
-                                    <a id="LnkAddInteractive" runat="server" class="btn btn-outline btn-sm">+ Interactive Object</a>
-                                    <a id="LnkAddLab" runat="server" class="btn btn-outline btn-sm">+ Virtual Lab</a>
-                                </div>
 
                             </div>
 
@@ -379,6 +363,75 @@
             </asp:Panel>
         </div>
 
+        <%-- Add / edit text: a heading and a paragraph together (or just one of them) --%>
+        <div class="modal-overlay" id="modalText" aria-hidden="true">
+            <asp:Panel ID="PnlText" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalText">
+                <h3 class="modal-title" id="title_modalText">Add heading &amp; paragraph</h3>
+                <div id="textError" class="page-status error" style="display:none"></div>
+
+                <%-- HdnTextIndex: -1 = adding new content, otherwise the position of the block being edited.
+                     HdnTextMode:  both | heading | paragraph | list --%>
+                <asp:HiddenField ID="HdnTextIndex" runat="server" Value="-1" />
+                <asp:HiddenField ID="HdnTextMode" runat="server" Value="both" />
+
+                <div class="form-group" id="groupHeading">
+                    <label class="form-label" for="TxtHeading">Heading <span id="headingOptional">(optional)</span></label>
+                    <asp:TextBox ID="TxtHeading" runat="server" CssClass="form-control" MaxLength="200" placeholder="e.g. Main Types of Cells" />
+                </div>
+                <div class="form-group" id="groupParagraph">
+                    <label class="form-label" for="TxtParagraph">Paragraph <span id="paragraphOptional">(optional)</span></label>
+                    <asp:TextBox ID="TxtParagraph" runat="server" TextMode="MultiLine" Rows="7" CssClass="form-control" placeholder="Write the explanation students will read under the heading..." />
+                    <p class="form-hint" id="textHint">Add a heading, a paragraph, or both. They are saved as separate blocks, heading first, so you can move them independently.</p>
+                </div>
+                <div class="form-group" id="groupList" style="display:none">
+                    <label class="form-label" for="TxtListItems">List items</label>
+                    <asp:TextBox ID="TxtListItems" runat="server" TextMode="MultiLine" Rows="7" CssClass="form-control" placeholder="First item&#10;Second item" />
+                    <p class="form-hint">One item per line.</p>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalText')">Cancel</button>
+                    <asp:Button ID="BtnSaveText" runat="server" OnClick="BtnSaveText_Click" Text="Save" CssClass="btn btn-accent" />
+                </div>
+            </asp:Panel>
+        </div>
+
+        <%-- Add / edit an image with a caption (live preview before saving) --%>
+        <div class="modal-overlay" id="modalImage" aria-hidden="true">
+            <asp:Panel ID="PnlImage" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalImage">
+                <h3 class="modal-title" id="title_modalImage">Add image</h3>
+                <div id="imageError" class="page-status error" style="display:none"></div>
+
+                <%-- -1 = adding a new image, otherwise the position of the image being edited --%>
+                <asp:HiddenField ID="HdnImageIndex" runat="server" Value="-1" />
+
+                <div class="form-group">
+                    <label class="form-label">Image</label>
+                    <img id="ImgBlockCurrent" runat="server" visible="false" alt="Current image"
+                         style="display:block; width:100%; max-height:200px; object-fit:contain; border-radius:8px; margin-bottom:10px; background:#f1f2f6;" />
+                    <label class="dropzone" for="FileBlockImage">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
+                        <span><strong>Click to choose an image</strong> or drag it here</span>
+                        <span class="form-hint">JPG, PNG or WEBP, up to 5 MB</span>
+                        <span class="dropzone-file" id="blockImgName">No file selected</span>
+                        <asp:FileUpload ID="FileBlockImage" runat="server" CssClass="dropzone-input" accept="image/png,image/jpeg,image/webp" />
+                    </label>
+                    <%-- Preview of the file you just chose --%>
+                    <img id="imgBlockPreview" alt="Preview of the chosen image"
+                         style="display:none; width:100%; max-height:220px; object-fit:contain; border-radius:8px; margin-top:10px; background:#f1f2f6;" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="TxtImageCaption">Caption (optional)</label>
+                    <asp:TextBox ID="TxtImageCaption" runat="server" CssClass="form-control" MaxLength="200" placeholder="e.g. An image of eukaryotic and prokaryotic cell structures" />
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalImage')">Cancel</button>
+                    <asp:Button ID="BtnSaveImage" runat="server" OnClick="BtnSaveImage_Click" Text="Save image" CssClass="btn btn-accent" />
+                </div>
+            </asp:Panel>
+        </div>
+
         <div class="modal-overlay" id="modalUploadVideo" aria-hidden="true">
             <asp:Panel ID="PnlUploadVideo" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalUploadVideo">
                 <h3 class="modal-title" id="title_modalUploadVideo">Set lesson video</h3>
@@ -387,6 +440,10 @@
                     <asp:TextBox ID="TxtVideoUrl" runat="server" CssClass="form-control" placeholder="https://..." />
                     <p class="form-hint">Paste a secure (https) link to the lesson video.</p>
                 </div>
+                <div class="form-group">
+                    <label class="form-label" for="TxtVideoCaption">Caption (optional)</label>
+                    <asp:TextBox ID="TxtVideoCaption" runat="server" CssClass="form-control" MaxLength="200" placeholder="e.g. A video introduction to cell theory" />
+                </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-cancel" onclick="closeModal('modalUploadVideo')">Cancel</button>
                     <asp:Button ID="BtnConfirmUpload" runat="server" OnClick="BtnConfirmUpload_Click" Text="Save video" CssClass="btn btn-accent" />
@@ -394,37 +451,29 @@
             </asp:Panel>
         </div>
 
-        <div class="modal-overlay" id="modalEditParagraph" aria-hidden="true">
-            <asp:Panel ID="PnlModalParagraph" runat="server" CssClass="modal" role="dialog" aria-modal="true">
-                <h3 class="modal-title">Add / Edit Paragraph Text</h3>
-                <div class="form-group">
-                    <label class="form-label" for="TxtParagraphContent">Paragraph Content</label>
-                    <asp:TextBox ID="TxtParagraphContent" runat="server" TextMode="MultiLine" Rows="5" CssClass="form-control" placeholder="Write your context or explanation here..." />
-                </div>
+        <%-- Confirm deleting a heading / paragraph / list / image / video (replaces the browser's confirm box) --%>
+        <div class="modal-overlay" id="modalRemoveBlock" aria-hidden="true">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalRemoveBlock">
+                <h3 class="modal-title" id="title_modalRemoveBlock">Delete this content?</h3>
+                <p class="confirm-text">This will delete <strong id="removeBlockText"></strong> from the lesson. This cannot be undone.</p>
+                <asp:HiddenField ID="HdnRemoveBlockIndex" runat="server" />
+                <asp:HiddenField ID="HdnRemoveBlockType" runat="server" />
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalEditParagraph')">Cancel</button>
-                    <asp:Button ID="BtnSaveParagraph" runat="server" OnClick="BtnSaveParagraph_Click" Text="Save Paragraph" CssClass="btn btn-accent" />
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalRemoveBlock')">Cancel</button>
+                    <asp:Button ID="BtnConfirmRemoveBlock" runat="server" OnClick="BtnConfirmRemoveBlock_Click" Text="Delete" CssClass="btn btn-accent" />
                 </div>
-            </asp:Panel>
+            </div>
         </div>
 
-        <div class="modal-overlay" id="modalEditTable" aria-hidden="true">
-            <asp:Panel ID="PnlModalTable" runat="server" CssClass="modal" role="dialog" aria-modal="true">
-                <h3 class="modal-title">Add / Edit Data Table</h3>
-                <div class="form-group">
-                    <label class="form-label" for="TxtTableTitle">Table Caption / Title</label>
-                    <asp:TextBox ID="TxtTableTitle" runat="server" CssClass="form-control" placeholder="e.g. Summary of Cell Organelles" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="TxtTableData">Table Rows (JSON or CSV format)</label>
-                    <asp:TextBox ID="TxtTableData" runat="server" TextMode="MultiLine" Rows="4" CssClass="form-control" placeholder="Header1, Header2 | Row1Col1, Row1Col2" />
-                    <p class="form-hint">Enter row data separated by commas/pipes for rendering.</p>
-                </div>
+        <%-- General message / error pop-up (replaces the browser's alert box) --%>
+        <div class="modal-overlay" id="modalMessage" aria-hidden="true">
+            <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="title_modalMessage">
+                <h3 class="modal-title" id="title_modalMessage">Something went wrong</h3>
+                <p class="confirm-text" id="messageText"></p>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalEditTable')">Cancel</button>
-                    <asp:Button ID="BtnSaveTable" runat="server" OnClick="BtnSaveTable_Click" Text="Save Table" CssClass="btn btn-accent" />
+                    <button type="button" class="btn btn-accent" onclick="closeModal('modalMessage')">OK</button>
                 </div>
-            </asp:Panel>
+            </div>
         </div>
 
         <div class="modal-overlay" id="modalPublish" aria-hidden="true">
@@ -491,9 +540,10 @@
             o.addEventListener('mousedown', function (e) { if (e.target === o) closeModal(o.id); });
         });
 
+        // Enter inside a pop-up must never submit the form: only the pop-up's own button saves.
         document.addEventListener('keydown', function (e) {
             if (e.key !== 'Enter') return;
-            var t = /** @type {HTMLInputElement | null} */ (e.target);
+            var t = e.target;
             if (!t || !t.closest || !t.closest('.modal')) return;
             var tag = t.tagName;
             if (tag === 'TEXTAREA' || tag === 'BUTTON') return;
@@ -502,8 +552,8 @@
         });
 
         (function () {
-            var weeks = /** @type {HTMLSelectElement | null} */ (document.getElementById('DdlCourseWeeks'));
-            var hours = /** @type {HTMLSelectElement | null} */ (document.getElementById('DdlCourseHours'));
+            var weeks = document.getElementById('DdlCourseWeeks');
+            var hours = document.getElementById('DdlCourseHours');
             var preview = document.getElementById('durationPreview');
 
             function updateDuration() {
@@ -517,35 +567,33 @@
             if (hours) hours.addEventListener('change', updateDuration);
             updateDuration();
 
-            var file = /** @type {HTMLInputElement | null} */ (document.getElementById('FileCourseImg'));
+            var file = document.getElementById('FileCourseImg');
             var nameEl = document.getElementById('courseImgName');
-            var img = /** @type {HTMLImageElement | null} */ (document.getElementById('imgNewPreview'));
+            var img = document.getElementById('imgNewPreview');
             var err = document.getElementById('courseInfoError');
             if (!file || !nameEl || !img) return;
 
-            var fileInput = file, nameLabel = nameEl, preview2 = img;
-
-            fileInput.addEventListener('change', function () {
-                var f = fileInput.files && fileInput.files[0];
+            file.addEventListener('change', function () {
+                var f = file.files && file.files[0];
                 if (err) err.style.display = 'none';
                 if (!f) {
-                    nameLabel.textContent = 'No new file selected';
-                    preview2.style.display = 'none';
+                    nameEl.textContent = 'No new file selected';
+                    img.style.display = 'none';
                     return;
                 }
                 if (f.size > 2 * 1024 * 1024) {
-                    fileInput.value = '';
-                    nameLabel.textContent = 'No new file selected';
-                    preview2.style.display = 'none';
+                    file.value = '';
+                    nameEl.textContent = 'No new file selected';
+                    img.style.display = 'none';
                     if (err) { err.textContent = 'The image must be 2 MB or smaller.'; err.style.display = 'block'; }
                     return;
                 }
-                nameLabel.textContent = f.name;
+                nameEl.textContent = f.name;
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     if (e.target && typeof e.target.result === 'string') {
-                        preview2.src = e.target.result;
-                        preview2.style.display = 'block';
+                        img.src = e.target.result;
+                        img.style.display = 'block';
                     }
                 };
                 reader.readAsDataURL(f);
@@ -554,6 +602,100 @@
 
         var link = document.querySelector('.nav-link[href="courses.aspx"]');
         if (link) link.classList.add('active');
+
+        // ---------- Heading & paragraph pop-up (also used to edit one heading, paragraph or list) ----------
+        var TEXT_MODES = {
+            both:      { add: 'Add heading & paragraph', edit: 'Add heading & paragraph', heading: true,  paragraph: true,  list: false, headingOptional: true,  paragraphOptional: true  },
+            heading:   { add: 'Edit heading',            edit: 'Edit heading',            heading: true,  paragraph: false, list: false, headingOptional: false, paragraphOptional: true  },
+            paragraph: { add: 'Edit paragraph',          edit: 'Edit paragraph',          heading: false, paragraph: true,  list: false, headingOptional: true,  paragraphOptional: false },
+            list:      { add: 'Edit list',               edit: 'Edit list',               heading: false, paragraph: false, list: true,  headingOptional: true,  paragraphOptional: true  }
+        };
+
+        function setTextMode(mode) {
+            var cfg = TEXT_MODES[mode] || TEXT_MODES.both;
+            document.getElementById('HdnTextMode').value = TEXT_MODES[mode] ? mode : 'both';
+            document.getElementById('title_modalText').textContent = cfg.add;
+            document.getElementById('groupHeading').style.display = cfg.heading ? '' : 'none';
+            document.getElementById('groupParagraph').style.display = cfg.paragraph ? '' : 'none';
+            document.getElementById('groupList').style.display = cfg.list ? '' : 'none';
+            document.getElementById('headingOptional').style.display = cfg.headingOptional ? '' : 'none';
+            document.getElementById('paragraphOptional').style.display = cfg.paragraphOptional ? '' : 'none';
+            document.getElementById('textHint').style.display = mode === 'both' || !TEXT_MODES[mode] ? '' : 'none';
+        }
+
+        function openTextModal() {
+            document.getElementById('HdnTextIndex').value = '-1';
+            document.getElementById('TxtHeading').value = '';
+            document.getElementById('TxtParagraph').value = '';
+            document.getElementById('TxtListItems').value = '';
+            document.getElementById('textError').style.display = 'none';
+            setTextMode('both');
+            openModal('modalText');
+        }
+
+        // ---------- Image pop-up with live preview ----------
+        function openImageModal() {
+            document.getElementById('HdnImageIndex').value = '-1';
+            document.getElementById('TxtImageCaption').value = '';
+            var input = document.getElementById('FileBlockImage');
+            if (input) input.value = '';
+            document.getElementById('blockImgName').textContent = 'No file selected';
+            document.getElementById('imgBlockPreview').style.display = 'none';
+            document.getElementById('imageError').style.display = 'none';
+            var current = document.getElementById('ImgBlockCurrent');
+            if (current) current.style.display = 'none';
+            document.getElementById('title_modalImage').textContent = 'Add image';
+            openModal('modalImage');
+        }
+
+        (function () {
+            var input = document.getElementById('FileBlockImage');
+            var nameEl = document.getElementById('blockImgName');
+            var preview = document.getElementById('imgBlockPreview');
+            var err = document.getElementById('imageError');
+            if (!input || !nameEl || !preview) return;
+
+            function reset(message) {
+                input.value = '';
+                nameEl.textContent = 'No file selected';
+                preview.style.display = 'none';
+                if (message && err) { err.textContent = message; err.style.display = 'block'; }
+            }
+
+            input.addEventListener('change', function () {
+                var f = input.files && input.files[0];
+                if (err) err.style.display = 'none';
+                if (!f) { reset(); return; }
+                if (!/^image\/(jpeg|png|webp)$/.test(f.type)) { reset('Please choose a JPG, PNG or WEBP image.'); return; }
+                if (f.size > 5 * 1024 * 1024) { reset('The image must be 5 MB or smaller.'); return; }
+
+                nameEl.textContent = f.name;
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    if (e.target && typeof e.target.result === 'string') {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    }
+                };
+                reader.readAsDataURL(f);
+            });
+        })();
+
+        // ---------- Delete a content block: ask in an in-page pop-up ----------
+        function askRemoveBlock(btn) {
+            var text = btn.getAttribute('data-text') || '';
+            document.getElementById('HdnRemoveBlockIndex').value = btn.getAttribute('data-index');
+            document.getElementById('HdnRemoveBlockType').value = btn.getAttribute('data-type');
+            document.getElementById('removeBlockText').textContent = text ? '\u201C' + text + '\u201D' : 'this item';
+            openModal('modalRemoveBlock');
+        }
+
+        // In-page message / error pop-up (the server calls this when something fails)
+        function showPopup(title, message) {
+            document.getElementById('title_modalMessage').textContent = title;
+            document.getElementById('messageText').textContent = message;
+            openModal('modalMessage');
+        }
 
         // Function to add a new outcome input row
         function addOutcomeInput(value = '') {

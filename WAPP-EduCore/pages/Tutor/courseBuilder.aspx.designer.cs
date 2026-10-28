@@ -177,94 +177,67 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.Literal LitSummary;
 
         /// <summary>
-        /// PnlVideo control.
+        /// RptBlocks control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel PnlVideo;
+        protected global::System.Web.UI.WebControls.Repeater RptBlocks;
 
         /// <summary>
-        /// ImgVideoThumb control.
+        /// PnlNoBlocks control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Image ImgVideoThumb;
+        protected global::System.Web.UI.WebControls.Panel PnlNoBlocks;
 
         /// <summary>
-        /// LitVideoSource control.
+        /// BtnAddVideo control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal LitVideoSource;
+        protected global::System.Web.UI.HtmlControls.HtmlButton BtnAddVideo;
 
         /// <summary>
-        /// BtnUploadVideo control.
+        /// LnkAddQuiz control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button BtnUploadVideo;
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkAddQuiz;
 
         /// <summary>
-        /// PnlParagraph control.
+        /// PnlAssessment control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel PnlParagraph;
+        protected global::System.Web.UI.WebControls.Panel PnlAssessment;
 
         /// <summary>
-        /// LitParagraphMeta control.
+        /// LitAssessmentMeta control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal LitParagraphMeta;
+        protected global::System.Web.UI.WebControls.Literal LitAssessmentMeta;
 
         /// <summary>
-        /// BtnEditParagraph control.
+        /// LnkAssessment control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlButton BtnEditParagraph;
-
-        /// <summary>
-        /// PnlTable control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel PnlTable;
-
-        /// <summary>
-        /// LitTableTitle control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal LitTableTitle;
-
-        /// <summary>
-        /// BtnEditTable control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlButton BtnEditTable;
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkAssessment;
 
         /// <summary>
         /// PnlInteractive control.
@@ -301,33 +274,6 @@ namespace WAPP_EduCore.pages.Tutor
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkInteractive;
-
-        /// <summary>
-        /// PnlAssessment control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel PnlAssessment;
-
-        /// <summary>
-        /// LitAssessmentMeta control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal LitAssessmentMeta;
-
-        /// <summary>
-        /// LnkAssessment control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkAssessment;
 
         /// <summary>
         /// PnlLab control.
@@ -373,60 +319,6 @@ namespace WAPP_EduCore.pages.Tutor
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkLab;
-
-        /// <summary>
-        /// PnlEmpty control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel PnlEmpty;
-
-        /// <summary>
-        /// DivAddRow control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlGenericControl DivAddRow;
-
-        /// <summary>
-        /// BtnAddVideo control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlButton BtnAddVideo;
-
-        /// <summary>
-        /// LnkAddQuiz control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkAddQuiz;
-
-        /// <summary>
-        /// LnkAddInteractive control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkAddInteractive;
-
-        /// <summary>
-        /// LnkAddLab control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkAddLab;
 
         /// <summary>
         /// PnlDraftFooter control.
@@ -609,6 +501,123 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.Button BtnSaveDetails;
 
         /// <summary>
+        /// PnlText control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlText;
+
+        /// <summary>
+        /// HdnTextIndex control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField HdnTextIndex;
+
+        /// <summary>
+        /// HdnTextMode control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField HdnTextMode;
+
+        /// <summary>
+        /// TxtHeading control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox TxtHeading;
+
+        /// <summary>
+        /// TxtParagraph control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox TxtParagraph;
+
+        /// <summary>
+        /// TxtListItems control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox TxtListItems;
+
+        /// <summary>
+        /// BtnSaveText control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button BtnSaveText;
+
+        /// <summary>
+        /// PnlImage control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlImage;
+
+        /// <summary>
+        /// HdnImageIndex control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField HdnImageIndex;
+
+        /// <summary>
+        /// ImgBlockCurrent control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlImage ImgBlockCurrent;
+
+        /// <summary>
+        /// FileBlockImage control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.FileUpload FileBlockImage;
+
+        /// <summary>
+        /// TxtImageCaption control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox TxtImageCaption;
+
+        /// <summary>
+        /// BtnSaveImage control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button BtnSaveImage;
+
+        /// <summary>
         /// PnlUploadVideo control.
         /// </summary>
         /// <remarks>
@@ -627,6 +636,15 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.TextBox TxtVideoUrl;
 
         /// <summary>
+        /// TxtVideoCaption control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox TxtVideoCaption;
+
+        /// <summary>
         /// BtnConfirmUpload control.
         /// </summary>
         /// <remarks>
@@ -636,67 +654,31 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.WebControls.Button BtnConfirmUpload;
 
         /// <summary>
-        /// PnlModalParagraph control.
+        /// HdnRemoveBlockIndex control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel PnlModalParagraph;
+        protected global::System.Web.UI.WebControls.HiddenField HdnRemoveBlockIndex;
 
         /// <summary>
-        /// TxtParagraphContent control.
+        /// HdnRemoveBlockType control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox TxtParagraphContent;
+        protected global::System.Web.UI.WebControls.HiddenField HdnRemoveBlockType;
 
         /// <summary>
-        /// BtnSaveParagraph control.
+        /// BtnConfirmRemoveBlock control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button BtnSaveParagraph;
-
-        /// <summary>
-        /// PnlModalTable control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel PnlModalTable;
-
-        /// <summary>
-        /// TxtTableTitle control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox TxtTableTitle;
-
-        /// <summary>
-        /// TxtTableData control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox TxtTableData;
-
-        /// <summary>
-        /// BtnSaveTable control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button BtnSaveTable;
+        protected global::System.Web.UI.WebControls.Button BtnConfirmRemoveBlock;
 
         /// <summary>
         /// PnlPublish control.
