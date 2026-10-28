@@ -18,6 +18,18 @@ namespace WAPP_EduCore.pages.Admin
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            // Not logged in, or the session ran out (for example after resting for a while)?
+            // Then go to the login page. We do NOT guess an admin any more.
+            int signedInAdmin = CurrentUserId();
+            if (signedInAdmin == 0)
+            {
+                Response.Redirect("~/Default.aspx");     // the first page of the website (it has the Log In button)
+                return;
+            }
+
+            // Remember this admin in the browser until he/she clicks Logout
+            WAPP_EduCore.Data.LoginKeeper.Remember(Context, signedInAdmin);
+
             adminId = GetAdminId();
 
             if (!IsPostBack)
@@ -211,6 +223,7 @@ namespace WAPP_EduCore.pages.Admin
 
         protected void lnkLogout_Click(object sender, EventArgs e)
         {
+            WAPP_EduCore.Data.LoginKeeper.Forget(Context);   // remove the "remember me" cookie
             Session.Clear();
             Session.Abandon();
             Response.Redirect("~/auth/login.aspx");
@@ -272,7 +285,9 @@ namespace WAPP_EduCore.pages.Admin
             int id;
             if (int.TryParse(Convert.ToString(Session["UserID"]), out id) && id > 0) return id;
             if (int.TryParse(Convert.ToString(Session["user_id"]), out id) && id > 0) return id;
-            return 0;
+
+            // The session was forgotten (idle for a long time)? Ask the "remember me" cookie who the admin is.
+            return WAPP_EduCore.Data.LoginKeeper.Restore(Context);
         }
     }
 }

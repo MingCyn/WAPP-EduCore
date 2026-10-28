@@ -278,6 +278,7 @@
     <Compile Include="auth\verifyOtp.aspx.designer.cs">
       <DependentUpon>verifyOtp.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Data\loginKeeper.cs" />
     <Compile Include="Data\Db.cs" />
     <Compile Include="Contact.aspx.cs">
       <DependentUpon>Contact.aspx</DependentUpon>
