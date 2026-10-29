@@ -74,8 +74,7 @@ namespace WAPP_EduCore.pages.Student
                 "  (SELECT MAX(lp2.completed_at) FROM lesson_progress lp2 JOIN lesson l3 ON l3.lesson_id = lp2.lesson_id " +
                 "     WHERE l3.course_id = c.course_id AND lp2.user_id = @uid AND lp2.is_completed) AS last_activity " +
                 "FROM enrollment e JOIN courses c ON c.course_id = e.course_id " +
-                "LEFT JOIN users u ON u.user_id = c.user_id " +
-                "WHERE e.user_id = @uid AND lower(c.status) = 'published'", p);
+                "LEFT JOIN users u ON u.user_id = c.user_id WHERE e.user_id = @uid", p);
 
             var all = new List<CourseItem>();
             foreach (DataRow r in ct.Rows)

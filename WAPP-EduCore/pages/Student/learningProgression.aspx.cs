@@ -216,6 +216,16 @@ namespace WAPP_EduCore.pages.Student
                                 block.TryGetValue("caption", out object captionObj);
                                 string caption = captionObj != null ? Convert.ToString(captionObj) : "";
 
+                                // Properly resolve relative tilde paths (e.g., ~/uploads/...) to absolute web paths
+                                if (!string.IsNullOrWhiteSpace(imgUrl))
+                                {
+                                    imgUrl = imgUrl.Trim();
+                                    if (!imgUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        imgUrl = ResolveUrl("~/" + imgUrl.TrimStart('/', '~'));
+                                    }
+                                }
+
                                 contentBuilder.Append("<div class=\"lesson-image-wrapper\">");
                                 contentBuilder.AppendFormat("<img src=\"{0}\" alt=\"{1}\" class=\"lesson-img\" />",
                                     HttpUtility.HtmlAttributeEncode(imgUrl), HttpUtility.HtmlAttributeEncode(caption));
