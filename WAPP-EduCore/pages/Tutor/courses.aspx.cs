@@ -101,10 +101,8 @@ namespace WAPP_EduCore.pages.Tutor
                 ShowMessage("DEBUG: " + ex.GetType().Name + " - " + (pg != null ? pg.MessageText : ex.Message));
                 return;
             }
-
             if (courseList.Count == 0)
             {
-                ShowDebugInfo();
                 PnlEmpty.Visible = true;
                 PnlList.Visible = false;
             }
@@ -411,33 +409,7 @@ namespace WAPP_EduCore.pages.Tutor
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                ShowMessage("DEBUG: " + ex.GetType().Name + " - " + ex.Message);
-            }
-        }
-
-        private void ShowDebugInfo()
-        {
-            try
-            {
-                using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString))
-                {
-                    conn.Open();
-                    long mine, total;
-                    using (var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM courses WHERE user_id = @uid", conn))
-                    {
-                        cmd.Parameters.AddWithValue("uid", userId);
-                        mine = Convert.ToInt64(cmd.ExecuteScalar());
-                    }
-                    using (var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM courses", conn))
-                    {
-                        total = Convert.ToInt64(cmd.ExecuteScalar());
-                    }
-                    ShowMessage("DEBUG: session UserID=" + userId + " | courses for this user=" + mine + " | total courses=" + total);
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowMessage("DEBUG info failed: " + ex.Message);
+                ShowMessage("We couldn't refresh your courses. Please reload the page.");
             }
         }
 

@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>EduCore - Tutor Account Settings</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
-    <link href="../../Content/dashboard.css?v=2" rel="stylesheet" type="text/css" />
+    <link href="../../Content/dashboard.css?v=3" rel="stylesheet" type="text/css" />
     <link href="../../Content/settings.css" rel="stylesheet" type="text/css" />
     <style type="text/css">
         /* Specific adjustments for tutor profile layout container */

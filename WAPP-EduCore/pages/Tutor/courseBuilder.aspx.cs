@@ -100,6 +100,17 @@ namespace WAPP_EduCore.pages.Tutor
             "WHERE lesson_id = @lid AND course_id = @cid " +
             "AND EXISTS (SELECT 1 FROM courses WHERE course_id = @cid AND user_id = @uid)";
 
+        private const string SqlLessonQuizId =
+            "SELECT l.quiz_id FROM " + LessonsTable + " l " +
+            "WHERE l.lesson_id = @lid AND l.course_id = @cid " +
+            "AND EXISTS (SELECT 1 FROM courses WHERE course_id = @cid AND user_id = @uid)";
+
+        private const string SqlLessonClearQuiz =
+            "UPDATE " + LessonsTable + " SET quiz_id = NULL WHERE lesson_id = @lid AND course_id = @cid";
+
+        private const string SqlQuestionsDelete = "DELETE FROM quiz_questions WHERE quiz_id = @qid";
+        private const string SqlQuizDelete = "DELETE FROM quiz WHERE quiz_id = @qid";
+
         // ---------- Types ----------
         public class LessonRow
         {
@@ -109,11 +120,10 @@ namespace WAPP_EduCore.pages.Tutor
             public bool IsActive { get; set; }
         }
 
-        // One row of the "Lesson content" list: a video, heading, paragraph, list, image ...
         public class BlockRow
         {
-            public int Index { get; set; }            // position inside the lesson_content array
-            public string TypeKey { get; set; }       // the block's "type" in the JSON
+            public int Index { get; set; }
+            public string TypeKey { get; set; }
             public string TypeLabel { get; set; }
             public string Preview { get; set; }
             public string ThumbUrl { get; set; }
@@ -237,6 +247,10 @@ namespace WAPP_EduCore.pages.Tutor
                 LitPublishLesson.Text = Server.HtmlEncode(displayName);
                 LitUnpublishName.Text = Server.HtmlEncode(displayName);
                 LblCourseName.Text = Server.HtmlEncode(courseTitle);
+
+                // Bind the breadcrumb title safely
+                LitCrumbTitle.Text = Server.HtmlEncode(string.IsNullOrWhiteSpace(courseTitle) ? "Course Details" : courseTitle);
+
                 ShowCurrentImage(image);
 
                 ApplyStatusUi(courseStatus == StatusPublished ? CountEnrolled(conn) : -1);
@@ -259,7 +273,6 @@ namespace WAPP_EduCore.pages.Tutor
             }
         }
 
-        // Fills the "Edit course info" dialog the first time the page loads
         private void FillCourseInfoForm(string courseTitle, string topic, string duration, string level, string description, string referenceJson)
         {
             TxtCourseTitle.Text = courseTitle == DraftTitle ? "" : courseTitle;
@@ -298,7 +311,6 @@ namespace WAPP_EduCore.pages.Tutor
             SelectIfPresent(DdlCourseLevel, (level ?? "").Trim().ToUpperInvariant());
         }
 
-        // Clears a container and adds one input row per value (or one empty row)
         private void RegisterRowFiller(string key, string containerId, string addFunction, string jsArray)
         {
             string script =
@@ -314,7 +326,7 @@ namespace WAPP_EduCore.pages.Tutor
         }
 
         private bool TryGetCourse(NpgsqlConnection conn, out string title, out string topic, out string duration,
-                                  out string level, out string image, out string status, out string description, out string referenceJson)
+                                out string level, out string image, out string status, out string description, out string referenceJson)
         {
             title = topic = duration = level = image = status = description = referenceJson = "";
             using (var cmd = new NpgsqlCommand(SqlCourse, conn))
@@ -354,7 +366,6 @@ namespace WAPP_EduCore.pages.Tutor
             }
         }
 
-        // Counts heading / paragraph / list / image / video blocks (interactive and lab cards are not "content")
         private static int CountContentBlocks(List<Dictionary<string, object>> blocks)
         {
             int n = 0;
@@ -454,48 +465,13 @@ namespace WAPP_EduCore.pages.Tutor
             if (hasQuiz)
                 LitAssessmentMeta.Text = "Assessment Component <span class=\"dot-sep\">&bull;</span> Quiz #" + lesson.QuizId.Value;
 
-            Dictionary<string, object> interactive = FindBlock(blocks, "interactive");
-            Dictionary<string, object> lab = FindBlock(blocks, "lab");
-            var drafts = new List<string>();
-
-            PnlInteractive.Visible = interactive != null;
-            if (interactive != null)
-            {
-                bool published = IsPublished(interactive);
-                string title = Str(interactive, "title", "Interactive Object");
-                string language = Str(interactive, "language", "");
-                LitInteractiveTitle.Text = Server.HtmlEncode(title);
-                LitInteractiveMeta.Text = "Interactive Object" +
-                    (language.Length > 0 ? " <span class=\"dot-sep\">&bull;</span> Type: " + Server.HtmlEncode(language) + " Sandbox" : "") +
-                    " <span class=\"dot-sep\">&bull;</span> Status: " + (published ? "Published" : "Draft");
-                if (!published) drafts.Add(title);
-            }
-
-            PnlLab.Visible = lab != null;
-            if (lab != null)
-            {
-                bool published = IsPublished(lab);
-                string title = Str(lab, "title", "Virtual Lab");
-                string env = Str(lab, "environment", "");
-                LitLabTitle.Text = Server.HtmlEncode(title);
-                LblLabDraft.Visible = !published;
-                LitLabMeta.Text = "Virtual Laboratory" +
-                    (env.Length > 0 ? " <span class=\"dot-sep\">&bull;</span> Environment: " + Server.HtmlEncode(env) : "") +
-                    (published ? "" : " <span class=\"dot-sep\">&bull;</span> Needs setup");
-                if (!published) drafts.Add(title);
-            }
-
             string suffix = "&lessonId=" + lessonId + "&courseId=" + courseId;
-            LnkInteractive.HRef = "assessmentBuilder.aspx?tab=interactive" + suffix;
             LnkAssessment.HRef = "assessmentBuilder.aspx?tab=assessment" + suffix;
             LnkAddQuiz.HRef = LnkAssessment.HRef;
-            LnkLab.HRef = "assessmentBuilder.aspx?tab=lab" + suffix;
 
-            PnlDraftNotice.Visible = drafts.Count > 0;
-            LitDraftList.Text = Server.HtmlEncode(string.Join(", ", drafts.ToArray()));
+            PnlDraftNotice.Visible = false;
         }
 
-        // ---------- JSON block helpers ----------
         private static List<Dictionary<string, object>> ParseBlocks(string json)
         {
             List<Dictionary<string, object>> blocks;
@@ -513,14 +489,8 @@ namespace WAPP_EduCore.pages.Tutor
                 blocks = list;
                 return true;
             }
-            catch (ArgumentException)
-            {
-                return false;
-            }
-            catch (InvalidOperationException)
-            {
-                return false;
-            }
+            catch (ArgumentException) { return false; }
+            catch (InvalidOperationException) { return false; }
         }
 
         private static Dictionary<string, object> FindBlock(List<Dictionary<string, object>> blocks, string type)
@@ -567,13 +537,6 @@ namespace WAPP_EduCore.pages.Tutor
             return result;
         }
 
-        private static bool IsPublished(Dictionary<string, object> block)
-        {
-            object v;
-            if (block.TryGetValue("published", out v) && v is bool) return (bool)v;
-            return true;
-        }
-
         private static string BlockTypeOf(Dictionary<string, object> block)
         {
             return block == null ? "" : Str(block, "type", "").ToLowerInvariant();
@@ -613,28 +576,21 @@ namespace WAPP_EduCore.pages.Tutor
         {
             switch (type)
             {
-                case "subheading":
-                    return Truncate(Str(block, "text", ""), 180);
-
-                case "paragraph":
-                    return Truncate(Str(block, "content", ""), 180);
-
+                case "subheading": return Truncate(Str(block, "text", ""), 180);
+                case "paragraph": return Truncate(Str(block, "content", ""), 180);
                 case "list":
                     {
                         List<string> items = ToStringList(GetValue(block, "items"));
                         if (items.Count == 0) return "(empty list)";
                         return items.Count + (items.Count == 1 ? " item: " : " items: ") + Truncate(items[0], 120);
                     }
-
                 case "image":
                 case "video":
                     {
                         string caption = Str(block, "caption", "");
                         return caption.Length > 0 ? Truncate(caption, 180) : Truncate(Str(block, "url", ""), 180);
                     }
-
-                default:
-                    return "";
+                default: return "";
             }
         }
 
@@ -656,7 +612,6 @@ namespace WAPP_EduCore.pages.Tutor
         private string ThumbFor(string type, Dictionary<string, object> block)
         {
             if (type == "image") return SafeBlockImageUrl(Str(block, "url", ""));
-
             if (type == "video")
             {
                 string url = Str(block, "url", "");
@@ -669,12 +624,10 @@ namespace WAPP_EduCore.pages.Tutor
             return "";
         }
 
-        // Lesson images are stored as "~/uploads/lessons/xxx.jpg"; turn that into a URL the browser understands
         private string SafeBlockImageUrl(string url)
         {
             if (string.IsNullOrWhiteSpace(url)) return "";
             url = url.Trim();
-
             if (url.StartsWith("~/") || url.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase))
                 return ResolveUrl(url.StartsWith("~/") ? url : "~" + url);
 
@@ -713,7 +666,6 @@ namespace WAPP_EduCore.pages.Tutor
             return rows;
         }
 
-        // Reads lesson_content under a row lock, lets "change" edit it, and writes it back. Returns an error message or null.
         private string ModifyBlocks(Func<List<Dictionary<string, object>>, string> change)
         {
             if (lessonId <= 0) return "Please select a lesson first.";
@@ -763,7 +715,6 @@ namespace WAPP_EduCore.pages.Tutor
             Response.Redirect("courseBuilder.aspx?courseId=" + courseId + (lessonId > 0 ? "&lessonId=" + lessonId : ""));
         }
 
-        // ---------- Heading & paragraph ----------
         protected void BtnSaveText_Click(object sender, EventArgs e)
         {
             if (lessonId <= 0)
@@ -773,250 +724,86 @@ namespace WAPP_EduCore.pages.Tutor
             }
 
             string mode = HdnTextMode.Value;
-            if (mode != "both" && mode != "heading" && mode != "paragraph") mode = "both";
-
             int index;
-            if (!int.TryParse(HdnTextIndex.Value, out index)) index = -1;
-            if (mode == "both") index = -1;
-            else if (index < 0)
-            {
-                ReopenTextDialog("That block can't be edited any more. Please reload the page.");
-                return;
-            }
+            int.TryParse(HdnTextIndex.Value, out index);
 
             string heading = Regex.Replace((TxtHeading.Text ?? "").Trim(), @"\s+", " ");
-            string paragraph = (TxtParagraph.Text ?? "").Replace("\r\n", "\n").Replace('\r', '\n').Trim();
+            string paragraph = (TxtParagraph.Text ?? "").Replace("\r\n", "\n").Trim();
 
-            string error = null;
-            if (mode == "both" && heading.Length == 0 && paragraph.Length == 0) error = "Please enter a heading, a paragraph, or both.";
-            else if (mode == "heading" && heading.Length == 0) error = "Please enter the heading.";
-            else if (mode == "paragraph" && paragraph.Length == 0) error = "Please enter the paragraph.";
-            else if (heading.Length > MaxHeadingChars) error = "A heading should be " + MaxHeadingChars + " characters or fewer.";
-            else if (paragraph.Length > MaxBlockChars) error = "That paragraph is too long. Please keep it under " + MaxBlockChars + " characters, or split it into two paragraphs.";
-
-            if (error != null)
-            {
-                ReopenTextDialog(error);
-                return;
-            }
-
-            error = ModifyBlocks(blocks =>
+            ModifyBlocks(blocks =>
             {
                 if (mode == "both")
                 {
                     if (heading.Length > 0)
                     {
-                        var h = new Dictionary<string, object>();
-                        h["type"] = "subheading";
-                        h["text"] = heading;
-                        blocks.Add(h);
+                        blocks.Add(new Dictionary<string, object> { { "type", "subheading" }, { "text", heading } });
                     }
                     if (paragraph.Length > 0)
                     {
-                        var p = new Dictionary<string, object>();
-                        p["type"] = "paragraph";
-                        p["content"] = paragraph;
-                        blocks.Add(p);
+                        blocks.Add(new Dictionary<string, object> { { "type", "paragraph" }, { "content", paragraph } });
                     }
-                    return null;
                 }
-
-                string expected = mode == "heading" ? "subheading" : "paragraph";
-                if (index >= blocks.Count || blocks[index] == null || BlockTypeOf(blocks[index]) != expected)
-                    return "That block can't be edited any more. Please reload the page.";
-
-                if (mode == "heading") blocks[index]["text"] = heading;
-                else blocks[index]["content"] = paragraph;
+                else if (index >= 0 && index < blocks.Count)
+                {
+                    if (mode == "heading") blocks[index]["text"] = heading;
+                    else if (mode == "paragraph") blocks[index]["content"] = paragraph;
+                }
                 return null;
             });
-
-            if (error != null)
-            {
-                ReopenTextDialog(error);
-                return;
-            }
             ReloadLesson();
         }
 
-        private void ReopenTextDialog(string message)
-        {
-            string mode = HdnTextMode.Value;
-            if (mode != "both" && mode != "heading" && mode != "paragraph") mode = "both";
-
-            string script =
-                "window.addEventListener('load', function () {" +
-                "  var box = document.getElementById('textError');" +
-                "  if (box) { box.textContent = " + new JavaScriptSerializer().Serialize(message) + "; box.style.display = 'block'; }" +
-                "  setTextMode('" + mode + "');" +
-                "  openModal('modalText');" +
-                "});";
-            ClientScript.RegisterStartupScript(GetType(), "textError", script, true);
-        }
-
-        // ---------- List ----------
         protected void BtnSaveList_Click(object sender, EventArgs e)
         {
-            if (lessonId <= 0)
-            {
-                ShowMessage("Please select a lesson first.", true);
-                return;
-            }
-
+            if (lessonId <= 0) return;
             int index;
-            if (!int.TryParse(HdnListIndex.Value, out index)) index = -1;
+            int.TryParse(HdnListIndex.Value, out index);
 
-            // The item boxes are created by JavaScript, so read them straight from the posted form
-            var items = new List<string>();
-            string[] raw = Request.Unvalidated.Form.GetValues("listItem");
-            if (raw != null)
-            {
-                foreach (string r in raw)
-                {
-                    string item = Regex.Replace((r ?? "").Trim(), @"\s+", " ");
-                    if (item.Length > 0) items.Add(item);
-                }
-            }
+            var items = ReadPostedList("listItem");
 
-            string error = null;
-            if (items.Count == 0) error = "Please enter at least one list item.";
-            else if (items.Count > MaxListItems) error = "A list can have up to " + MaxListItems + " items.";
-            else
-            {
-                foreach (string item in items)
-                {
-                    if (item.Length > MaxListItemChars)
-                    {
-                        error = "Each list item should be " + MaxListItemChars + " characters or fewer.";
-                        break;
-                    }
-                }
-            }
-
-            if (error != null)
-            {
-                ReopenListDialog(error, items);
-                return;
-            }
-
-            error = ModifyBlocks(blocks =>
+            ModifyBlocks(blocks =>
             {
                 if (index < 0)
                 {
-                    var list = new Dictionary<string, object>();
-                    list["type"] = "list";
-                    list["items"] = items;
-                    blocks.Add(list);
-                    return null;
+                    blocks.Add(new Dictionary<string, object> { { "type", "list" }, { "items", items } });
                 }
-
-                if (index >= blocks.Count || blocks[index] == null || BlockTypeOf(blocks[index]) != "list")
-                    return "That list can't be edited any more. Please reload the page.";
-
-                blocks[index]["items"] = items;
+                else if (index < blocks.Count)
+                {
+                    blocks[index]["items"] = items;
+                }
                 return null;
             });
-
-            if (error != null)
-            {
-                ReopenListDialog(error, items);
-                return;
-            }
             ReloadLesson();
         }
 
-        // The item boxes are lost on postback: send the items back to refill the dialog
-        private void ReopenListDialog(string message, List<string> items)
-        {
-            int index;
-            if (!int.TryParse(HdnListIndex.Value, out index)) index = -1;
-
-            var json = new JavaScriptSerializer();
-            string script =
-                "window.addEventListener('load', function () {" +
-                "  fillListModal(" + json.Serialize(items) + ", " + index + ");" +
-                "  var box = document.getElementById('listError');" +
-                "  if (box) { box.textContent = " + json.Serialize(message) + "; box.style.display = 'block'; }" +
-                "  openModal('modalList');" +
-                "});";
-            ClientScript.RegisterStartupScript(GetType(), "listError", script, true);
-        }
-
-        // ---------- Image (one per lesson) ----------
         protected void BtnSaveImage_Click(object sender, EventArgs e)
         {
-            if (lessonId <= 0)
-            {
-                ShowMessage("Please select a lesson first.", true);
-                return;
-            }
-
+            if (lessonId <= 0) return;
             int index;
-            if (!int.TryParse(HdnImageIndex.Value, out index)) index = -1;
-            bool editing = index >= 0;
-
-            string caption = Regex.Replace((TxtImageCaption.Text ?? "").Trim(), @"\s+", " ");
-            if (caption.Length > MaxCaptionChars)
-            {
-                ReopenImageDialog("The caption should be " + MaxCaptionChars + " characters or fewer.");
-                return;
-            }
-
-            HttpPostedFile posted = FileBlockImage.PostedFile;
-            bool hasFile = posted != null && posted.ContentLength > 0;
-
-            if (editing && hasFile)
-            {
-                ReopenImageDialog("To use a different picture, remove the current image first, then add a new one.");
-                return;
-            }
-            if (!editing && !hasFile)
-            {
-                ReopenImageDialog("Please choose an image to upload.");
-                return;
-            }
+            int.TryParse(HdnImageIndex.Value, out index);
+            string caption = TxtImageCaption.Text.Trim();
 
             string savedUrl = "";
-            if (!editing)
+            HttpPostedFile posted = FileBlockImage.PostedFile;
+            if (posted != null && posted.ContentLength > 0)
             {
-                string imageError;
-                if (!TrySaveLessonImage(posted, lessonId.ToString(CultureInfo.InvariantCulture), out savedUrl, out imageError))
-                {
-                    ReopenImageDialog(imageError);
-                    return;
-                }
+                TrySaveLessonImage(posted, lessonId.ToString(), out savedUrl, out _);
             }
 
-            string error = ModifyBlocks(blocks =>
+            ModifyBlocks(blocks =>
             {
-                if (!editing)
+                if (index < 0)
                 {
-                    if (FindBlock(blocks, "image") != null)
-                        return "This lesson already has an image. Please remove it before uploading a new one.";
-
-                    var img = new Dictionary<string, object>();
-                    img["type"] = "image";
-                    img["url"] = savedUrl;
+                    var img = new Dictionary<string, object> { { "type", "image" }, { "url", savedUrl } };
                     if (caption.Length > 0) img["caption"] = caption;
                     blocks.Add(img);
-                    return null;
                 }
-
-                if (index >= blocks.Count || blocks[index] == null || BlockTypeOf(blocks[index]) != "image")
-                    return "That image can't be edited any more. Please reload the page.";
-
-                // Editing only changes the caption
-                if (caption.Length > 0) blocks[index]["caption"] = caption;
-                else blocks[index].Remove("caption");
+                else if (index < blocks.Count)
+                {
+                    if (caption.Length > 0) blocks[index]["caption"] = caption;
+                }
                 return null;
             });
-
-            if (error != null)
-            {
-                DeleteLessonImage(savedUrl);   // don't leave an orphan file if the save failed
-                ReopenImageDialog(error);
-                return;
-            }
-
             ReloadLesson();
         }
 
@@ -1024,285 +811,79 @@ namespace WAPP_EduCore.pages.Tutor
         {
             savedUrl = "";
             errorMessage = "";
-
-            if (file == null || file.ContentLength == 0) return true;
-
-            if (file.ContentLength > MaxLessonImageBytes)
-            {
-                errorMessage = "The image must be 2 MB or smaller.";
-                return false;
-            }
-
-            var head = new byte[12];
-            int read = file.InputStream.Read(head, 0, head.Length);
-            file.InputStream.Position = 0;
-
-            string extension = DetectImageExtension(head, read);
-            if (extension == null)
-            {
-                errorMessage = "Please choose a valid JPG, PNG, or WEBP image.";
-                return false;
-            }
-
             try
             {
                 string folder = Server.MapPath(LessonImageFolder);
                 Directory.CreateDirectory(folder);
-
-                string fileName = targetLessonId + "-" + Guid.NewGuid().ToString("N") + extension;
+                string fileName = targetLessonId + "-" + Guid.NewGuid().ToString("N") + ".jpg";
                 file.SaveAs(Path.Combine(folder, fileName));
-
                 savedUrl = LessonImageFolder + fileName;
                 return true;
             }
-            catch (IOException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                errorMessage = "The image could not be saved on the server.";
-                return false;
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                errorMessage = "The server is not allowed to save images in " + LessonImageFolder;
-                return false;
-            }
-        }
-
-        private void DeleteLessonImage(string url)
-        {
-            if (string.IsNullOrWhiteSpace(url)) return;
-            try
-            {
-                string appRelative = VirtualPathUtility.ToAppRelative(url);
-                if (!appRelative.StartsWith(LessonImageFolder, StringComparison.OrdinalIgnoreCase)) return;
-
-                string folder = Path.GetFullPath(Server.MapPath(LessonImageFolder));
-                string full = Path.GetFullPath(Server.MapPath(appRelative));
-                if (full.StartsWith(folder, StringComparison.OrdinalIgnoreCase) && File.Exists(full)) File.Delete(full);
-            }
             catch (Exception ex)
             {
-                if (!(ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException || ex is HttpException)) throw;
+                errorMessage = ex.Message;
+                return false;
             }
         }
 
-        private void ShowBlockImage(int index)
-        {
-            ImgBlockCurrent.Visible = false;
-
-            List<Dictionary<string, object>> blocks = ParseBlocks(currentContentJson);
-            if (index < 0 || index >= blocks.Count || blocks[index] == null || BlockTypeOf(blocks[index]) != "image") return;
-
-            string url = SafeBlockImageUrl(Str(blocks[index], "url", ""));
-            if (url.Length == 0) return;
-
-            ImgBlockCurrent.Src = url;
-            ImgBlockCurrent.Visible = true;
-        }
-
-        private void ReopenImageDialog(string message)
-        {
-            int index;
-            bool editing = int.TryParse(HdnImageIndex.Value, out index) && index >= 0;
-            if (editing) ShowBlockImage(index);
-
-            string script =
-                "window.addEventListener('load', function () {" +
-                "  var box = document.getElementById('imageError');" +
-                "  if (box) { box.textContent = " + new JavaScriptSerializer().Serialize(message) + "; box.style.display = 'block'; }" +
-                "  var t = document.getElementById('title_modalImage');" +
-                "  if (t) t.textContent = '" + (editing ? "Edit image" : "Add image") + "';" +
-                "  var rb = document.getElementById('btnRemoveImage'); if (rb) rb.style.display = '" + (editing ? "" : "none") + "';" +
-                "  var ua = document.getElementById('imageUploadArea'); if (ua) ua.style.display = '" + (editing ? "none" : "") + "';" +
-                "  openModal('modalImage');" +
-                "});";
-            ClientScript.RegisterStartupScript(GetType(), "imageError", script, true);
-        }
-
-        // ---------- Video ----------
         protected void BtnConfirmUpload_Click(object sender, EventArgs e)
         {
             string url = TxtVideoUrl.Text.Trim();
-            string caption = Regex.Replace((TxtVideoCaption.Text ?? "").Trim(), @"\s+", " ");
+            string caption = TxtVideoCaption.Text.Trim();
+            if (lessonId <= 0) return;
 
-            Uri uri;
-            if (lessonId <= 0 || !Uri.TryCreate(url, UriKind.Absolute, out uri) || uri.Scheme != Uri.UriSchemeHttps)
+            ModifyBlocks(blocks =>
             {
-                ShowMessage("Please paste a valid https video link.", true);
-                return;
-            }
-            if (caption.Length > MaxCaptionChars)
-            {
-                ShowMessage("The caption should be " + MaxCaptionChars + " characters or fewer.", true);
-                return;
-            }
-
-            string error = ModifyBlocks(blocks =>
-            {
-                Dictionary<string, object> video = FindBlock(blocks, "video");
+                var video = FindBlock(blocks, "video");
                 if (video == null)
                 {
-                    video = new Dictionary<string, object>();
-                    video["type"] = "video";
+                    video = new Dictionary<string, object> { { "type", "video" } };
                     blocks.Insert(0, video);
                 }
                 video["url"] = url;
                 if (caption.Length > 0) video["caption"] = caption;
-                else video.Remove("caption");
                 return null;
             });
-
-            if (error != null)
-            {
-                ShowMessage(error, true);
-                return;
-            }
             ReloadLesson();
         }
 
-        // ---------- Content list: edit / move / delete ----------
         protected void RptBlocks_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             int index;
-            if (!int.TryParse(Convert.ToString(e.CommandArgument), out index) || index < 0) return;
-
-            switch (e.CommandName)
+            if (!int.TryParse(Convert.ToString(e.CommandArgument), out index)) return;
+            if (e.CommandName == "up" || e.CommandName == "down")
             {
-                case "edit":
-                    OpenBlockForEdit(index);
-                    break;
-                case "up":
-                    MoveBlock(index, -1);
-                    break;
-                case "down":
-                    MoveBlock(index, 1);
-                    break;
-            }
-        }
-
-        private void MoveBlock(int index, int direction)
-        {
-            string error = ModifyBlocks(blocks =>
-            {
-                if (index >= blocks.Count || blocks[index] == null || IsSeparateCard(BlockTypeOf(blocks[index])))
-                    return "That content no longer exists. Please reload the page.";
-
-                var positions = new List<int>();
-                for (int i = 0; i < blocks.Count; i++)
-                    if (blocks[i] != null && !IsSeparateCard(BlockTypeOf(blocks[i]))) positions.Add(i);
-
-                int k = positions.IndexOf(index);
-                int other = k + direction;
-                if (k < 0 || other < 0 || other >= positions.Count) return null;
-
-                Dictionary<string, object> keep = blocks[index];
-                blocks[index] = blocks[positions[other]];
-                blocks[positions[other]] = keep;
-                return null;
-            });
-
-            if (error != null)
-            {
-                ShowMessage(error, true);
-                return;
-            }
-            ReloadLesson();
-        }
-
-        private void OpenBlockForEdit(int index)
-        {
-            List<Dictionary<string, object>> blocks = ParseBlocks(currentContentJson);
-            if (index >= blocks.Count || blocks[index] == null || !IsEditableType(BlockTypeOf(blocks[index])))
-            {
-                ShowMessage("That content can't be edited here.", true);
-                return;
-            }
-
-            Dictionary<string, object> block = blocks[index];
-            string type = BlockTypeOf(block);
-
-            if (type == "subheading" || type == "paragraph")
-            {
-                string mode = type == "subheading" ? "heading" : "paragraph";
-
-                HdnTextIndex.Value = index.ToString(CultureInfo.InvariantCulture);
-                HdnTextMode.Value = mode;
-                TxtHeading.Text = type == "subheading" ? RawStr(block, "text") : "";
-                TxtParagraph.Text = type == "paragraph" ? RawStr(block, "content") : "";
-
-                ClientScript.RegisterStartupScript(GetType(), "editText",
-                    "window.addEventListener('load', function () { setTextMode('" + mode + "'); openModal('modalText'); });", true);
-            }
-            else if (type == "list")
-            {
-                HdnListIndex.Value = index.ToString(CultureInfo.InvariantCulture);
-                string jsItems = new JavaScriptSerializer().Serialize(ToStringList(GetValue(block, "items")));
-
-                ClientScript.RegisterStartupScript(GetType(), "editList",
-                    "window.addEventListener('load', function () { fillListModal(" + jsItems + ", " + index + "); openModal('modalList'); });", true);
-            }
-            else if (type == "image")
-            {
-                HdnImageIndex.Value = index.ToString(CultureInfo.InvariantCulture);
-                TxtImageCaption.Text = RawStr(block, "caption");
-                ShowBlockImage(index);
-
-                // Editing an image only changes its caption: hide the upload area, show "Remove current image"
-                ClientScript.RegisterStartupScript(GetType(), "editImage",
-                    "window.addEventListener('load', function () {" +
-                    "  document.getElementById('title_modalImage').textContent = 'Edit image';" +
-                    "  var rb = document.getElementById('btnRemoveImage'); if (rb) rb.style.display = '';" +
-                    "  document.getElementById('imageUploadArea').style.display = 'none';" +
-                    "  openModal('modalImage');" +
-                    "});", true);
-            }
-            else if (type == "video")
-            {
-                TxtVideoUrl.Text = RawStr(block, "url");
-                TxtVideoCaption.Text = RawStr(block, "caption");
-
-                ClientScript.RegisterStartupScript(GetType(), "editVideo",
-                    "window.addEventListener('load', function () { openModal('modalUploadVideo'); });", true);
+                int dir = e.CommandName == "up" ? -1 : 1;
+                ModifyBlocks(blocks =>
+                {
+                    int target = index + dir;
+                    if (target >= 0 && target < blocks.Count)
+                    {
+                        var temp = blocks[index];
+                        blocks[index] = blocks[target];
+                        blocks[target] = temp;
+                    }
+                    return null;
+                });
+                ReloadLesson();
             }
         }
 
         protected void BtnConfirmRemoveBlock_Click(object sender, EventArgs e)
         {
             int index;
-            string expectedType = HdnRemoveBlockType.Value ?? "";
-            if (!int.TryParse(HdnRemoveBlockIndex.Value, out index) || index < 0)
+            if (int.TryParse(HdnRemoveBlockIndex.Value, out index))
             {
-                ShowPopup("Couldn't delete it", "That content could not be found. Please reload the page and try again.");
-                return;
+                ModifyBlocks(blocks =>
+                {
+                    if (index >= 0 && index < blocks.Count) blocks.RemoveAt(index);
+                    return null;
+                });
+                ReloadLesson();
             }
-
-            string removedImageUrl = null;
-            string error = ModifyBlocks(blocks =>
-            {
-                if (index >= blocks.Count || blocks[index] == null || IsSeparateCard(BlockTypeOf(blocks[index])))
-                    return "That content no longer exists. Please reload the page and try again.";
-
-                string type = BlockTypeOf(blocks[index]);
-                if (type != expectedType)
-                    return "The lesson has changed since the page was loaded. Please reload the page and try again.";
-
-                if (type == "image") removedImageUrl = RawStr(blocks[index], "url");
-                blocks.RemoveAt(index);
-                return null;
-            });
-
-            if (error != null)
-            {
-                ShowPopup("Couldn't delete it", error);
-                return;
-            }
-
-            DeleteLessonImage(removedImageUrl);
-            ReloadLesson();
         }
 
-        // ---------- Lessons: add / edit details / delete ----------
         protected string GetLessonUrl(object id)
         {
             return string.Format("courseBuilder.aspx?courseId={0}&lessonId={1}", courseId, id);
@@ -1310,39 +891,23 @@ namespace WAPP_EduCore.pages.Tutor
 
         protected string GetLessonIcon(object hasVideo)
         {
-            if ((bool)hasVideo)
-                return "<svg class=\"lesson-icon\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><rect x=\"1.5\" y=\"3.5\" width=\"9\" height=\"9\" rx=\"1.5\" /><path d=\"M10.5 7l4-2v6l-4-2z\" /></svg>";
-            return "<svg class=\"lesson-icon\" viewBox=\"0 0 16 16\" fill=\"currentColor\"><path d=\"M3 1.5h6.5L13 5v9.5H3z\" /><path d=\"M9.5 1.5V5H13\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1\" /><path d=\"M5 8h6M5 10.5h6\" stroke=\"#fff\" stroke-width=\"1\" /></svg>";
+            return (bool)hasVideo ? "🎥" : "📄";
         }
 
         protected void BtnSaveDetails_Click(object sender, EventArgs e)
         {
             string title = TxtLessonTitle.Text.Trim();
             string desc = TxtLessonDesc.Text.Trim();
+            if (lessonId <= 0 || title.Length == 0) return;
 
-            if (lessonId <= 0 || title.Length == 0)
+            using (NpgsqlConnection conn = OpenConnection())
+            using (var cmd = new NpgsqlCommand(SqlLessonDetailsUpdate, conn))
             {
-                ShowMessage("Please enter a lesson title.", true);
-                return;
-            }
-
-            try
-            {
-                using (NpgsqlConnection conn = OpenConnection())
-                using (var cmd = new NpgsqlCommand(SqlLessonDetailsUpdate, conn))
-                {
-                    cmd.Parameters.AddWithValue("title", title);
-                    cmd.Parameters.AddWithValue("desc", desc.Length == 0 ? (object)DBNull.Value : desc);
-                    cmd.Parameters.AddWithValue("lid", lessonId);
-                    cmd.Parameters.AddWithValue("cid", courseId);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (NpgsqlException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                ShowMessage("We couldn't save the lesson details." + DbErrorText(ex), true);
-                return;
+                cmd.Parameters.AddWithValue("title", title);
+                cmd.Parameters.AddWithValue("desc", string.IsNullOrEmpty(desc) ? (object)DBNull.Value : desc);
+                cmd.Parameters.AddWithValue("lid", lessonId);
+                cmd.Parameters.AddWithValue("cid", courseId);
+                cmd.ExecuteNonQuery();
             }
             ReloadLesson();
         }
@@ -1351,43 +916,26 @@ namespace WAPP_EduCore.pages.Tutor
         {
             string title = TxtModuleTitle.Text.Trim();
             string desc = TxtModuleDesc.Text.Trim();
-
-            if (title.Length == 0)
-            {
-                ShowMessage("Please enter a lesson title.", true);
-                return;
-            }
+            if (title.Length == 0) return;
 
             object newLessonId;
-            try
+            using (NpgsqlConnection conn = OpenConnection())
+            using (var cmd = new NpgsqlCommand(SqlLessonInsert, conn))
             {
-                using (NpgsqlConnection conn = OpenConnection())
-                using (var cmd = new NpgsqlCommand(SqlLessonInsert, conn))
-                {
-                    cmd.Parameters.AddWithValue("cid", courseId);
-                    cmd.Parameters.AddWithValue("uid", userId);
-                    cmd.Parameters.AddWithValue("title", title);
-                    cmd.Parameters.AddWithValue("desc", desc.Length == 0 ? (object)DBNull.Value : desc);
-                    newLessonId = cmd.ExecuteScalar();
-                }
-            }
-            catch (NpgsqlException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                ShowMessage("We couldn't add the lesson." + DbErrorText(ex), true);
-                return;
+                cmd.Parameters.AddWithValue("cid", courseId);
+                cmd.Parameters.AddWithValue("uid", userId);
+                cmd.Parameters.AddWithValue("title", title);
+                cmd.Parameters.AddWithValue("desc", string.IsNullOrEmpty(desc) ? (object)DBNull.Value : desc);
+                newLessonId = cmd.ExecuteScalar();
             }
 
-            if (newLessonId == null)
+            if (newLessonId != null)
             {
-                ShowMessage("This course could not be found.", true);
-                return;
+                Response.Redirect("courseBuilder.aspx?courseId=" + courseId + "&lessonId=" + newLessonId);
             }
-
-            Response.Redirect("courseBuilder.aspx?courseId=" + courseId + "&lessonId=" + newLessonId);
         }
 
-        protected void BtnConfirmDeleteLesson_Click(object sender, EventArgs e)
+        protected void BtnConfirmDeleteAssessment_Click(object sender, EventArgs e)
         {
             if (lessonId <= 0)
             {
@@ -1395,52 +943,49 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            if (courseStatus == StatusPublished && lessonCount <= 1)
-            {
-                ShowPopup("Couldn't delete it",
-                    "A published course must keep at least one lesson. Add another lesson first, or unpublish the course.");
-                return;
-            }
-
-            var imageUrls = new List<string>();
-
             try
             {
                 using (NpgsqlConnection conn = OpenConnection())
                 using (NpgsqlTransaction tx = conn.BeginTransaction())
                 {
-                    string json;
-                    using (var read = new NpgsqlCommand(SqlLessonContentForDelete, conn, tx))
+                    object value;
+                    // 1. Get the quiz ID tied to this lesson before unlinking it
+                    using (var read = new NpgsqlCommand(SqlLessonQuizId, conn, tx))
                     {
                         read.Parameters.AddWithValue("lid", lessonId);
                         read.Parameters.AddWithValue("cid", courseId);
-                        read.Parameters.AddWithValue("uid", userId);
-                        object value = read.ExecuteScalar();
-                        if (value == null)
-                        {
-                            ShowPopup("Couldn't delete it", "This lesson could not be found.");
-                            return;
-                        }
-                        json = value == DBNull.Value ? "" : Convert.ToString(value);
+                        value = read.ExecuteScalar();
                     }
 
-                    foreach (var b in ParseBlocks(json))
-                        if (b != null && BlockTypeOf(b) == "image") imageUrls.Add(RawStr(b, "url"));
-
-                    int rows;
-                    using (var del = new NpgsqlCommand(SqlLessonDelete, conn, tx))
+                    if (value == null || value == DBNull.Value)
                     {
-                        del.Parameters.AddWithValue("lid", lessonId);
-                        del.Parameters.AddWithValue("cid", courseId);
-                        del.Parameters.AddWithValue("uid", userId);
-                        rows = del.ExecuteNonQuery();
-                    }
-
-                    if (rows == 0)
-                    {
-                        ShowPopup("Couldn't delete it", "This lesson could not be found.");
+                        ShowPopup("Couldn't delete it", "This lesson doesn't have an assessment.");
                         return;
                     }
+                    long quizId = Convert.ToInt64(value);
+
+                    // 2. Unlink the quiz from the lesson
+                    using (var cmd = new NpgsqlCommand(SqlLessonClearQuiz, conn, tx))
+                    {
+                        cmd.Parameters.AddWithValue("lid", lessonId);
+                        cmd.Parameters.AddWithValue("cid", courseId);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // 3. Delete all questions belonging to this quiz
+                    using (var cmd = new NpgsqlCommand(SqlQuestionsDelete, conn, tx))
+                    {
+                        cmd.Parameters.AddWithValue("qid", quizId);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // 4. Delete the main quiz record itself
+                    using (var cmd = new NpgsqlCommand(SqlQuizDelete, conn, tx))
+                    {
+                        cmd.Parameters.AddWithValue("qid", quizId);
+                        cmd.ExecuteNonQuery();
+                    }
+
                     tx.Commit();
                 }
             }
@@ -1448,58 +993,54 @@ namespace WAPP_EduCore.pages.Tutor
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 var pg = ex as PostgresException;
-                if (pg != null && pg.SqlState == "23503") // foreign key violation
+                if (pg != null && pg.SqlState == "23503")
                 {
                     ShowPopup("Couldn't delete it",
-                        "This lesson can't be deleted because other records (such as student progress) still depend on it.");
+                        "This assessment can't be deleted because students have already taken it and their results depend on it.");
                     return;
                 }
-                ShowPopup("Couldn't delete it", "We couldn't delete the lesson." + DbErrorText(ex));
+                ShowPopup("Couldn't delete it", "We couldn't delete the assessment.");
                 return;
             }
 
-            // Remove the lesson's uploaded images from disk
-            foreach (string url in imageUrls) DeleteLessonImage(url);
-
-            Response.Redirect("courseBuilder.aspx?courseId=" + courseId + "&notice=lessondeleted");
+            Response.Redirect(BuilderUrl("assessmentdeleted"));
         }
 
-        // ---------- Course image / duration helpers ----------
+        private void ShowPopup(string title, string message)
+        {
+            var json = new JavaScriptSerializer();
+            string script =
+                "window.addEventListener('load', function () { showPopup(" +
+                json.Serialize(title) + ", " + json.Serialize(message) + "); });";
+            ClientScript.RegisterStartupScript(GetType(), "serverPopup", script, true);
+        }
+
         private void FillDurationLists()
         {
             for (int w = 1; w <= MaxWeeks; w++)
-                DdlCourseWeeks.Items.Add(new ListItem(w + (w == 1 ? " week" : " weeks"), w.ToString(CultureInfo.InvariantCulture)));
-
+                DdlCourseWeeks.Items.Add(new ListItem(w + (w == 1 ? " week" : " weeks"), w.ToString()));
             for (int h = 1; h <= MaxHoursPerWeek; h++)
-                DdlCourseHours.Items.Add(new ListItem(h + (h == 1 ? " hour" : " hours") + " per week", h.ToString(CultureInfo.InvariantCulture)));
+                DdlCourseHours.Items.Add(new ListItem(h + (h == 1 ? " hour" : " hours") + " per week", h.ToString()));
         }
 
         private static string FormatDuration(int weeks, int hoursPerWeek)
         {
-            return weeks + (weeks == 1 ? " week" : " weeks") +
-                   " (" + hoursPerWeek + (hoursPerWeek == 1 ? " hr" : " hrs") + "/week)";
+            return weeks + (weeks == 1 ? " week" : " weeks") + " (" + hoursPerWeek + " hrs/week)";
         }
 
         private static void ParseDuration(string text, out string weeks, out string hours)
         {
             weeks = hours = "";
-            if (string.IsNullOrWhiteSpace(text)) return;
-
             Match m = DurationPattern.Match(text);
             if (m.Success)
             {
                 weeks = m.Groups[1].Value;
                 hours = m.Groups[2].Value;
-                return;
             }
-
-            int plain;
-            if (int.TryParse(text.Trim(), out plain) && plain > 0) weeks = plain.ToString(CultureInfo.InvariantCulture);
         }
 
         private static void SelectIfPresent(DropDownList list, string value)
         {
-            if (string.IsNullOrEmpty(value)) return;
             ListItem item = list.Items.FindByValue(value);
             if (item != null)
             {
@@ -1519,100 +1060,7 @@ namespace WAPP_EduCore.pages.Tutor
         {
             if (string.IsNullOrWhiteSpace(path)) return "";
             if (path.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase)) return ResolveUrl(path);
-
-            Uri uri;
-            if (Uri.TryCreate(path, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps) return uri.AbsoluteUri;
             return "";
-        }
-
-        // Checks the file's first bytes, not its name, so a renamed file is rejected
-        private static string DetectImageExtension(byte[] head, int length)
-        {
-            if (length >= 3 && head[0] == 0xFF && head[1] == 0xD8 && head[2] == 0xFF) return ".jpg";
-
-            if (length >= 8 && head[0] == 0x89 && head[1] == 0x50 && head[2] == 0x4E && head[3] == 0x47 &&
-                head[4] == 0x0D && head[5] == 0x0A && head[6] == 0x1A && head[7] == 0x0A) return ".png";
-
-            if (length >= 12 && head[0] == (byte)'R' && head[1] == (byte)'I' && head[2] == (byte)'F' && head[3] == (byte)'F' &&
-                head[8] == (byte)'W' && head[9] == (byte)'E' && head[10] == (byte)'B' && head[11] == (byte)'P') return ".webp";
-
-            return null;
-        }
-
-        private bool TrySaveCourseImage(out string savedPath, out string error)
-        {
-            savedPath = null;
-            error = null;
-
-            HttpPostedFile file = FileCourseImg.PostedFile;
-            if (file == null || file.ContentLength == 0) return true;
-
-            if (file.ContentLength > MaxImageBytes)
-            {
-                error = "The image must be 2 MB or smaller.";
-                return false;
-            }
-
-            var head = new byte[12];
-            int read = file.InputStream.Read(head, 0, head.Length);
-            file.InputStream.Position = 0;
-
-            string extension = DetectImageExtension(head, read);
-            if (extension == null)
-            {
-                error = "Please choose a JPG, PNG or WEBP image.";
-                return false;
-            }
-
-            try
-            {
-                string folder = Server.MapPath(ImageFolder);
-                Directory.CreateDirectory(folder);
-
-                string fileName = courseId + "-" + Guid.NewGuid().ToString("N") + extension;
-                file.SaveAs(Path.Combine(folder, fileName));
-                savedPath = ImageFolder + fileName;
-                return true;
-            }
-            catch (IOException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                error = "The image could not be saved on the server.";
-                return false;
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                error = "The server is not allowed to save images in " + ImageFolder;
-                return false;
-            }
-        }
-
-        private void DeleteStoredImage(string path)
-        {
-            if (string.IsNullOrWhiteSpace(path) || !path.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase)) return;
-            try
-            {
-                string folder = Path.GetFullPath(Server.MapPath(ImageFolder));
-                string full = Path.GetFullPath(Server.MapPath(path));
-                if (full.StartsWith(folder, StringComparison.OrdinalIgnoreCase) && File.Exists(full)) File.Delete(full);
-            }
-            catch (Exception ex)
-            {
-                if (!(ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException)) throw;
-            }
-        }
-
-        // ---------- Course info ----------
-        private void ReopenCourseInfoDialog(string message)
-        {
-            string script =
-                "window.addEventListener('load', function () {" +
-                "  var box = document.getElementById('courseInfoError');" +
-                "  if (box) { box.textContent = " + new JavaScriptSerializer().Serialize(message) + "; box.style.display = 'block'; }" +
-                "  openModal('modalCourseInfo');" +
-                "});";
-            ClientScript.RegisterStartupScript(GetType(), "courseInfoError", script, true);
         }
 
         protected void BtnSaveCourseInfo_Click(object sender, EventArgs e)
@@ -1622,104 +1070,55 @@ namespace WAPP_EduCore.pages.Tutor
             string level = DdlCourseLevel.SelectedValue;
             int weeks, hours;
 
-            if (title.Length == 0)
-            {
-                ReopenCourseInfoDialog("Please enter a course title.");
-                return;
-            }
-            if (level != "IGCSE" && level != "SPM")
-            {
-                ReopenCourseInfoDialog("Please choose a course level (IGCSE or SPM).");
-                return;
-            }
-            if (!int.TryParse(DdlCourseWeeks.SelectedValue, out weeks) || weeks < 1 || weeks > MaxWeeks)
-            {
-                ReopenCourseInfoDialog("Please choose how many weeks the course runs.");
-                return;
-            }
-            if (!int.TryParse(DdlCourseHours.SelectedValue, out hours) || hours < 1 || hours > MaxHoursPerWeek)
-            {
-                ReopenCourseInfoDialog("Please choose how many hours per week the course needs.");
-                return;
-            }
+            int.TryParse(DdlCourseWeeks.SelectedValue, out weeks);
+            int.TryParse(DdlCourseHours.SelectedValue, out hours);
 
-            string combinedDescription = string.Join(Environment.NewLine, ReadPostedList("learningOutcome").ToArray());
+            string duration = FormatDuration(weeks, hours);
+            string combinedDescription = string.Join(Environment.NewLine, ReadPostedList("learningOutcome"));
             List<string> referenceList = ReadPostedList("courseReference");
             string referenceJson = referenceList.Count > 0 ? new JavaScriptSerializer().Serialize(referenceList) : null;
 
-            string newImage, imageError;
-            if (!TrySaveCourseImage(out newImage, out imageError))
+            using (NpgsqlConnection conn = OpenConnection())
+            using (var cmd = new NpgsqlCommand(SqlCourseUpdate, conn))
             {
-                ReopenCourseInfoDialog(imageError);
-                return;
+                cmd.Parameters.AddWithValue("title", title);
+                cmd.Parameters.AddWithValue("topic", topic);
+                cmd.Parameters.AddWithValue("duration", duration);
+                cmd.Parameters.AddWithValue("level", level);
+                cmd.Parameters.AddWithValue("desc", string.IsNullOrEmpty(combinedDescription) ? (object)DBNull.Value : combinedDescription);
+                cmd.Parameters.AddWithValue("reference", referenceJson == null ? (object)DBNull.Value : referenceJson);
+                cmd.Parameters.AddWithValue("img", DBNull.Value);
+                cmd.Parameters.AddWithValue("cid", courseId);
+                cmd.Parameters.AddWithValue("uid", userId);
+                cmd.ExecuteNonQuery();
             }
-
-            string duration = FormatDuration(weeks, hours);
-
-            try
-            {
-                int rows;
-                using (NpgsqlConnection conn = OpenConnection())
-                using (var cmd = new NpgsqlCommand(SqlCourseUpdate, conn))
-                {
-                    cmd.Parameters.AddWithValue("title", title);
-                    cmd.Parameters.AddWithValue("topic", topic);
-                    cmd.Parameters.AddWithValue("duration", duration);
-                    cmd.Parameters.AddWithValue("level", level);
-                    cmd.Parameters.AddWithValue("desc", combinedDescription.Length == 0 ? (object)DBNull.Value : combinedDescription);
-                    cmd.Parameters.AddWithValue("reference", referenceJson == null ? (object)DBNull.Value : referenceJson);
-                    cmd.Parameters.AddWithValue("img", newImage == null ? (object)DBNull.Value : newImage);
-                    cmd.Parameters.AddWithValue("cid", courseId);
-                    cmd.Parameters.AddWithValue("uid", userId);
-                    rows = cmd.ExecuteNonQuery();
-                }
-
-                if (rows == 0)
-                {
-                    DeleteStoredImage(newImage);
-                    ReopenCourseInfoDialog("This course could not be found.");
-                    return;
-                }
-            }
-            catch (NpgsqlException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                DeleteStoredImage(newImage);
-                ReopenCourseInfoDialog("We couldn't save the course." + DbErrorText(ex));
-                return;
-            }
-
-            if (newImage != null) DeleteStoredImage(currentImage);
-
             ReloadLesson();
         }
 
-        // Reads a set of JavaScript-created text boxes (same name) from the posted form, skipping empty ones
         private List<string> ReadPostedList(string fieldName)
         {
             var result = new List<string>();
             string[] raw = Request.Unvalidated.Form.GetValues(fieldName);
-            if (raw == null) return result;
-
-            foreach (string value in raw)
+            if (raw != null)
             {
-                string trimmed = (value ?? "").Trim();
-                if (trimmed.Length > 0) result.Add(trimmed);
+                foreach (string value in raw)
+                {
+                    string trimmed = (value ?? "").Trim();
+                    if (trimmed.Length > 0) result.Add(trimmed);
+                }
             }
             return result;
         }
 
-        // ---------- Publish / unpublish ----------
         private static string NormalizeStatus(string status)
         {
-            string s = (status ?? "").Trim().ToLowerInvariant().Replace(' ', '_');
+            string s = (status ?? "").Trim().ToLowerInvariant();
             return s == StatusPublished ? StatusPublished : StatusDraft;
         }
 
         private void ApplyStatusUi(int enrolled)
         {
             bool published = courseStatus == StatusPublished;
-
             LblCourseStatus.Text = published ? "Published" : "Draft";
             LblCourseStatus.CssClass = "status-pill " + (published ? "published" : "draft");
 
@@ -1727,156 +1126,69 @@ namespace WAPP_EduCore.pages.Tutor
             BtnUnpublish.Visible = published;
             PnlLiveNotice.Visible = published;
             PnlDraftFooter.Visible = !published;
-
-            if (published)
-            {
-                string info;
-                if (enrolled > 0)
-                    info = enrolled + (enrolled == 1 ? " student is" : " students are") +
-                           " currently enrolled and will no longer see it until you publish it again. " +
-                           "To change lessons without hiding the course, just edit them: changes save straight away.";
-                else
-                    info = "Students will no longer see it until you publish it again. " +
-                           "To change lessons without hiding the course, just edit them: changes save straight away.";
-                LitUnpublishInfo.Text = Server.HtmlEncode(info);
-            }
         }
 
-        private void ShowNoticeFromQuery()
-        {
-            switch (Request.QueryString["notice"])
-            {
-                case "published":
-                    ShowMessage("Course published. Students can now see it.", false);
-                    break;
-                case "draft":
-                    ShowMessage("Your changes are saved. The course is still a draft and hidden from students.", false);
-                    break;
-                case "unpublished":
-                    ShowMessage("Course unpublished. It is now hidden from students.", false);
-                    break;
-                case "lessondeleted":
-                    ShowMessage("Lesson deleted.", false);
-                    break;
-            }
-        }
+        private void ShowNoticeFromQuery() { }
 
         private string BuilderUrl(string notice)
         {
-            return "courseBuilder.aspx?courseId=" + courseId +
-                   (lessonId > 0 ? "&lessonId=" + lessonId : "") +
-                   "&notice=" + notice;
+            return "courseBuilder.aspx?courseId=" + courseId + (lessonId > 0 ? "&lessonId=" + lessonId : "") + "&notice=" + notice;
         }
 
         private bool SetCourseStatus(string newStatus)
         {
-            try
+            using (NpgsqlConnection conn = OpenConnection())
+            using (var cmd = new NpgsqlCommand(SqlCourseStatusUpdate, conn))
             {
-                int rows;
-                using (NpgsqlConnection conn = OpenConnection())
-                using (var cmd = new NpgsqlCommand(SqlCourseStatusUpdate, conn))
-                {
-                    cmd.Parameters.AddWithValue("status", newStatus);
-                    cmd.Parameters.AddWithValue("cid", courseId);
-                    cmd.Parameters.AddWithValue("uid", userId);
-                    rows = cmd.ExecuteNonQuery();
-                }
-
-                if (rows == 0)
-                {
-                    ShowMessage("This course could not be found.", true);
-                    return false;
-                }
-                return true;
+                cmd.Parameters.AddWithValue("status", newStatus);
+                cmd.Parameters.AddWithValue("cid", courseId);
+                cmd.Parameters.AddWithValue("uid", userId);
+                cmd.ExecuteNonQuery();
             }
-            catch (NpgsqlException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                ShowMessage("We couldn't update the course status." + DbErrorText(ex), true);
-                return false;
-            }
+            return true;
         }
 
         protected void BtnConfirmPublish_Click(object sender, EventArgs e)
         {
-            if (courseStatus == StatusPublished)
-            {
-                ShowMessage("This course is already published.", false);
-                return;
-            }
-
-            var missing = new List<string>();
-
-            if (string.IsNullOrWhiteSpace(loadedTitle) || loadedTitle == DraftTitle)
-                missing.Add("a course title");
-            if (string.IsNullOrWhiteSpace(loadedTopic))
-                missing.Add("a topic");
-            if (string.IsNullOrWhiteSpace(loadedLevel))
-                missing.Add("a course level (IGCSE or SPM)");
-            if (string.IsNullOrWhiteSpace(loadedDuration))
-                missing.Add("the course duration");
-            if (string.IsNullOrWhiteSpace(loadedImage))
-                missing.Add("a course image");
-            if (lessonCount == 0)
-                missing.Add("at least one lesson");
-
-            if (missing.Count > 0)
-            {
-                ShowMessage("Cannot publish yet. Please add: " + string.Join(", ", missing.ToArray()) +
-                            ". You can update the course details with \"Edit course info\".", true);
-                return;
-            }
-
-            if (emptyLessons.Count > 0)
-            {
-                ShowPopup("Can't publish yet",
-                    "Every lesson needs at least one lesson content (a heading, paragraph, list, image or video) before the course can be published. " +
-                    "These lessons are still empty: " + string.Join(", ", emptyLessons.ToArray()) + ".");
-                return;
-            }
-
-            if (!SetCourseStatus(StatusPublished)) return;
+            SetCourseStatus(StatusPublished);
             Response.Redirect(BuilderUrl("published"));
         }
 
         protected void BtnSaveDraft_Click(object sender, EventArgs e)
         {
-            if (courseStatus == StatusPublished)
-            {
-                ShowMessage("This course is published, so it can't be saved as a draft here. Use \"Unpublish Course\" if you need to hide it.", true);
-                return;
-            }
             Response.Redirect(BuilderUrl("draft"));
         }
 
         protected void BtnConfirmUnpublish_Click(object sender, EventArgs e)
         {
-            if (courseStatus != StatusPublished)
-            {
-                ShowMessage("This course is not published.", false);
-                return;
-            }
-
-            if (!SetCourseStatus(StatusDraft)) return;
+            SetCourseStatus(StatusDraft);
             Response.Redirect(BuilderUrl("unpublished"));
         }
 
-        // ---------- Messages ----------
         private void ShowMessage(string message, bool isError)
         {
             LblStatus.Text = Server.HtmlEncode(message);
             LblStatus.CssClass = isError ? "page-status error" : "page-status";
             LblStatus.Visible = true;
         }
-
-        private void ShowPopup(string title, string message)
+        protected void BtnConfirmDeleteLesson_Click(object sender, EventArgs e)
         {
-            var json = new JavaScriptSerializer();
-            string script =
-                "window.addEventListener('load', function () {" +
-                "  showPopup(" + json.Serialize(title) + ", " + json.Serialize(message) + ");" +
-                "});";
-            ClientScript.RegisterStartupScript(GetType(), "messagePopup", script, true);
+            if (lessonId <= 0) return;
+
+            using (NpgsqlConnection conn = OpenConnection())
+            {
+                // Delete the lesson from the database
+                const string sql = "DELETE FROM public.lesson WHERE lesson_id = @lid AND course_id = @cid";
+                using (var cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("lid", lessonId);
+                    cmd.Parameters.AddWithValue("cid", courseId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            // Redirect back to the course builder page without a lessonId selected
+            Response.Redirect("courseBuilder.aspx?courseId=" + courseId);
         }
     }
 }

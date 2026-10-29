@@ -4,9 +4,9 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
-    <title>EduCore - Content Builder</title>
+    <title>EduCore - Assessment Builder</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet" />
-    <link href="../../Content/dashboard.css" rel="stylesheet" type="text/css" />
+    <link href="../../Content/dashboard.css?v=3" rel="stylesheet" type="text/css" />
     <link href="../../Content/courseBuilder.css?v=4" rel="stylesheet" type="text/css" />
     <link href="../../Content/assessmentBuilder.css?v=1" rel="stylesheet" type="text/css" />
 </head>
@@ -22,7 +22,7 @@
                 <!-- Page header -->
                 <div class="page-header">
                     <div>
-                        <h1 class="page-title">Content Builder</h1>
+                        <h1 class="page-title">Assessment Builder</h1>
                         <p class="page-subtitle">Create and configure learning content.</p>
                     </div>
                     <div class="page-actions">
@@ -42,15 +42,9 @@
 
                 <!-- Main Builder Panel (Hidden if context is missing) -->
                 <asp:Panel ID="PnlBuilderContent" runat="server">
-                    <!-- Tabs -->
-                    <div class="ab-tabs" role="tablist">
-                        <button type="button" class="ab-tab active" data-tab="assessment" role="tab">Assessment Builder</button>
-                        <button type="button" class="ab-tab" data-tab="interactive" role="tab">Interactive Object</button>
-                        <button type="button" class="ab-tab" data-tab="lab" role="tab">Virtual Lab</button>
-                    </div>
 
                     <!-- ================= TAB 1: ASSESSMENT BUILDER ================= -->
-                    <section class="ab-panel active" id="panel-assessment" role="tabpanel">
+                    <section class="ab-panel active" id="panel-assessment">
                         <div class="ab-grid">
 
                             <!-- Left column -->
@@ -64,31 +58,9 @@
                                         <input type="text" id="assessTitle" name="assessTitle" class="ab-input" value="<%= Server.HtmlEncode(QuizTitleValue) %>" placeholder="e.g. Module Checkpoint Quiz" />
                                     </div>
 
-                                    <div class="ab-row-3">
-                                        <div class="ab-field">
-                                            <label class="ab-label" for="assessType">Assessment Type</label>
-                                            <select id="assessType" name="assessType" class="ab-input ab-select">
-                                                <option selected="selected">Multiple Choice (MCQ)</option>
-                                                <option>True / False</option>
-                                                <option>Short Answer</option>
-                                            </select>
-                                        </div>
-                                        <div class="ab-field">
-                                            <label class="ab-label" for="assessTime">Time Limit</label>
-                                            <input type="text" id="assessTime" name="assessTime" class="ab-input" value="20 minutes" />
-                                        </div>
-                                        <div class="ab-field">
-                                            <label class="ab-label" for="assessPass">Passing Score (%)</label>
-                                            <input type="text" id="assessPass" name="assessPass" class="ab-input" value="<%= Server.HtmlEncode(QuizPassValue) %>" />
-                                        </div>
-                                    </div>
-
-                                    <div class="ab-toggle-row">
-                                        <div>
-                                            <div class="ab-label ab-label-tight">Auto-grade Assessments</div>
-                                            <div class="ab-help">Instantly evaluate scores and generate report summaries upon completion.</div>
-                                        </div>
-                                        <label class="ab-switch"><input type="checkbox" name="autoGrade" checked="checked" /><span class="ab-slider"></span></label>
+                                    <div class="ab-field">
+                                        <label class="ab-label" for="assessPass">Passing Score (%)</label>
+                                        <input type="text" id="assessPass" name="assessPass" class="ab-input" value="<%= Server.HtmlEncode(QuizPassValue) %>" />
                                     </div>
                                 </div>
 
@@ -182,31 +154,6 @@
                                     </div>
                                 </div>
 
-                                <div class="ab-card ab-publish-card">
-                                    <h3 class="ab-card-title">Publishing Settings</h3>
-
-                                    <div class="ab-switch-row">
-                                        <span>Randomize Question Order</span>
-                                        <label class="ab-switch">
-                                            <input type="checkbox" name="randomize" /><span class="ab-slider"></span></label>
-                                    </div>
-                                    <div class="ab-switch-row">
-                                        <span>Show Explanations</span>
-                                        <label class="ab-switch">
-                                            <input type="checkbox" name="showExplanations" checked="checked" /><span class="ab-slider"></span></label>
-                                    </div>
-                                    <div class="ab-switch-row">
-                                        <span>Allow Retries</span>
-                                        <label class="ab-switch">
-                                            <input type="checkbox" name="allowRetries" checked="checked" /><span class="ab-slider"></span></label>
-                                    </div>
-
-                                    <div class="ab-field ab-field-top">
-                                        <label class="ab-label" for="maxAttempts">Max Attempts Allowed</label>
-                                        <input type="text" id="maxAttempts" name="maxAttempts" class="ab-input" value="3" />
-                                    </div>
-                                </div>
-
                                 <!-- Only keep the main publish/save button -->
                                 <asp:Button ID="BtnPublishAssessment" runat="server" Text="Save Assessment" CssClass="ab-btn ab-btn-primary" OnClick="BtnPublishAssessment_Click" />
                             </aside>
@@ -214,119 +161,6 @@
                         </div>
                     </section>
 
-                    <!-- ================= TAB 2: INTERACTIVE OBJECT ================= -->
-                    <section class="ab-panel" id="panel-interactive" role="tabpanel">
-                        <div class="ab-grid">
-                            <div class="ab-main">
-                                <div class="ab-card">
-                                    <h3 class="ab-card-title">Interactive Object Configuration</h3>
-
-                                    <div class="ab-field">
-                                        <label class="ab-label" for="ioTitle">Object Title</label>
-                                        <input type="text" id="ioTitle" name="ioTitle" class="ab-input" value="" placeholder="e.g. Interactive Code Playground" />
-                                    </div>
-
-                                    <div class="ab-row-2">
-                                        <div class="ab-field">
-                                            <label class="ab-label" for="ioLang">Language</label>
-                                            <select id="ioLang" name="ioLang" class="ab-input ab-select">
-                                                <option selected="selected">C++</option>
-                                                <option>Java</option>
-                                                <option>Python</option>
-                                                <option>C#</option>
-                                            </select>
-                                        </div>
-                                        <div class="ab-field">
-                                            <label class="ab-label" for="ioTimeout">Execution Time Limit (seconds)</label>
-                                            <input type="text" id="ioTimeout" name="ioTimeout" class="ab-input" value="5" />
-                                        </div>
-                                    </div>
-
-                                    <div class="ab-field">
-                                        <label class="ab-label" for="ioStarter">Starter Code</label>
-                                        <textarea id="ioStarter" name="ioStarter" class="ab-input ab-textarea ab-code" rows="9" placeholder="// Write starter code here..."></textarea>
-                                        <div class="ab-help">Students see this code when they open the playground.</div>
-                                    </div>
-
-                                    <div class="ab-toggle-row">
-                                        <div>
-                                            <div class="ab-label ab-label-tight">Allow students to reset code</div>
-                                            <div class="ab-help">Adds a reset button that restores the starter code.</div>
-                                        </div>
-                                        <label class="ab-switch"><input type="checkbox" name="ioAllowReset" checked="checked" /><span class="ab-slider"></span></label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <aside class="ab-side">
-                                <div class="ab-card ab-publish-card">
-                                    <h3 class="ab-card-title">Publishing Settings</h3>
-                                    <div class="ab-switch-row">
-                                        <span>Published (visible to students)</span>
-                                        <label class="ab-switch"><input type="checkbox" name="ioPublished" checked="checked" /><span class="ab-slider"></span></label>
-                                    </div>
-                                </div>
-                                <asp:Button ID="BtnSaveInteractive" runat="server" Text="Save Configuration" CssClass="ab-btn ab-btn-primary" OnClick="BtnSaveInteractive_Click" />
-                                <asp:Button ID="BtnSaveInteractiveDraft" runat="server" Text="Save as Draft" CssClass="ab-btn ab-btn-outline" OnClick="BtnSaveInteractive_Click" />
-                            </aside>
-                        </div>
-                    </section>
-
-                    <!-- ================= TAB 3: VIRTUAL LAB ================= -->
-                    <section class="ab-panel" id="panel-lab" role="tabpanel">
-                        <div class="ab-grid">
-                            <div class="ab-main">
-                                <div class="ab-card">
-                                    <h3 class="ab-card-title">Virtual Lab Configuration</h3>
-
-                                    <div class="ab-field">
-                                        <label class="ab-label" for="labTitle">Lab Title</label>
-                                        <input type="text" id="labTitle" name="labTitle" class="ab-input" value="" placeholder="e.g. Lab: Linux Network Configuration" />
-                                    </div>
-
-                                    <div class="ab-row-3">
-                                        <div class="ab-field">
-                                            <label class="ab-label" for="labEnv">Environment</label>
-                                            <select id="labEnv" name="labEnv" class="ab-input ab-select">
-                                                <option selected="selected">Linux Sandbox</option>
-                                                <option>Windows Sandbox</option>
-                                                <option>Container (Docker)</option>
-                                            </select>
-                                        </div>
-                                        <div class="ab-field">
-                                            <label class="ab-label" for="labMemory">Memory</label>
-                                            <select id="labMemory" name="labMemory" class="ab-input ab-select">
-                                                <option>512 MB</option>
-                                                <option selected="selected">1 GB</option>
-                                                <option>2 GB</option>
-                                            </select>
-                                        </div>
-                                        <div class="ab-field">
-                                            <label class="ab-label" for="labSession">Session Limit (mins)</label>
-                                            <input type="text" id="labSession" name="labSession" class="ab-input" value="60" />
-                                        </div>
-                                    </div>
-
-                                    <div class="ab-field">
-                                        <label class="ab-label" for="labInstructions">Lab Instructions</label>
-                                        <textarea id="labInstructions" name="labInstructions" class="ab-input ab-textarea" rows="7" placeholder="Type instructions for the students..."></textarea>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <aside class="ab-side">
-                                <div class="ab-card ab-publish-card">
-                                    <h3 class="ab-card-title">Publishing Settings</h3>
-                                    <div class="ab-switch-row">
-                                        <span>Published (visible to students)</span>
-                                        <label class="ab-switch"><input type="checkbox" name="labPublished" /><span class="ab-slider"></span></label>
-                                    </div>
-                                </div>
-                                <asp:Button ID="BtnSaveLab" runat="server" Text="Create Environment" CssClass="ab-btn ab-btn-primary" OnClick="BtnSaveLab_Click" />
-                                <asp:Button ID="BtnSaveLabDraft" runat="server" Text="Save as Draft" CssClass="ab-btn ab-btn-outline" OnClick="BtnSaveLab_Click" />
-                            </aside>
-                        </div>
-                    </section>
                 </asp:Panel>
 
             </main>
@@ -395,22 +229,6 @@
     <script>
         // @ts-nocheck
         (function () {
-            // ---------- Tabs ----------
-            var tabs = document.querySelectorAll('.ab-tab');
-            var panels = { assessment: 'panel-assessment', interactive: 'panel-interactive', lab: 'panel-lab' };
-
-            function showTab(name) {
-                if (!panels[name]) name = 'assessment';
-                tabs.forEach(function (t) { t.classList.toggle('active', t.getAttribute('data-tab') === name); });
-                Object.keys(panels).forEach(function (k) {
-                    document.getElementById(panels[k]).classList.toggle('active', k === name);
-                });
-            }
-            tabs.forEach(function (t) {
-                t.addEventListener('click', function () { showTab(t.getAttribute('data-tab')); });
-            });
-            showTab(new URLSearchParams(window.location.search).get('tab') || 'assessment');
-
             // ---------- Questions ----------
             var list = document.getElementById('questionList');
             if (list) {
@@ -483,8 +301,8 @@
 
     <%-- Highlight nav --%>
     <script>
-        var navLink = document.querySelector('.nav-link[href="assessments.aspx"]');
-        if (navLink) navLink.classList.add('active');
+    var navLink = document.querySelector('.nav-link[href="courses.aspx"]');
+    if (navLink) navLink.classList.add('active');
     </script>
 </body>
 </html>

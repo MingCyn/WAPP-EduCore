@@ -249,87 +249,6 @@ namespace WAPP_EduCore.pages.Tutor
         protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkAssessment;
 
         /// <summary>
-        /// PnlInteractive control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel PnlInteractive;
-
-        /// <summary>
-        /// LitInteractiveTitle control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal LitInteractiveTitle;
-
-        /// <summary>
-        /// LitInteractiveMeta control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal LitInteractiveMeta;
-
-        /// <summary>
-        /// LnkInteractive control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkInteractive;
-
-        /// <summary>
-        /// PnlLab control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel PnlLab;
-
-        /// <summary>
-        /// LitLabTitle control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal LitLabTitle;
-
-        /// <summary>
-        /// LblLabDraft control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label LblLabDraft;
-
-        /// <summary>
-        /// LitLabMeta control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal LitLabMeta;
-
-        /// <summary>
-        /// LnkLab control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor LnkLab;
-
-        /// <summary>
         /// PnlDraftFooter control.
         /// </summary>
         /// <remarks>
@@ -355,6 +274,24 @@ namespace WAPP_EduCore.pages.Tutor
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button BtnPublishModule;
+
+        /// <summary>
+        /// PnlDeleteAssessment control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel PnlDeleteAssessment;
+
+        /// <summary>
+        /// BtnConfirmDeleteAssessment control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button BtnConfirmDeleteAssessment;
 
         /// <summary>
         /// PnlCourseInfo control.

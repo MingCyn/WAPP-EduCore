@@ -5,7 +5,7 @@
 <head runat="server">
     <title>EduCore - Tutor Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link href="~/Content/dashboard.css?v=2" rel="stylesheet" type="text/css" runat="server" />
+    <link href="~/Content/dashboard.css?v=3" rel="stylesheet" type="text/css" runat="server" />
     <style>
         .dash-status { margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; background: #fdecec; border: 1px solid #f3c0c0; color: #a12626; font-size: 14px; }
         .dash-empty { padding: 20px; border: 1px dashed #cdd2de; border-radius: 12px; background: #faf9f7; color: #6b7285; font-size: 14px; line-height: 1.5; }

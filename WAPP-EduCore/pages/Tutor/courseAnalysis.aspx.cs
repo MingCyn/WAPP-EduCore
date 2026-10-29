@@ -31,6 +31,20 @@ namespace WAPP_EduCore.pages.Tutor
             return conn;
         }
 
+        private bool CourseHasAssessment(NpgsqlConnection conn, int cid)
+        {
+            const string sql =
+                "SELECT EXISTS (" +
+                "  SELECT 1 FROM public.lesson l " +
+                "  WHERE l.course_id = @cid " +
+                "  AND (l.quiz_id IS NOT NULL OR EXISTS (SELECT 1 FROM public.quiz q WHERE q.lesson_id = l.lesson_id))" +
+                ")";
+            using (var cmd = new NpgsqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("cid", cid);
+                return Convert.ToBoolean(cmd.ExecuteScalar());
+            }
+        }
         public class StudentRowView
         {
             public string FullName { get; set; }
@@ -90,6 +104,11 @@ namespace WAPP_EduCore.pages.Tutor
                 Page.Title = "EduCore Analytics - " + courseTitle;
                 LitCrumbTitle.Text = Server.HtmlEncode(courseTitle);
                 LitTitle.Text = Server.HtmlEncode(courseTitle);
+
+                bool hasAssessment = CourseHasAssessment(conn, courseId);
+                PnlNoAssessment.Visible = !hasAssessment;
+                PnlAnalytics.Visible = hasAssessment;
+                if (!hasAssessment) return;
 
                 // 2. Load Enrolled Students with progression
                 var studentList = new List<StudentRowView>();
@@ -156,7 +175,11 @@ namespace WAPP_EduCore.pages.Tutor
             try
             {
                 // Adjust this query name if your quiz attempt/score table differs (e.g. quiz_attempts or assessment_results)
-                string query = "SELECT AVG(score) FROM quiz_attempts qa JOIN public.lesson l ON qa.lesson_id = l.lesson_id WHERE l.course_id = @cid";
+                string query =
+                    "SELECT AVG(qs.total_score::numeric) FROM public.quiz_score qs " +
+                    "JOIN public.quiz q ON q.quiz_id = qs.quiz_id " +
+                    "JOIN public.lesson l ON l.lesson_id = q.lesson_id " +
+                    "WHERE l.course_id = @cid";
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("cid", cid);

@@ -67,6 +67,8 @@ namespace WAPP_EduCore.pages.Tutor
             if (!IsPostBack)
             {
                 LoadExistingAssessment();
+                if (Request.QueryString["saved"] == "1")
+                    ShowStatus("Assessment saved successfully.", false);
             }
         }
 
@@ -142,7 +144,15 @@ namespace WAPP_EduCore.pages.Tutor
 
         protected void BtnPublishAssessment_Click(object sender, EventArgs e)
         {
-            SaveAssessment(publish: true);
+            if (SaveAssessment())
+            {
+                Response.Redirect("assessmentBuilder.aspx?courseId=" + courseId + "&lessonId=" + lessonId + "&saved=1", false);
+                Context.ApplicationInstance.CompleteRequest();
+            }
+            else
+            {
+                RestoreFromForm();
+            }
         }
 
         private void ShowStatus(string message, bool isError = true)
@@ -166,12 +176,12 @@ namespace WAPP_EduCore.pages.Tutor
             }
         }
 
-        private void SaveAssessment(bool publish)
+        private bool SaveAssessment()
         {
             if (lessonId <= 0 || !LessonBelongsToCourse())
             {
                 ShowStatus("Open the assessment builder from a lesson in Course Builder.", true);
-                return;
+                return false;
             }
 
             var form = Request.Unvalidated.Form;
@@ -181,7 +191,7 @@ namespace WAPP_EduCore.pages.Tutor
             if (string.IsNullOrEmpty(title))
             {
                 ShowStatus("Please enter an Assessment Title before saving.", true);
-                return;
+                return false;
             }
 
             // 2. Validation: Ensure at least one question prompt is submitted
@@ -198,7 +208,7 @@ namespace WAPP_EduCore.pages.Tutor
             if (validQuestionCount == 0)
             {
                 ShowStatus("Cannot save an assessment without at least one question.", true);
-                return;
+                return false;
             }
 
             int passingScore;
@@ -289,6 +299,45 @@ namespace WAPP_EduCore.pages.Tutor
             }
 
             ShowStatus("Assessment saved successfully.", false);
+            return true;
+        }
+
+        private void RestoreFromForm()
+        {
+            var form = Request.Unvalidated.Form;
+            QuizTitleValue = form["assessTitle"] ?? "";
+            QuizPassValue = form["assessPass"] ?? "50";
+            ExistingQuestions.Clear();
+
+            string[] prompts = form.GetValues("prompt") ?? new string[0];
+            string[] difficulties = form.GetValues("difficulty") ?? new string[0];
+            string[] pointsArr = form.GetValues("points") ?? new string[0];
+            string[] optA = form.GetValues("optA") ?? new string[0];
+            string[] optB = form.GetValues("optB") ?? new string[0];
+            string[] optC = form.GetValues("optC") ?? new string[0];
+            string[] optD = form.GetValues("optD") ?? new string[0];
+            string[] explanations = form.GetValues("explanation") ?? new string[0];
+            string[] qids = form.GetValues("qid") ?? new string[0];
+
+            for (int i = 0; i < prompts.Length; i++)
+            {
+                int pts;
+                if (i >= pointsArr.Length || !int.TryParse(pointsArr[i], out pts)) pts = 10;
+                string qid = i < qids.Length ? qids[i] : (i + 1).ToString();
+
+                ExistingQuestions.Add(new QuestionDto
+                {
+                    Prompt = prompts[i] ?? "",
+                    Difficulty = i < difficulties.Length ? difficulties[i] : "Medium",
+                    Points = pts,
+                    OptA = i < optA.Length ? optA[i] : "",
+                    OptB = i < optB.Length ? optB[i] : "",
+                    OptC = i < optC.Length ? optC[i] : "",
+                    OptD = i < optD.Length ? optD[i] : "",
+                    CorrectAnswer = form["correct_" + qid] ?? "A",
+                    Explanation = i < explanations.Length ? explanations[i] : ""
+                });
+            }
         }
 
         private long GetLessonQuizId(NpgsqlConnection conn, NpgsqlTransaction transaction)
@@ -320,16 +369,6 @@ namespace WAPP_EduCore.pages.Tutor
                     cmd.Parameters.AddWithValue(value.Key, value.Value ?? DBNull.Value);
                 return Convert.ToInt64(cmd.ExecuteScalar());
             }
-        }
-
-        protected void BtnSaveInteractive_Click(object sender, EventArgs e)
-        {
-            ShowStatus("Interactive object configuration saved.", false);
-        }
-
-        protected void BtnSaveLab_Click(object sender, EventArgs e)
-        {
-            ShowStatus("Virtual lab configuration saved.", false);
         }
     }
 }

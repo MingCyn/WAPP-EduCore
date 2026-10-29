@@ -6,10 +6,40 @@
 <head runat="server">
     <title>EduCore - Course Analytics</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet" />
-    <link href="../../Content/dashboard.css" rel="stylesheet" type="text/css" />
+    <link href="../../Content/dashboard.css?v=3" rel="stylesheet" type="text/css" />
     <link href="../../Content/courseBuilder.css?v=4" rel="stylesheet" type="text/css" />
     <link href="../../Content/courseAnalysis.css?v=1" rel="stylesheet" type="text/css" />
 </head>
+<style>
+    .badge.status-on-track,
+    .badge.status-attention,
+    .badge.status-risk {
+        display: inline-block;
+        width: auto;
+        white-space: nowrap;
+        text-align: center;
+        font-weight: 700;
+    }
+
+    .badge.status-on-track {
+        background: #DCFCE7;
+        color: #14532D;
+    }
+
+    .badge.status-attention {
+        background: #FEF3C7;
+        color: #78350F;
+    }
+
+    .badge.status-risk {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .notice.ca-note {
+        margin-bottom: 24px;
+    }
+</style>
 <body>
     <form id="form1" runat="server">
         <div class="dashboard-layout">
@@ -35,6 +65,17 @@
                 </div>
 
                 <asp:Label ID="LblStatus" runat="server" CssClass="page-status" Visible="false" />
+                <asp:Panel ID="PnlNoAssessment" runat="server" CssClass="notice warning ca-note" Visible="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 8v5" />
+                        <circle cx="12" cy="16.5" r=".6" fill="currentColor" />
+                    </svg>
+                    <span><strong>No analytics yet.</strong> This course doesn't have an assessment, so there are no results to analyse. Add an assessment to a lesson in the Course Builder and the analytics will appear here.</span>
+                </asp:Panel>
+
+                <asp:Panel ID="PnlAnalytics" runat="server"> </asp:Panel>
+
 
                 <!-- Summary Metrics Grid -->
                 <div class="ca-metrics-grid">

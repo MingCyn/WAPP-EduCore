@@ -6,7 +6,7 @@
 <head runat="server">
     <title>EduCore - Course Details</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet" />
-    <link href="../../Content/dashboard.css?v=2" rel="stylesheet" type="text/css" />
+    <link href="../../Content/dashboard.css?v=3" rel="stylesheet" type="text/css" />
     <%-- courseBuilder.css supplies the shared .btn, pop-up and form styles --%>
     <link href="../../Content/courseBuilder.css?v=4" rel="stylesheet" type="text/css" />
     <link href="../../Content/courseDetails.css?v=2" rel="stylesheet" type="text/css" />

@@ -6,7 +6,7 @@
 <head runat="server">
     <title>EduCore - Course Builder</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet" />
-    <link href="../../Content/dashboard.css?v=2" rel="stylesheet" type="text/css" />
+    <link href="../../Content/dashboard.css?v=3" rel="stylesheet" type="text/css" />
     <link href="../../Content/courseBuilder.css?v=4" rel="stylesheet" type="text/css" />
     <style>
         .status-pill { display: inline-block; margin-left: 8px; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; vertical-align: middle; }
@@ -184,34 +184,10 @@
                                         <h3 class="component-title">Lesson Assessment</h3>
                                         <p class="component-meta"><asp:Literal ID="LitAssessmentMeta" runat="server" /></p>
                                         <div class="component-actions">
-                                            <a id="LnkAssessment" runat="server" class="btn btn-outline btn-sm">Edit Questions</a>
-                                        </div>
-                                    </div>
-                                </asp:Panel>
-
-                                <%-- Interactive object and virtual lab: only shown when a lesson already has one --%>
-                                <asp:Panel ID="PnlInteractive" runat="server" CssClass="component-card" Visible="false">
-                                    <div class="component-icon navy">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l5 5-5 5" /><path d="M13 18h6" /></svg>
-                                    </div>
-                                    <div class="component-body">
-                                        <h3 class="component-title"><asp:Literal ID="LitInteractiveTitle" runat="server" /></h3>
-                                        <p class="component-meta"><asp:Literal ID="LitInteractiveMeta" runat="server" /></p>
-                                        <div class="component-actions">
-                                            <a id="LnkInteractive" runat="server" class="btn btn-accent btn-sm">Configure Sandbox</a>
-                                        </div>
-                                    </div>
-                                </asp:Panel>
-
-                                <asp:Panel ID="PnlLab" runat="server" CssClass="component-card" Visible="false">
-                                    <div class="component-icon amber">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5.5 9.5A1.5 1.5 0 0 0 5.8 21h12.4a1.5 1.5 0 0 0 1.3-2.5L14 9V3" /><path d="M7.5 15h9" /></svg>
-                                    </div>
-                                    <div class="component-body">
-                                        <h3 class="component-title"><asp:Literal ID="LitLabTitle" runat="server" /> <asp:Label ID="LblLabDraft" runat="server" CssClass="badge-draft" Text="DRAFT" Visible="false" /></h3>
-                                        <p class="component-meta"><asp:Literal ID="LitLabMeta" runat="server" /></p>
-                                        <div class="component-actions">
-                                            <a id="LnkLab" runat="server" class="btn btn-primary btn-sm">Setup Lab Environment</a>
+                                            <div class="component-actions">
+                                                <a id="LnkAssessment" runat="server" class="btn btn-outline btn-sm">Edit Questions</a>
+                                                <button type="button" class="btn btn-outline btn-sm" onclick="openModal('modalDeleteAssessment')">Delete Assessment</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </asp:Panel>
@@ -223,6 +199,18 @@
                                 <asp:Button ID="BtnPublishModule" runat="server" OnClientClick="openModal('modalPublish'); return false;" Text="Publish Module Content" CssClass="btn btn-primary" />
                             </asp:Panel>
                         </asp:Panel>
+
+                        <%-- Delete assessment --%>
+                        <div class="modal-overlay" id="modalDeleteAssessment" aria-hidden="true">
+                            <asp:Panel ID="PnlDeleteAssessment" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalDeleteAssessment">
+                                <h3 class="modal-title" id="title_modalDeleteAssessment">Delete this assessment?</h3>
+                                <p class="confirm-text">This will permanently delete the assessment and all of its questions from this lesson. This cannot be undone.</p>
+                                <div class="modal-actions">
+                                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalDeleteAssessment')">Cancel</button>
+                                    <asp:Button ID="BtnConfirmDeleteAssessment" runat="server" OnClick="BtnConfirmDeleteAssessment_Click" Text="Delete assessment" CssClass="btn btn-accent" />
+                                </div>
+                            </asp:Panel>
+                        </div>
                     </section>
 
                 </div>
