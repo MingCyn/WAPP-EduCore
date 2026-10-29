@@ -339,10 +339,15 @@ namespace WAPP_EduCore.pages.Tutor
                 });
             }
         }
-
         private long GetLessonQuizId(NpgsqlConnection conn, NpgsqlTransaction transaction)
         {
-            using (var cmd = new NpgsqlCommand("SELECT quiz_id FROM public.lesson WHERE lesson_id = @lesson AND course_id = @course", conn, transaction))
+            // INNER JOIN ensures the quiz record actually exists in the database
+            const string sql =
+                "SELECT l.quiz_id FROM public.lesson l " +
+                "INNER JOIN public.quiz q ON l.quiz_id = q.quiz_id " +
+                "WHERE l.lesson_id = @lesson AND l.course_id = @course";
+
+            using (var cmd = new NpgsqlCommand(sql, conn, transaction))
             {
                 cmd.Parameters.AddWithValue("lesson", lessonId);
                 cmd.Parameters.AddWithValue("course", courseId);
