@@ -150,6 +150,37 @@
     text-align: right;
 }
 
+.ca-pill.risk {
+    background-color: #fbe0e0;
+    color: #b42318;
+}
+
+.badge.status-on-track,
+.badge.status-attention,
+.badge.status-risk {
+    display: inline-block;
+    width: auto;
+    white-space: nowrap;
+    text-align: center;
+    font-weight: 700;
+}
+
+.badge.status-on-track {
+    background: #DCFCE7;
+    color: #14532D;
+}
+
+.badge.status-attention {
+    background: #FEF3C7;
+    color: #78350F;
+}
+
+.badge.status-risk {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+
 /* --- Status Pills --- */
 .ca-pill {
     display: inline-block;

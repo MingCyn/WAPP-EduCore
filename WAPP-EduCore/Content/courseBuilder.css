@@ -21,22 +21,6 @@
     --serif: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
 }
 
-/* --- Shared nav additions (consider moving these into dashboard.css) --- */
-.nav-links {
-    gap: 44px;
-}
-
-.nav-link {
-    border-bottom: 2px solid transparent;
-    padding: 8px 0;
-}
-
-    .nav-link:hover,
-    .nav-link.active {
-        color: #ffffff;
-        border-bottom-color: var(--accent);
-    }
-
 .profile-text {
     display: flex;
     flex-direction: column;

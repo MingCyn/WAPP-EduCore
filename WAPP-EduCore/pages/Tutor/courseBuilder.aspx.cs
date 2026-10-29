@@ -62,7 +62,7 @@ namespace WAPP_EduCore.pages.Tutor
             "UPDATE courses SET status = @status, updated_at = now() WHERE course_id = @cid AND user_id = @uid";
 
         private const string SqlEnrolledCount =
-            "SELECT COUNT(*) FROM enrollments WHERE course_id = @cid";
+            "SELECT COUNT(*) FROM enrollment WHERE course_id = @cid";
 
         private const string SqlLessons =
             "SELECT lesson_id, lesson_title, lesson_content::text " +

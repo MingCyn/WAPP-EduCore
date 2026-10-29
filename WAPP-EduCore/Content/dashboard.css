@@ -75,7 +75,7 @@ body {
 
 .nav-links {
     display: flex;
-    gap: 24px;
+    gap: 44px;
 }
 
 .nav-link {
@@ -85,11 +85,13 @@ body {
     font-size: 14px;
     transition: color 0.2s ease;
     padding: 8px 0;
+    border-bottom: 2px solid transparent;
 }
 
     .nav-link:hover,
     .nav-link.active {
         color: var(--nav-link-active);
+        border-bottom-color: var(--accent);
     }
 
     .nav-link.active {
