@@ -1802,3 +1802,333 @@ nav li {
         }
     
 }
+
+/* ===== Animated sidebar icons ===== */
+.sidebar .menu-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
+    opacity: .75;
+    transition: opacity .2s ease, color .2s ease, transform .25s ease;
+}
+
+.sidebar a.menu-item {
+    transition: background-color .2s ease, transform .2s ease;
+}
+
+    .sidebar a.menu-item:hover {
+        background: rgba(255, 255, 255, .06);
+        transform: translateX(3px);
+    }
+
+    .sidebar a.menu-item.active:hover {
+        background: #2a4496;
+    }
+
+    .sidebar a.menu-item:hover .menu-icon,
+    .sidebar a.menu-item.active .menu-icon {
+        opacity: 1;
+        color: #FFB703;
+    }
+
+    .sidebar a.menu-item:hover .menu-icon {
+        transform: scale(1.12);
+    }
+
+    /* Active item pops once when the page loads */
+    .sidebar a.menu-item.active .menu-icon {
+        animation: icEnter .6s ease;
+    }
+
+/* ---------- Keyframes ---------- */
+@keyframes icEnter {
+    0% {
+        transform: scale(.6);
+    }
+
+    60% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes icPop {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(.5);
+    }
+
+    70% {
+        transform: scale(1.2);
+    }
+}
+
+@keyframes icBookL {
+    0%, 100% {
+        transform: rotate(0);
+    }
+
+    45% {
+        transform: rotate(-12deg);
+    }
+}
+
+@keyframes icBookR {
+    0%, 100% {
+        transform: rotate(0);
+    }
+
+    45% {
+        transform: rotate(12deg);
+    }
+}
+
+@keyframes icRock {
+    0%, 100% {
+        transform: rotate(0);
+    }
+
+    25% {
+        transform: rotate(-12deg);
+    }
+
+    75% {
+        transform: rotate(12deg);
+    }
+}
+
+@keyframes icBubble {
+    0% {
+        transform: translateY(0);
+        opacity: 0;
+    }
+
+    30% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-8px);
+        opacity: 0;
+    }
+}
+
+@keyframes icTab {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-2px);
+    }
+}
+
+@keyframes icDot {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.9);
+    }
+}
+
+@keyframes icHop {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    35% {
+        transform: translateY(-3px);
+    }
+
+    60% {
+        transform: translateY(0);
+    }
+
+    80% {
+        transform: translateY(-1px);
+    }
+}
+
+@keyframes icFlap {
+    0%, 100% {
+        transform: scaleY(1);
+    }
+
+    40% {
+        transform: scaleY(.55);
+    }
+}
+
+@keyframes icGrow {
+    0% {
+        transform: scaleY(.3);
+    }
+
+    60% {
+        transform: scaleY(1.12);
+    }
+
+    100% {
+        transform: scaleY(1);
+    }
+}
+
+@keyframes icSwing {
+    0%, 100% {
+        transform: rotate(0);
+    }
+
+    25% {
+        transform: rotate(14deg);
+    }
+
+    50% {
+        transform: rotate(-10deg);
+    }
+
+    75% {
+        transform: rotate(5deg);
+    }
+}
+
+@keyframes icSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ---------- Transform origins ---------- */
+.ic-dash rect,
+.ic-cal-dot,
+.ic-bars line {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.ic-bars line {
+    transform-origin: center bottom;
+}
+
+.ic-book-l {
+    transform-origin: 12px 20px;
+}
+
+.ic-book-r {
+    transform-origin: 12px 20px;
+}
+
+.ic-flask-body {
+    transform-origin: 12px 22px;
+}
+
+.ic-mail-flap {
+    transform-origin: 12px 7px;
+}
+
+.ic-award-body {
+    transform-origin: 12px 3px;
+}
+
+.ic-gear-body {
+    transform-origin: 12px 12px;
+}
+
+/* ---------- Hover animations (one per icon) ---------- */
+.sidebar a.menu-item:hover .ic-dash rect {
+    animation: icPop .6s ease;
+}
+
+    .sidebar a.menu-item:hover .ic-dash rect:nth-child(2) {
+        animation-delay: .08s;
+    }
+
+    .sidebar a.menu-item:hover .ic-dash rect:nth-child(3) {
+        animation-delay: .16s;
+    }
+
+    .sidebar a.menu-item:hover .ic-dash rect:nth-child(4) {
+        animation-delay: .24s;
+    }
+
+.sidebar a.menu-item:hover .ic-book-l {
+    animation: icBookL .7s ease;
+}
+
+.sidebar a.menu-item:hover .ic-book-r {
+    animation: icBookR .7s ease;
+}
+
+.sidebar a.menu-item:hover .ic-flask-body {
+    animation: icRock 1s ease-in-out infinite;
+}
+
+.sidebar a.menu-item:hover .ic-bub1 {
+    animation: icBubble 1.1s ease-in infinite;
+}
+
+.sidebar a.menu-item:hover .ic-bub2 {
+    animation: icBubble 1.1s ease-in .5s infinite;
+}
+
+.sidebar a.menu-item:hover .ic-cal-tab {
+    animation: icTab .6s ease;
+}
+
+    .sidebar a.menu-item:hover .ic-cal-tab:nth-of-type(2) {
+        animation-delay: .1s;
+    }
+
+.sidebar a.menu-item:hover .ic-cal-dot {
+    animation: icDot .7s ease .15s;
+}
+
+.sidebar a.menu-item:hover .ic-mail-body {
+    animation: icHop .7s ease;
+}
+
+.sidebar a.menu-item:hover .ic-mail-flap {
+    animation: icFlap .7s ease;
+}
+
+.sidebar a.menu-item:hover .ic-bars line {
+    animation: icGrow .6s ease;
+}
+
+    .sidebar a.menu-item:hover .ic-bars line:nth-child(2) {
+        animation-delay: .1s;
+    }
+
+    .sidebar a.menu-item:hover .ic-bars line:nth-child(3) {
+        animation-delay: .2s;
+    }
+
+.sidebar a.menu-item:hover .ic-award-body {
+    animation: icSwing .9s ease;
+}
+
+.sidebar a.menu-item:hover .ic-gear-body {
+    animation: icSpin 2.4s linear infinite;
+}
+
+/* Respect reduced-motion settings */
+@media (prefers-reduced-motion: reduce) {
+    .sidebar a.menu-item *,
+    .sidebar .menu-icon {
+        animation: none !important;
+        transition: none !important;
+    }
+}
