@@ -80,10 +80,10 @@
                                                 <td>
                                                     <div class="ca-progress-wrap">
                                                         <div class="ca-progress-bar" style='width: <%#: Eval("ProgressPercent") %>%;'></div>
-                                                        <span class="ca-progress-text"><<%#: Eval("ProgressPercent") %>%</span>
+                                                        <span class="ca-progress-text"><%#: Eval("ProgressPercent") %>%</span>
                                                     </div>
                                                 </td>
-                                                <td><span class="ca-pill <%#: Eval("StatusClass") %>"><<%#: Eval("StatusText") %></span></td>
+                                                <td><span class="badge <%#: Eval("StatusClass") %>"><%#: Eval("StatusText") %></span></td>
                                             </tr>
                                         </ItemTemplate>
                                     </asp:Repeater>

@@ -97,7 +97,7 @@ namespace WAPP_EduCore.pages.Tutor
                 int studentCount = 0;
 
                 string studentQuery =
-                    "SELECT u.full_name, u.email, e.enrolled_at, e.progression, e.enrollment_status " +
+                    "SELECT u.full_name, u.email, e.enrolled_at, e.progression " +
                     "FROM enrollment e " +
                     "JOIN public.users u ON e.user_id = u.user_id " +
                     "WHERE e.course_id = @cid ORDER BY e.enrolled_at DESC";
@@ -114,7 +114,10 @@ namespace WAPP_EduCore.pages.Tutor
                             string email = r.IsDBNull(1) ? "" : r.GetString(1);
                             DateTime enrolledAt = r.IsDBNull(2) ? DateTime.Now : r.GetDateTime(2);
                             int progress = r.IsDBNull(3) ? 0 : Convert.ToInt32(r[3]);
-                            string status = r.IsDBNull(4) ? "active" : r.GetString(4);
+                            progress = Math.Max(0, Math.Min(100, progress));   // keep the bar and the status in range
+
+                            string statusText, statusClass;
+                            GetProgressStatus(progress, out statusText, out statusClass);
 
                             totalProgressSum += progress;
 
@@ -124,8 +127,8 @@ namespace WAPP_EduCore.pages.Tutor
                                 Email = email,
                                 EnrolledAt = enrolledAt.ToString("dd MMM yyyy", CultureInfo.InvariantCulture),
                                 ProgressPercent = progress,
-                                StatusText = char.ToUpper(status[0]) + status.Substring(1),
-                                StatusClass = status.ToLower() == "active" ? "published" : "draft"
+                                StatusText = statusText,
+                                StatusClass = statusClass
                             });
                         }
                     }
@@ -169,6 +172,14 @@ namespace WAPP_EduCore.pages.Tutor
                 // Table might not be queried or structured this way yet, return 0 as safe fallback
             }
             return 0.0;
+        }
+
+        // <30% = At Risk, 30-50% = Needs Attention, >50% = On Track
+        private static void GetProgressStatus(int progress, out string text, out string cssClass)
+        {
+            if (progress < 30) { text = "At Risk"; cssClass = "status-risk"; }
+            else if (progress <= 50) { text = "Needs Attention"; cssClass = "status-attention"; }
+            else { text = "On Track"; cssClass = "status-on-track"; }
         }
 
         private void ShowMessage(string message, bool isError)
