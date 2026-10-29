@@ -45,6 +45,25 @@
                     <h2 class="card-title">Create your EduCore account</h2>
                     <p class="card-subtitle">Start learning, teaching, or managing your institution.</p>
 
+                    <!-- Google Sign-In Button First -->
+                    <div class="form-group" style="margin-top: 20px; margin-bottom: 15px;">
+                        <button type="button" class="btn-google" onclick="redirectToGoogle('<%= ConfigurationManager.AppSettings["GoogleClientId"] %>')" style="width: 100%; padding: 12px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                            <svg width="18" height="18" viewBox="0 0 18 18">
+                                <path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.19-1.84H9v3.48h4.84c-.21 1.12-.84 2.07-1.78 2.71v2.25h2.88c1.68-1.55 2.7-3.83 2.7-6.6z" />
+                                <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.88-2.25c-.81.54-1.85.9-3.08.9-2.37 0-4.38-1.6-5.1-3.75H.8v2.33C2.27 15.98 5.38 18 9 18z" />
+                                <path fill="#FBBC05" d="M3.9 10.72c-.19-.54-.3-1.12-.3-1.72s.11-1.18.3-1.72V4.95H.8C.29 5.98 0 7.14 0 8.36s.29 2.38.8 3.41l3.1-2.33z" />
+                                <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.89 11.43 0 9 0 5.38 0 2.27 2.02.8 4.95l3.1 2.33c.72-2.15 2.73-3.7 5.1-3.7z" />
+                            </svg>
+                            Sign up with Google
+                        </button>
+                    </div>
+
+                    <div style="text-align: center; margin: 15px 0; color: #94a3b8; font-size: 13px; display: flex; align-items: center; text-align: center;">
+                        <span style="flex: 1; border-bottom: 1px solid #e2e8f0;"></span>
+                        <span style="padding: 0 10px;">OR FILL IN DETAILS</span>
+                        <span style="flex: 1; border-bottom: 1px solid #e2e8f0;"></span>
+                    </div>
+
                     <div class="form-grid">
                         <!-- Full Name -->
                         <div class="form-group">
@@ -98,13 +117,12 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <asp:Button ID="btnSignUp" runat="server" Text="Sign Up" CssClass="btn-primary" OnClick="btnSignUp_Click" />
+                    <asp:Button ID="btnSignUp" runat="server" Text="Create Account" CssClass="btn-primary" OnClick="btnSignUp_Click" Style="margin-top: 15px;" />
 
                     <!-- Error/Status Message -->
                     <div class="error-container">
                         <asp:Label ID="lblErrorMessage" runat="server" CssClass="error-message" Text=""></asp:Label>
                     </div>
-
                     <!-- Footer Redirect -->
                     <div class="form-footer">
                         Already have an account? <a href="Login.aspx" class="login-link">Log in</a>
@@ -113,6 +131,7 @@
             </div>
 
         </div>
+
     </form>
 
     <script type="text/javascript">
@@ -129,6 +148,17 @@
                 btnStudent.classList.remove('active');
             }
         }
+
+function redirectToGoogle() {
+    var clientId = "828548947210-evje5v1phtlnamtftjh5rld14vdhfhnk.apps.googleusercontent.com";
+    var redirectUri = "https://localhost:44383/auth/google-callback.aspx"; // Updated port
+    var scope = "email profile";
+    var responseType = "code";
+
+    var url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}`;
+    window.location.href = url;
+}
     </script>
+
 </body>
 </html>

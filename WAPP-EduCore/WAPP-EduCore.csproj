@@ -117,7 +117,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="About.aspx" />
+    <Content Include="auth\complete-profile.aspx" />
     <Content Include="auth\forgotPassword.aspx" />
+    <Content Include="auth\google-callback.aspx" />
     <Content Include="auth\login.aspx" />
     <Content Include="auth\signup.aspx" />
     <Content Include="auth\verifyOtp.aspx" />
@@ -250,12 +252,23 @@
       <DependentUpon>About.aspx</DependentUpon>
     </Compile>
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="auth\complete-profile.aspx.cs">
+      <DependentUpon>complete-profile.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="auth\complete-profile.aspx.designer.cs">
+      <DependentUpon>complete-profile.aspx</DependentUpon>
+    </Compile>
     <Compile Include="auth\forgotPassword.aspx.cs">
       <DependentUpon>forgotPassword.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="auth\forgotPassword.aspx.designer.cs">
       <DependentUpon>forgotPassword.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="auth\google-callback.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>google-callback.aspx</DependentUpon>
     </Compile>
     <Compile Include="auth\login.aspx.cs">
       <DependentUpon>login.aspx</DependentUpon>

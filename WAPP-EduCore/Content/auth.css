@@ -612,6 +612,65 @@ button.toggle-password {
     }
 }
 
+/* ==========================================================
+   Password Fields & Show/Hide Toggle Wrapper
+   ========================================================== */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+    .password-wrapper .form-control {
+        width: 100%;
+        height: 46px;
+        padding-right: 48px; /* Leaves clean breathing room so text doesn't run under the toggle icon */
+    }
+
+    /* Keeps the wrapper visually synced if either password field is focused */
+    .password-wrapper:focus-within .form-control {
+        border-color: #3B82F6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+        transform: translateY(-1px);
+    }
+
+button.toggle-password {
+    -webkit-appearance: none;
+    appearance: none;
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 0;
+    cursor: pointer;
+    color: #94A3B8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2; /* Ensures icon stays cleanly above the input field */
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+    button.toggle-password:hover {
+        color: #2D54C2;
+        background-color: #EFF6FF;
+    }
+
+    button.toggle-password:focus-visible {
+        outline: 2px solid #3B82F6;
+        outline-offset: 1px;
+    }
+
+    button.toggle-password svg {
+        display: block;
+    }
+
 /* Respect users who prefer less motion */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
