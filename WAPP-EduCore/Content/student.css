@@ -3,6 +3,7 @@
 
 /* CHANGED: font moved from * to body so headings can use a different font */
 @import url('student.css');
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -35,64 +36,77 @@ input, select, button, textarea {
     overflow-y: auto
 }
 
-    .sidebar a.menu-item {
-        font-size: 15px;
-        padding: 12px 16px;
-        margin-bottom: 8px
+    /* ===== Sidebar typography: one font for every element in the sidebar =====
+   admin.css (or the Sidebar control) may set its own font on some items,
+   so this is forced with !important to keep links, buttons, names and text identical. */
+    .sidebar,
+    .sidebar * {
+        font-family: 'Inter','Segoe UI',Tahoma,Geneva,Verdana,sans-serif !important;
+        font-style: normal;
+        -webkit-font-smoothing: antialiased;
     }
 
-        .sidebar a.menu-item.active {
-            background: #2a4496;
-            color: #fff;
-            font-weight: 600
+        .sidebar a.menu-item {
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.4;
+            letter-spacing: normal;
+            padding: 12px 16px;
+            margin-bottom: 8px
         }
 
-    .sidebar .me {
-        margin-top: auto;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255,255,255,.15)
-    }
+            .sidebar a.menu-item.active {
+                background: #2a4496;
+                color: #fff;
+                font-weight: 600
+            }
 
-        .sidebar .me small {
-            color: #9aa6c8
+        .sidebar .me {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,.15)
         }
 
-    .sidebar-guest-box {
-        margin-top: auto;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255,255,255,.15);
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
+            .sidebar .me small {
+                color: #9aa6c8
+            }
 
-    .sidebar .guest-msg {
-        margin: 0;
-        font-size: 13px;
-        line-height: 1.5;
-        color: #cdd8f3;
-    }
+.sidebar-guest-box {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.15);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 
-    .sidebar .sidebar-login-btn {
-        display: inline-block;
-        width: 100%;
-        padding: 10px 14px;
-        border-radius: 8px;
-        background: #ffffff;
-        color: #1e3270;
-        font-size: 13px;
-        font-weight: 600;
-        text-align: center;
-        text-decoration: none;
-        border: 1px solid rgba(255,255,255,.35);
-        transition: all .2s ease;
-    }
+.sidebar .guest-msg {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #cdd8f3;
+}
 
-        .sidebar .sidebar-login-btn:hover {
-            background: #eef2ff;
-            color: #14285f;
-            border-color: rgba(255,255,255,.6);
-        }
+.sidebar .sidebar-login-btn {
+    display: inline-block;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1e3270;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,.35);
+    transition: all .2s ease;
+}
+
+    .sidebar .sidebar-login-btn:hover {
+        background: #eef2ff;
+        color: #14285f;
+        border-color: rgba(255,255,255,.6);
+    }
 
 .brand {
     display: flex;
@@ -427,22 +441,77 @@ nav li {
         color: #fff
     }
 
-.filters select {
-    height: 40px;
-    min-width: 200px;
-    padding: 0 40px 0 14px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+/* ===== Filter dropdowns (enhanced) ===== */
+.filters select,
+.filter-select {
+    height: 42px;
+    min-width: 210px;
+    padding: 0 44px 0 16px;
+    border: 1px solid #e0dcd5;
+    border-radius: 10px;
     background-color: #fff;
     color: #16223b;
     font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .05);
     appearance: none;
     -webkit-appearance: none;
+    -moz-appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 14px
+    background-position: right 16px center;
+    background-size: 14px;
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
 }
+
+    .filters select:hover,
+    .filter-select:hover {
+        border-color: #2f4f8a;
+        background-color: #fafbff;
+        box-shadow: 0 2px 6px rgba(36, 63, 134, .10);
+    }
+
+    .filters select:focus,
+    .filter-select:focus {
+        border-color: #243f86;
+        box-shadow: 0 0 0 3px rgba(36, 63, 134, .18);
+        /* arrow turns blue and flips while the dropdown is focused */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23243f86' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='18 15 12 9 6 15'/%3E%3C/svg%3E");
+    }
+
+    /* A filter that is currently doing something (not on its default value) */
+    .filters select.is-active,
+    .filter-select.is-active {
+        border-color: #243f86;
+        background-color: #eef2fb;
+        color: #1b3270;
+        font-weight: 600;
+    }
+
+    .filters select:disabled,
+    .filter-select:disabled {
+        opacity: .55;
+        cursor: not-allowed;
+        background-color: #f3f1ed;
+    }
+
+    /* Dropdown list items (supported by Chrome, Edge and Firefox) */
+    .filters select option,
+    .filter-select option {
+        padding: 10px 14px;
+        background: #fff;
+        color: #16223b;
+        font-size: 14px;
+    }
+
+        .filters select option:checked,
+        .filter-select option:checked {
+            background: #eef2fb;
+            color: #243f86;
+            font-weight: 600;
+        }
 
 .grid {
     display: grid;
@@ -600,6 +669,17 @@ nav li {
     .search input {
         width: 180px
     }
+
+    .filters,
+    .filter-row {
+        width: 100%
+    }
+
+        .filters select,
+        .filter-select {
+            width: 100%;
+            min-width: 0
+        }
 }
 
 /* Sidebar icons */
@@ -1773,35 +1853,35 @@ nav li {
     border-radius: 8px;
     color: #8f2d2a;
     font-size: 13px;
-    /* Cancel Button (Ghost style) */
-    #btnCancelSubmit {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 10px 20px;
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        color: #64748b;
-        font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Cancel Button (Ghost style) */
+#btnCancelSubmit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #64748b;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+    #btnCancelSubmit:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #0f172a;
+        transform: translateY(-1px);
     }
 
-        #btnCancelSubmit:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-            color: #0f172a;
-            transform: translateY(-1px);
-        }
-
-        #btnCancelSubmit:active {
-            transform: scale(0.97);
-        }
-    
-}
+    #btnCancelSubmit:active {
+        transform: scale(0.97);
+    }
 
 /* ===== Animated sidebar icons ===== */
 .sidebar .menu-icon {

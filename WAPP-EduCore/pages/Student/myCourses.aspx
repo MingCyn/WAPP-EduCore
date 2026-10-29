@@ -1,4 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="myCourses.aspx.cs" Inherits="WAPP_EduCore.pages.Student.WebForm1" %>
+
 <%@ Register Src="~/pages/Shared/Sidebar.ascx" TagName="Sidebar" TagPrefix="uc" %>
 
 <!DOCTYPE html>
@@ -7,7 +8,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Explore Courses</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap"
+        rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
     <link href="/Content/student-upgrade.css" rel="stylesheet" />
@@ -41,8 +43,21 @@
                     </div>
                     <div class="filter-row">
                         <asp:DropDownList ID="ddlCategory" runat="server" AutoPostBack="true"
-                            OnSelectedIndexChanged="Filters_Changed"></asp:DropDownList>
+                            CssClass="filter-select"
+                            OnSelectedIndexChanged="Filters_Changed">
+                        </asp:DropDownList>
+
+                        <%-- NEW: enrolment status filter (hidden for guests in code-behind) --%>
+                        <asp:DropDownList ID="ddlEnroll" runat="server" AutoPostBack="true"
+                            CssClass="filter-select"
+                            OnSelectedIndexChanged="Filters_Changed">
+                            <asp:ListItem Value="" Text="Status: All Courses" />
+                            <asp:ListItem Value="available" Text="Status: Not Enrolled" />
+                            <asp:ListItem Value="enrolled" Text="Status: Enrolled" />
+                        </asp:DropDownList>
+
                         <asp:DropDownList ID="ddlSort" runat="server" AutoPostBack="true"
+                            CssClass="filter-select"
                             OnSelectedIndexChanged="Filters_Changed">
                             <asp:ListItem Value="popular" Text="Sort by: Most Popular" />
                             <asp:ListItem Value="newest" Text="Sort by: Newest" />
@@ -52,10 +67,10 @@
                 </div>
 
                 <asp:Label ID="lblMessage" runat="server" Visible="false"
-                    Style="display:block;margin:10px 0;color:#2563eb"></asp:Label>
+                    Style="display: block; margin: 10px 0; color: #2563eb"></asp:Label>
 
                 <asp:Panel ID="pnlEmpty" runat="server" Visible="false"
-                    Style="padding:40px;text-align:center;color:#7b8697">
+                    Style="padding: 40px; text-align: center; color: #7b8697">
                     No courses match your filters.
                 </asp:Panel>
 
@@ -72,16 +87,20 @@
                                     <h4><%#: Eval("title") %></h4>
                                     <small><%#: Eval("instructor") %></small>
                                     <asp:PlaceHolder runat="server" Visible='<%# Convert.ToBoolean(Eval("is_enrolled")) %>'>
-                                        <div class="progress"><div class="progress-bar" style='width:<%# Percent(Eval("total_lessons"), Eval("done_lessons")) %>%'></div></div>
-                                        <small class="progress-text"><%# Percent(Eval("total_lessons"), Eval("done_lessons")) %>% complete</small>
+                                        <div class="progress">
+                                            <div class="progress-bar" style='width: <%# Percent(Eval("total_lessons"), Eval("done_lessons")) %>%'>
+                                            </div>
+                                        </div>
+                                        <small class="progress-text"><%# Percent(Eval("total_lessons"), Eval("done_lessons")) %>%
+                                            complete</small>
                                     </asp:PlaceHolder>
                                 </div>
                                 <div class="footer">
                                     <span class="students"><%#: Eval("student_count") %> students</span>
                                     <asp:Button runat="server" CssClass="btn"
-                                    CommandName='<%# (IsGuest || Convert.ToBoolean(Eval("is_enrolled"))) ? "view" : "enroll" %>'
-                                    CommandArgument='<%# Eval("course_id") %>'
-                                    Text='<%# (IsGuest || Convert.ToBoolean(Eval("is_enrolled"))) ? "View Course" : "Enroll" %>' />
+                                        CommandName='<%# (IsGuest || Convert.ToBoolean(Eval("is_enrolled"))) ? "view" : "enroll" %>'
+                                        CommandArgument='<%# Eval("course_id") %>'
+                                        Text='<%# (IsGuest || Convert.ToBoolean(Eval("is_enrolled"))) ? "View Course" : "Enroll" %>' />
                                 </div>
                             </div>
                         </ItemTemplate>

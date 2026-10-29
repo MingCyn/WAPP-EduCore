@@ -16,7 +16,6 @@ namespace WAPP_EduCore.pages.Student
                 if (Session["UserId"] != null)
                     return Convert.ToInt64(Session["UserId"]);
                 return 0; // Guest user ID fallback
-
             }
         }
 
@@ -33,7 +32,8 @@ namespace WAPP_EduCore.pages.Student
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Removed the strict redirect check so guests can browse courses!
+            // Guests can browse courses, but "enrolled" status means nothing to them
+            ddlEnroll.Visible = !IsGuest;
 
             if (!IsPostBack)
             {
@@ -79,6 +79,9 @@ namespace WAPP_EduCore.pages.Student
                 default: orderBy = "student_count DESC, c.title ASC"; break;
             }
 
+            // Guests are never enrolled, so ignore the status filter for them
+            string enrollFilter = IsGuest ? "" : (ddlEnroll.SelectedValue ?? "");
+
             string sql =
                 "SELECT c.course_id, c.title, c.category, c.duration, c.course_img, c.course_level, " +
                 "  COALESCE(u.full_name, 'TBA') AS instructor, " +
@@ -92,6 +95,10 @@ namespace WAPP_EduCore.pages.Student
                 "WHERE lower(c.status) = 'published' AND (@level = '' OR c.course_level = @level) " +
                 "  AND (@cat = '' OR c.category = @cat) " +
                 "  AND (@q = '' OR c.title ILIKE '%' || @q || '%' OR c.category ILIKE '%' || @q || '%') " +
+                // NEW: enrolment status filter
+                "  AND (@enr = '' " +
+                "       OR (@enr = 'enrolled'  AND EXISTS (SELECT 1 FROM enrollment x WHERE x.course_id = c.course_id AND x.user_id = @uid)) " +
+                "       OR (@enr = 'available' AND NOT EXISTS (SELECT 1 FROM enrollment y WHERE y.course_id = c.course_id AND y.user_id = @uid))) " +
                 "ORDER BY " + orderBy;
 
             DataTable dt = Db.Query(sql, new Dictionary<string, object>
@@ -99,12 +106,23 @@ namespace WAPP_EduCore.pages.Student
                 { "@uid", UserId },
                 { "@level", SelectedLevel },
                 { "@cat", ddlCategory.SelectedValue ?? "" },
-                { "@q", txtSearch.Text.Trim() }
+                { "@q", txtSearch.Text.Trim() },
+                { "@enr", enrollFilter }
             });
 
             rptCourses.DataSource = dt;
             rptCourses.DataBind();
             pnlEmpty.Visible = dt.Rows.Count == 0;
+
+            HighlightActiveFilters();
+        }
+
+        // Adds the "is-active" style to dropdowns that are not on their default value
+        private void HighlightActiveFilters()
+        {
+            ddlCategory.CssClass = "filter-select" + (string.IsNullOrEmpty(ddlCategory.SelectedValue) ? "" : " is-active");
+            ddlEnroll.CssClass = "filter-select" + (string.IsNullOrEmpty(ddlEnroll.SelectedValue) ? "" : " is-active");
+            ddlSort.CssClass = "filter-select" + (ddlSort.SelectedValue == "popular" ? "" : " is-active");
         }
 
         // ---------- events ----------
