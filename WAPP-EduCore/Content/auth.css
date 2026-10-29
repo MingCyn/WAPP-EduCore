@@ -142,12 +142,12 @@ body, html {
 }
 
 .brand-logo {
-    margin-bottom: 48px;
+    margin-bottom: 40px;
     animation: fadeIn 0.9s ease both;
 }
 
 .brand-logo-img {
-    height: 175px;
+    height: 130px;
     width: auto;
     display: block;
     object-fit: contain;

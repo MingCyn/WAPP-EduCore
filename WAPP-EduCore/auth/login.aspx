@@ -15,7 +15,7 @@
             <div class="hero-section">
                 <div class="hero-content">
                     <div class="brand-logo">
-                        <img src="../images/EduCore_Logo.png" alt="EduCore Logo" class="brand-logo-img" />
+                        <img src="../images/logo.png" alt="EduCore Logo" class="brand-logo-img" />
                     </div>
 
                     <h1 class="hero-title">Learn your way.</h1>
@@ -27,12 +27,12 @@
                         <h3 class="stats-title">Today's Global Cohorts</h3>
                         <div class="stats-grid">
                             <div class="stat-item">
-                                <span class="stat-value">12,480+</span>
+                                <span class="stat-value"><asp:Literal ID="LitActiveStudents" runat="server" Text="0" /></span>
                                 <span class="stat-label">Active Students</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-value">98.4%</span>
-                                <span class="stat-label">Completion Rate</span>
+                                <span class="stat-value"><asp:Literal ID="LitCoveredTopics" runat="server" Text="0" /></span>
+                                <span class="stat-label">Covered Topics</span>
                             </div>
                         </div>
                     </div>

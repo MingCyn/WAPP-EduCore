@@ -7,12 +7,54 @@ namespace WAPP_EduCore.auth
 {
     public partial class login : Page
     {
+        private const string ConnectionName = "SupabasePostgres";
+
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (!IsPostBack && Request.QueryString["registered"] == "success")
+            if (!IsPostBack)
             {
-                lblErrorMessage.ForeColor = System.Drawing.Color.FromArgb(16, 185, 129); // Green
-                lblErrorMessage.Text = "Account created successfully! Please sign in.";
+                LoadPlatformStatistics();
+            }
+        }
+
+        private void LoadPlatformStatistics()
+        {
+            string connString = ConfigurationManager.ConnectionStrings[ConnectionName].ConnectionString;
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(connString))
+                {
+                    conn.Open();
+
+                    // 1. Get total number of active/registered students
+                    // (Assuming role column distinguishes users, e.g., 'Student')
+                    using (var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM users WHERE LOWER(role) = 'student'", conn))
+                    {
+                        object studentCount = cmd.ExecuteScalar();
+                        if (studentCount != null && studentCount != DBNull.Value)
+                        {
+                            LitActiveStudents.Text = Convert.ToInt32(studentCount).ToString("N0") + "+";
+                        }
+                    }
+
+                    // 2. Get total number of courses (Covered Topics)
+                    using (var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM courses", conn))
+                    {
+                        object courseCount = cmd.ExecuteScalar();
+                        if (courseCount != null && courseCount != DBNull.Value)
+                        {
+                            LitCoveredTopics.Text = Convert.ToInt32(courseCount).ToString("N0") + "+";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Graceful fallback if database stats fail to load
+                System.Diagnostics.Debug.WriteLine("Failed to load statistics: " + ex.Message);
+                LitActiveStudents.Text = "12,480+";
+                LitCoveredTopics.Text = "50+";
             }
         }
 
