@@ -5,7 +5,7 @@
 <head runat="server">
     <title>EduCore - Sign In</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
-    <link href="../Content/auth.css" rel="stylesheet" type="text/css" />
+    <link href="../Content/auth.css?v=1.0" rel="stylesheet" type="text/css" />
 </head>
 <body>
     <form id="form1" runat="server">
