@@ -16,27 +16,13 @@
         .btn[disabled] { opacity: 0.6; cursor: default; }
         .live-notice { margin-bottom: 16px; }
 
-        /* Breadcrumb navigation styling */
-        .breadcrumb-nav {
-            font-size: 13px;
-            color: #64748b;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .breadcrumb-nav a {
-            color: #4f46e5;
-            text-decoration: none;
-        }
-        .breadcrumb-nav a:hover {
-            text-decoration: underline;
-        }
-        .breadcrumb-separator {
-            color: #cbd5e1;
-        }
+        /* Breadcrumb navigation */
+        .breadcrumb-nav { font-size: 13px; color: #64748b; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .breadcrumb-nav a { color: #4f46e5; text-decoration: none; }
+        .breadcrumb-nav a:hover { text-decoration: underline; }
+        .breadcrumb-separator { color: #cbd5e1; }
 
-        /* ---- Lesson content: heading / paragraph / list / image / video, in the order students see them ---- */
+        /* Lesson content: heading / paragraph / list / image / video, in the order students see them */
         .block-section { margin-bottom: 22px; }
         .block-heading { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
         .block-hint { font-size: 12px; color: #6b7285; margin: 0 0 12px; }
@@ -48,6 +34,8 @@
         .block-actions .btn { padding: 4px 10px; }
         .aspNetDisabled { opacity: 0.35; pointer-events: none; }
         #modalText textarea.form-control { line-height: 1.5; }
+        .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .input-row .btn-cancel { padding: 0 12px; }
     </style>
 </head>
 <body>
@@ -59,7 +47,7 @@
 
             <main class="dashboard-container">
 
-                <!-- Guiding Breadcrumb Navigation -->
+                <!-- Breadcrumb -->
                 <div class="breadcrumb-nav">
                     <a href="courses.aspx">My Courses</a>
                     <span class="breadcrumb-separator">&gt;</span>
@@ -85,7 +73,7 @@
                     </div>
                     <div class="page-actions">
                         <a class="btn btn-outline" href='courseDetails.aspx?courseId=<%= CourseIdValue %>'>Preview Course</a>
-                        <%-- Draft course: Publish. Published course: Unpublish (hidden/shown from the code-behind) --%>
+                        <%-- Draft course: Publish. Published course: Unpublish (toggled from the code-behind) --%>
                         <asp:Button ID="BtnPublishCourse" runat="server" OnClientClick="openModal('modalPublish'); return false;" Text="Publish Course" CssClass="btn btn-primary" />
                         <asp:Button ID="BtnUnpublish" runat="server" OnClientClick="openModal('modalUnpublish'); return false;" Text="Unpublish Course" CssClass="btn btn-outline" Visible="false" />
                     </div>
@@ -104,9 +92,8 @@
                     <!-- Left: Course Outline -->
                     <aside class="outline-card">
                         <h3 class="outline-title">Course Outline</h3>
-                        <p class="outline-hint">Drag items to structure lessons</p>
+                        <p class="outline-hint">Select a lesson to edit it</p>
 
-                        <!-- Lessons of this course (data-bound) -->
                         <div class="module">
                             <div class="module-header">
                                 <svg class="chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4" /></svg>
@@ -139,7 +126,10 @@
                                     <h2 class="editor-title"><asp:Literal ID="LitLessonTitle" runat="server" /></h2>
                                     <p class="editor-meta"><asp:Literal ID="LitLessonMeta" runat="server" /></p>
                                 </div>
-                                <asp:Button ID="BtnEditDetails" runat="server" OnClientClick="openModal('modalEditDetails'); return false;" Text="Edit Details" CssClass="btn btn-outline btn-sm" />
+                                <div style="display: flex; gap: 8px; flex: none;">
+                                    <asp:Button ID="BtnEditDetails" runat="server" OnClientClick="openModal('modalEditDetails'); return false;" Text="Edit Details" CssClass="btn btn-outline btn-sm" />
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="openModal('modalDeleteLesson')">Delete Lesson</button>
+                                </div>
                             </div>
 
                             <asp:Panel ID="PnlSummary" runat="server" Visible="false">
@@ -148,10 +138,10 @@
 
                             <div class="component-list">
 
-                                <%-- ===== Lesson content, saved in lesson.lesson_content in exactly this order ===== --%>
+                                <%-- Lesson content, saved in lesson.lesson_content in exactly this order --%>
                                 <div class="block-section">
                                     <h3 class="block-heading">Lesson content</h3>
-                                    <p class="block-hint">Students see the lesson in the order listed here. Use the arrows to move a heading, paragraph, image or video up or down.</p>
+                                    <p class="block-hint">Students see the lesson in the order listed here. Use the arrows to move a heading, paragraph, list, image or video up or down.</p>
 
                                     <asp:Repeater ID="RptBlocks" runat="server" OnItemCommand="RptBlocks_ItemCommand">
                                         <ItemTemplate>
@@ -165,7 +155,6 @@
                                                     <asp:LinkButton runat="server" CommandName="up" CommandArgument='<%# Eval("Index") %>' CssClass="btn btn-outline btn-sm" Enabled='<%# (bool)Eval("CanMoveUp") %>' CausesValidation="false" ToolTip="Move up">&uarr;</asp:LinkButton>
                                                     <asp:LinkButton runat="server" CommandName="down" CommandArgument='<%# Eval("Index") %>' CssClass="btn btn-outline btn-sm" Enabled='<%# (bool)Eval("CanMoveDown") %>' CausesValidation="false" ToolTip="Move down">&darr;</asp:LinkButton>
                                                     <asp:LinkButton runat="server" CommandName="edit" CommandArgument='<%# Eval("Index") %>' CssClass="btn btn-outline btn-sm" Visible='<%# (bool)Eval("CanEdit") %>' CausesValidation="false">Edit</asp:LinkButton>
-                                                    <%-- Opens the in-page "Delete?" pop-up (no browser dialog) --%>
                                                     <button type="button" class="btn btn-outline btn-sm" data-index='<%# Eval("Index") %>' data-type='<%#: Eval("TypeKey") %>' data-text='<%#: Eval("Preview") %>' onclick="askRemoveBlock(this)">Delete</button>
                                                 </div>
                                             </div>
@@ -173,13 +162,14 @@
                                     </asp:Repeater>
 
                                     <asp:Panel ID="PnlNoBlocks" runat="server" CssClass="component-empty" Visible="false">
-                                        No content yet. Use the buttons below to add a heading and paragraph, an image or a video.
+                                        No content yet. Use the buttons below to add a heading and paragraph, a list, an image or a video.
                                     </asp:Panel>
 
                                     <div class="component-add">
                                         <span>Add:</span>
                                         <button type="button" class="btn btn-outline btn-sm" onclick="openTextModal()">+ Heading &amp; Paragraph</button>
-                                        <button type="button" class="btn btn-outline btn-sm" onclick="openImageModal()">+ Image</button>
+                                        <button type="button" class="btn btn-outline btn-sm" onclick="openListModal()">+ List</button>
+                                        <button type="button" id="BtnAddImage" runat="server" class="btn btn-outline btn-sm" onclick="openImageModal()">+ Image</button>
                                         <button type="button" id="BtnAddVideo" runat="server" class="btn btn-outline btn-sm" onclick="openModal('modalUploadVideo')">+ Video</button>
                                         <a id="LnkAddQuiz" runat="server" class="btn btn-outline btn-sm">+ Assessment</a>
                                     </div>
@@ -199,7 +189,7 @@
                                     </div>
                                 </asp:Panel>
 
-                                <%-- Interactive object and virtual lab: only shown when a lesson already has one (they can no longer be added here) --%>
+                                <%-- Interactive object and virtual lab: only shown when a lesson already has one --%>
                                 <asp:Panel ID="PnlInteractive" runat="server" CssClass="component-card" Visible="false">
                                     <div class="component-icon navy">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l5 5-5 5" /><path d="M13 18h6" /></svg>
@@ -239,11 +229,13 @@
             </main>
         </div>
 
-        <!-- ============ POP-UP DIALOGS ============ -->
+        <!-- ============ POP-UP DIALOGS (each one is a top-level overlay: never nest them) ============ -->
+
+        <%-- Course info --%>
         <div class="modal-overlay" id="modalCourseInfo" aria-hidden="true">
             <asp:Panel ID="PnlCourseInfo" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalCourseInfo">
                 <h3 class="modal-title" id="title_modalCourseInfo">Edit course information</h3>
-                <div id="courseInfoError" class="page-status error" style="display:none"></div>
+                <div id="courseInfoError" class="page-status error" style="display: none"></div>
 
                 <div class="form-group">
                     <label class="form-label" for="TxtCourseTitle">Course title</label>
@@ -284,22 +276,16 @@
                 </div>
                 <p class="form-hint" style="margin: -8px 0 20px;">Will be saved as: <strong id="durationPreview">-</strong></p>
 
-                <%-- Dynamic Learning Outcomes field --%>
                 <div class="form-group">
                     <label class="form-label">Learning Outcomes</label>
-                    <div id="outcomesContainer">
-                        <!-- Dynamic inputs will be injected here -->
-                    </div>
+                    <div id="outcomesContainer"></div>
                     <button type="button" class="btn btn-outline btn-sm" onclick="addOutcomeInput()" style="margin-top: 8px;">+ Add Outcome</button>
                     <span class="form-hint" style="margin-top: 6px;">Each box represents a new line in the database so the student view can read them point by point.</span>
                 </div>
 
-                <%-- References Dynamic Input Field --%>
                 <div class="form-group">
                     <label class="form-label">References</label>
-                    <div id="referencesContainer">
-                        <!-- Dynamic inputs will be injected here -->
-                    </div>
+                    <div id="referencesContainer"></div>
                     <button type="button" class="btn btn-outline btn-sm" onclick="addReferenceInput()" style="margin-top: 8px;">+ Add Reference</button>
                     <span class="form-hint" style="margin-top: 6px;">Add source references or citations for this course.</span>
                 </div>
@@ -311,12 +297,12 @@
                     <label class="dropzone" for="FileCourseImg">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
                         <span><strong>Click to choose an image</strong> or drag it here</span>
-                        <span class="form-hint">JPG or PNG, up to 2 MB</span>
+                        <span class="form-hint">JPG, PNG or WEBP, up to 2 MB</span>
                         <span class="dropzone-file" id="courseImgName">No new file selected</span>
-                        <asp:FileUpload ID="FileCourseImg" runat="server" CssClass="dropzone-input" accept="image/png,image/jpeg" />
+                        <asp:FileUpload ID="FileCourseImg" runat="server" CssClass="dropzone-input" accept="image/png,image/jpeg,image/webp" />
                     </label>
                     <img id="imgNewPreview" alt="New course image preview"
-                         style="display:none; width:100%; max-height:150px; object-fit:cover; border-radius:8px; margin-top:10px;" />
+                        style="display: none; width: 100%; max-height: 150px; object-fit: cover; border-radius: 8px; margin-top: 10px;" />
                 </div>
 
                 <div class="modal-actions">
@@ -326,6 +312,7 @@
             </asp:Panel>
         </div>
 
+        <%-- Add lesson --%>
         <div class="modal-overlay" id="modalAddModule" aria-hidden="true">
             <asp:Panel ID="PnlAddModule" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalAddModule">
                 <h3 class="modal-title" id="title_modalAddModule">Add new lesson</h3>
@@ -345,6 +332,7 @@
             </asp:Panel>
         </div>
 
+        <%-- Edit lesson details --%>
         <div class="modal-overlay" id="modalEditDetails" aria-hidden="true">
             <asp:Panel ID="PnlEditDetails" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalEditDetails">
                 <h3 class="modal-title" id="title_modalEditDetails">Edit lesson details</h3>
@@ -367,10 +355,10 @@
         <div class="modal-overlay" id="modalText" aria-hidden="true">
             <asp:Panel ID="PnlText" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalText">
                 <h3 class="modal-title" id="title_modalText">Add heading &amp; paragraph</h3>
-                <div id="textError" class="page-status error" style="display:none"></div>
+                <div id="textError" class="page-status error" style="display: none"></div>
 
-                <%-- HdnTextIndex: -1 = adding new content, otherwise the position of the block being edited.
-                     HdnTextMode:  both | heading | paragraph | list --%>
+                <%-- HdnTextIndex: -1 = new content, otherwise the position of the block being edited.
+                     HdnTextMode:  both | heading | paragraph --%>
                 <asp:HiddenField ID="HdnTextIndex" runat="server" Value="-1" />
                 <asp:HiddenField ID="HdnTextMode" runat="server" Value="both" />
 
@@ -383,11 +371,6 @@
                     <asp:TextBox ID="TxtParagraph" runat="server" TextMode="MultiLine" Rows="7" CssClass="form-control" placeholder="Write the explanation students will read under the heading..." />
                     <p class="form-hint" id="textHint">Add a heading, a paragraph, or both. They are saved as separate blocks, heading first, so you can move them independently.</p>
                 </div>
-                <div class="form-group" id="groupList" style="display:none">
-                    <label class="form-label" for="TxtListItems">List items</label>
-                    <asp:TextBox ID="TxtListItems" runat="server" TextMode="MultiLine" Rows="7" CssClass="form-control" placeholder="First item&#10;Second item" />
-                    <p class="form-hint">One item per line.</p>
-                </div>
 
                 <div class="modal-actions">
                     <button type="button" class="btn btn-cancel" onclick="closeModal('modalText')">Cancel</button>
@@ -396,11 +379,34 @@
             </asp:Panel>
         </div>
 
-        <%-- Add / edit an image with a caption (live preview before saving) --%>
+        <%-- Add / edit a list: one box per item (its own overlay, NOT inside modalText) --%>
+        <div class="modal-overlay" id="modalList" aria-hidden="true">
+            <asp:Panel ID="PnlList" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalList">
+                <h3 class="modal-title" id="title_modalList">Add list</h3>
+                <div id="listError" class="page-status error" style="display: none"></div>
+
+                <%-- -1 = adding a new list, otherwise the position of the list being edited --%>
+                <asp:HiddenField ID="HdnListIndex" runat="server" Value="-1" />
+
+                <div class="form-group">
+                    <label class="form-label">List items</label>
+                    <div id="listItemsContainer"></div>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="addListItemInput()" style="margin-top: 8px;">+ Add item</button>
+                    <span class="form-hint" style="margin-top: 6px;">One box per item. Empty boxes are ignored.</span>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalList')">Cancel</button>
+                    <asp:Button ID="BtnSaveList" runat="server" OnClick="BtnSaveList_Click" Text="Save list" CssClass="btn btn-accent" />
+                </div>
+            </asp:Panel>
+        </div>
+
+        <%-- Add / edit an image (one image per lesson; to replace it, remove it first) --%>
         <div class="modal-overlay" id="modalImage" aria-hidden="true">
             <asp:Panel ID="PnlImage" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalImage">
                 <h3 class="modal-title" id="title_modalImage">Add image</h3>
-                <div id="imageError" class="page-status error" style="display:none"></div>
+                <div id="imageError" class="page-status error" style="display: none"></div>
 
                 <%-- -1 = adding a new image, otherwise the position of the image being edited --%>
                 <asp:HiddenField ID="HdnImageIndex" runat="server" Value="-1" />
@@ -408,17 +414,22 @@
                 <div class="form-group">
                     <label class="form-label">Image</label>
                     <img id="ImgBlockCurrent" runat="server" visible="false" alt="Current image"
-                         style="display:block; width:100%; max-height:200px; object-fit:contain; border-radius:8px; margin-bottom:10px; background:#f1f2f6;" />
-                    <label class="dropzone" for="FileBlockImage">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
-                        <span><strong>Click to choose an image</strong> or drag it here</span>
-                        <span class="form-hint">JPG, PNG or WEBP, up to 5 MB</span>
-                        <span class="dropzone-file" id="blockImgName">No file selected</span>
-                        <asp:FileUpload ID="FileBlockImage" runat="server" CssClass="dropzone-input" accept="image/png,image/jpeg,image/webp" />
-                    </label>
-                    <%-- Preview of the file you just chose --%>
-                    <img id="imgBlockPreview" alt="Preview of the chosen image"
-                         style="display:none; width:100%; max-height:220px; object-fit:contain; border-radius:8px; margin-top:10px; background:#f1f2f6;" />
+                        style="display: block; width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-bottom: 10px; background: #f1f2f6;" />
+                    <button type="button" id="btnRemoveImage" class="btn btn-outline btn-sm"
+                        style="display: none; margin-bottom: 10px;" onclick="askRemoveCurrentImage()">Remove current image</button>
+
+                    <%-- Only shown when adding --%>
+                    <div id="imageUploadArea">
+                        <label class="dropzone" for="FileBlockImage">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
+                            <span><strong>Click to choose an image</strong> or drag it here</span>
+                            <span class="form-hint">JPG, PNG or WEBP, up to 2 MB</span>
+                            <span class="dropzone-file" id="blockImgName">No file selected</span>
+                            <asp:FileUpload ID="FileBlockImage" runat="server" CssClass="dropzone-input" accept="image/png,image/jpeg,image/webp" />
+                        </label>
+                        <img id="imgBlockPreview" alt="Preview of the chosen image"
+                            style="display: none; width: 100%; max-height: 220px; object-fit: contain; border-radius: 8px; margin-top: 10px; background: #f1f2f6;" />
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="TxtImageCaption">Caption (optional)</label>
@@ -432,6 +443,7 @@
             </asp:Panel>
         </div>
 
+        <%-- Video --%>
         <div class="modal-overlay" id="modalUploadVideo" aria-hidden="true">
             <asp:Panel ID="PnlUploadVideo" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalUploadVideo">
                 <h3 class="modal-title" id="title_modalUploadVideo">Set lesson video</h3>
@@ -451,7 +463,7 @@
             </asp:Panel>
         </div>
 
-        <%-- Confirm deleting a heading / paragraph / list / image / video (replaces the browser's confirm box) --%>
+        <%-- Confirm deleting a heading / paragraph / list / image / video --%>
         <div class="modal-overlay" id="modalRemoveBlock" aria-hidden="true">
             <div class="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalRemoveBlock">
                 <h3 class="modal-title" id="title_modalRemoveBlock">Delete this content?</h3>
@@ -465,7 +477,7 @@
             </div>
         </div>
 
-        <%-- General message / error pop-up (replaces the browser's alert box) --%>
+        <%-- General message / error pop-up --%>
         <div class="modal-overlay" id="modalMessage" aria-hidden="true">
             <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="title_modalMessage">
                 <h3 class="modal-title" id="title_modalMessage">Something went wrong</h3>
@@ -476,6 +488,19 @@
             </div>
         </div>
 
+        <%-- Delete lesson --%>
+        <div class="modal-overlay" id="modalDeleteLesson" aria-hidden="true">
+            <asp:Panel ID="PnlDeleteLesson" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalDeleteLesson">
+                <h3 class="modal-title" id="title_modalDeleteLesson">Delete this lesson?</h3>
+                <p class="confirm-text">This will permanently delete <strong><asp:Literal ID="LitDeleteLessonName" runat="server" /></strong> and all of its content, including uploaded images. This cannot be undone.</p>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalDeleteLesson')">Cancel</button>
+                    <asp:Button ID="BtnConfirmDeleteLesson" runat="server" OnClick="BtnConfirmDeleteLesson_Click" Text="Delete lesson" CssClass="btn btn-accent" />
+                </div>
+            </asp:Panel>
+        </div>
+
+        <%-- Publish --%>
         <div class="modal-overlay" id="modalPublish" aria-hidden="true">
             <asp:Panel ID="PnlPublish" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalPublish">
                 <h3 class="modal-title" id="title_modalPublish">Publish this course?</h3>
@@ -492,6 +517,7 @@
             </asp:Panel>
         </div>
 
+        <%-- Unpublish --%>
         <div class="modal-overlay" id="modalUnpublish" aria-hidden="true">
             <asp:Panel ID="PnlUnpublish" runat="server" CssClass="modal" role="dialog" aria-modal="true" aria-labelledby="title_modalUnpublish">
                 <h3 class="modal-title" id="title_modalUnpublish">Unpublish this course?</h3>
@@ -509,7 +535,9 @@
     <script>
         // @ts-nocheck
         var lastFocus = null;
+        var MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2 MB
 
+        // ---------- Modal basics ----------
         function openModal(id) {
             var m = document.getElementById(id);
             if (!m) return;
@@ -551,6 +579,45 @@
             e.preventDefault();
         });
 
+        function showPopup(title, message) {
+            document.getElementById('title_modalMessage').textContent = title;
+            document.getElementById('messageText').textContent = message;
+            openModal('modalMessage');
+        }
+
+        var navLink = document.querySelector('.nav-link[href="courses.aspx"]');
+        if (navLink) navLink.classList.add('active');
+
+        // ---------- Shared helper: a text box with a remove button ----------
+        function addInputRow(containerId, inputName, placeholder, value, maxLength) {
+            var container = document.getElementById(containerId);
+            var row = document.createElement('div');
+            row.className = 'input-row';
+
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.name = inputName;
+            input.className = 'form-control';
+            input.placeholder = placeholder;
+            input.value = value || '';
+            if (maxLength) input.maxLength = maxLength;
+
+            var removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-cancel';
+            removeBtn.textContent = '\u2715';
+            removeBtn.onclick = function () {
+                if (container.children.length > 1) container.removeChild(row);
+                else input.value = '';
+            };
+
+            row.appendChild(input);
+            row.appendChild(removeBtn);
+            container.appendChild(row);
+            return input;
+        }
+
+        // ---------- Course info: duration preview + new course image preview ----------
         (function () {
             var weeks = document.getElementById('DdlCourseWeeks');
             var hours = document.getElementById('DdlCourseHours');
@@ -581,7 +648,7 @@
                     img.style.display = 'none';
                     return;
                 }
-                if (f.size > 2 * 1024 * 1024) {
+                if (f.size > MAX_IMAGE_BYTES) {
                     file.value = '';
                     nameEl.textContent = 'No new file selected';
                     img.style.display = 'none';
@@ -600,37 +667,68 @@
             });
         })();
 
-        var link = document.querySelector('.nav-link[href="courses.aspx"]');
-        if (link) link.classList.add('active');
+        // ---------- Learning outcomes & references ----------
+        function addOutcomeInput(value) {
+            addInputRow('outcomesContainer', 'learningOutcome', 'e.g. Identify variables and write a clear hypothesis', value);
+        }
 
-        // ---------- Heading & paragraph pop-up (also used to edit one heading, paragraph or list) ----------
+        function addReferenceInput(value) {
+            addInputRow('referencesContainer', 'courseReference', 'e.g. Gan, W. Y. et al. (2019). Biology Form 4 KSSM.', value);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var outcomes = document.getElementById('outcomesContainer');
+            if (outcomes && outcomes.children.length === 0) addOutcomeInput();
+            var refs = document.getElementById('referencesContainer');
+            if (refs && refs.children.length === 0) addReferenceInput();
+        });
+
+        // ---------- Heading & paragraph pop-up ----------
         var TEXT_MODES = {
-            both:      { add: 'Add heading & paragraph', edit: 'Add heading & paragraph', heading: true,  paragraph: true,  list: false, headingOptional: true,  paragraphOptional: true  },
-            heading:   { add: 'Edit heading',            edit: 'Edit heading',            heading: true,  paragraph: false, list: false, headingOptional: false, paragraphOptional: true  },
-            paragraph: { add: 'Edit paragraph',          edit: 'Edit paragraph',          heading: false, paragraph: true,  list: false, headingOptional: true,  paragraphOptional: false },
-            list:      { add: 'Edit list',               edit: 'Edit list',               heading: false, paragraph: false, list: true,  headingOptional: true,  paragraphOptional: true  }
+            both:      { title: 'Add heading & paragraph', heading: true,  paragraph: true,  headingOptional: true,  paragraphOptional: true  },
+            heading:   { title: 'Edit heading',            heading: true,  paragraph: false, headingOptional: false, paragraphOptional: true  },
+            paragraph: { title: 'Edit paragraph',          heading: false, paragraph: true,  headingOptional: true,  paragraphOptional: false }
         };
 
         function setTextMode(mode) {
             var cfg = TEXT_MODES[mode] || TEXT_MODES.both;
             document.getElementById('HdnTextMode').value = TEXT_MODES[mode] ? mode : 'both';
-            document.getElementById('title_modalText').textContent = cfg.add;
+            document.getElementById('title_modalText').textContent = cfg.title;
             document.getElementById('groupHeading').style.display = cfg.heading ? '' : 'none';
             document.getElementById('groupParagraph').style.display = cfg.paragraph ? '' : 'none';
-            document.getElementById('groupList').style.display = cfg.list ? '' : 'none';
             document.getElementById('headingOptional').style.display = cfg.headingOptional ? '' : 'none';
             document.getElementById('paragraphOptional').style.display = cfg.paragraphOptional ? '' : 'none';
-            document.getElementById('textHint').style.display = mode === 'both' || !TEXT_MODES[mode] ? '' : 'none';
+            document.getElementById('textHint').style.display = (mode === 'both' || !TEXT_MODES[mode]) ? '' : 'none';
         }
 
         function openTextModal() {
             document.getElementById('HdnTextIndex').value = '-1';
             document.getElementById('TxtHeading').value = '';
             document.getElementById('TxtParagraph').value = '';
-            document.getElementById('TxtListItems').value = '';
             document.getElementById('textError').style.display = 'none';
             setTextMode('both');
             openModal('modalText');
+        }
+
+        // ---------- List pop-up: one input box per item ----------
+        function addListItemInput(value) {
+            return addInputRow('listItemsContainer', 'listItem', 'e.g. Cells are the basic unit of life', value, 500);
+        }
+
+        // index = -1 for a new list, otherwise the position of the list being edited
+        function fillListModal(items, index) {
+            document.getElementById('HdnListIndex').value = String(index);
+            document.getElementById('title_modalList').textContent = index < 0 ? 'Add list' : 'Edit list';
+            document.getElementById('listError').style.display = 'none';
+
+            document.getElementById('listItemsContainer').innerHTML = '';
+            if (items && items.length) items.forEach(function (v) { addListItemInput(v); });
+            else addListItemInput();
+        }
+
+        function openListModal() {
+            fillListModal([], -1);
+            openModal('modalList');
         }
 
         // ---------- Image pop-up with live preview ----------
@@ -644,6 +742,9 @@
             document.getElementById('imageError').style.display = 'none';
             var current = document.getElementById('ImgBlockCurrent');
             if (current) current.style.display = 'none';
+            var rb = document.getElementById('btnRemoveImage');
+            if (rb) rb.style.display = 'none';
+            document.getElementById('imageUploadArea').style.display = '';
             document.getElementById('title_modalImage').textContent = 'Add image';
             openModal('modalImage');
         }
@@ -667,7 +768,7 @@
                 if (err) err.style.display = 'none';
                 if (!f) { reset(); return; }
                 if (!/^image\/(jpeg|png|webp)$/.test(f.type)) { reset('Please choose a JPG, PNG or WEBP image.'); return; }
-                if (f.size > 2 * 1024 * 1024) { reset('The image must be 2 MB or smaller.'); return; }
+                if (f.size > MAX_IMAGE_BYTES) { reset('The image must be 2 MB or smaller.'); return; }
 
                 nameEl.textContent = f.name;
                 var reader = new FileReader();
@@ -681,7 +782,7 @@
             });
         })();
 
-        // ---------- Delete a content block: ask in an in-page pop-up ----------
+        // ---------- Delete a content block ----------
         function askRemoveBlock(btn) {
             var text = btn.getAttribute('data-text') || '';
             document.getElementById('HdnRemoveBlockIndex').value = btn.getAttribute('data-index');
@@ -690,92 +791,16 @@
             openModal('modalRemoveBlock');
         }
 
-        // In-page message / error pop-up (the server calls this when something fails)
-        function showPopup(title, message) {
-            document.getElementById('title_modalMessage').textContent = title;
-            document.getElementById('messageText').textContent = message;
-            openModal('modalMessage');
+        // "Remove current image" inside the edit-image dialog reuses the delete confirmation
+        function askRemoveCurrentImage() {
+            var idx = document.getElementById('HdnImageIndex').value;
+            if (!idx || parseInt(idx, 10) < 0) return;
+            closeModal('modalImage');
+            document.getElementById('HdnRemoveBlockIndex').value = idx;
+            document.getElementById('HdnRemoveBlockType').value = 'image';
+            document.getElementById('removeBlockText').textContent = 'this image';
+            openModal('modalRemoveBlock');
         }
-
-        // Function to add a new outcome input row
-        function addOutcomeInput(value = '') {
-            var container = document.getElementById('outcomesContainer');
-            var div = document.createElement('div');
-            div.style.display = 'flex';
-            div.style.gap = '8px';
-            div.style.marginBottom = '8px';
-
-            var input = document.createElement('input');
-            input.type = 'text';
-            input.name = 'learningOutcome';
-            input.className = 'form-control';
-            input.placeholder = 'e.g. Identify variables and write a clear hypothesis';
-            input.value = value;
-
-            var removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.className = 'btn btn-cancel';
-            removeBtn.style.padding = '0 12px';
-            removeBtn.textContent = '✕';
-            removeBtn.onclick = function () {
-                if (container.children.length > 1) {
-                    container.removeChild(div);
-                } else {
-                    input.value = '';
-                }
-            };
-
-            div.appendChild(input);
-            div.appendChild(removeBtn);
-            container.appendChild(div);
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            var container = document.getElementById('outcomesContainer');
-            if (container && container.children.length === 0) {
-                addOutcomeInput();
-            }
-        });
-
-        // Function to add a new reference input row
-        function addReferenceInput(value = '') {
-            var container = document.getElementById('referencesContainer');
-            var div = document.createElement('div');
-            div.style.display = 'flex';
-            div.style.gap = '8px';
-            div.style.marginBottom = '8px';
-
-            var input = document.createElement('input');
-            input.type = 'text';
-            input.name = 'courseReference';
-            input.className = 'form-control';
-            input.placeholder = 'e.g. Gan, W. Y. et al. (2019). Biology Form 4 KSSM.';
-            input.value = value;
-
-            var removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.className = 'btn btn-cancel';
-            removeBtn.style.padding = '0 12px';
-            removeBtn.textContent = '✕';
-            removeBtn.onclick = function () {
-                if (container.children.length > 1) {
-                    container.removeChild(div);
-                } else {
-                    input.value = '';
-                }
-            };
-
-            div.appendChild(input);
-            div.appendChild(removeBtn);
-            container.appendChild(div);
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            var refContainer = document.getElementById('referencesContainer');
-            if (refContainer && refContainer.children.length === 0) {
-                addReferenceInput();
-            }
-        });
     </script>
 </body>
 </html>
