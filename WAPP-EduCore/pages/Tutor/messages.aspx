@@ -4,7 +4,7 @@
 <head runat="server">
     <title>EduCore - Communications Desk</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet" />
-    <link href="../../Content/dashboard.css" rel="stylesheet" type="text/css" />
+    <link href="../../Content/dashboard.css?v=2" rel="stylesheet" type="text/css" />
     <link href="../../Content/courseBuilder.css?v=4" rel="stylesheet" type="text/css" />
     <link href="../../Content/messages.css?v=1" rel="stylesheet" type="text/css" />
     <style>

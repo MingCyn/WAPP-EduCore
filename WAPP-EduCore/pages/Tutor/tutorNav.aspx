@@ -11,10 +11,10 @@
         <a href="messages.aspx" class="nav-link">Messages</a>
         <a href="settings.aspx" class="nav-link">Account</a>
     </nav>
-    <div class="nav-profile">
-        <span class="profile-name"><%: DisplayName %></span>
-        <img id="ImgAvatar" src="~/images/tutor-avatar.png" alt="Tutor" class="profile-avatar" runat="server" onerror="this.style.display='none'" />
-    </div>
+        <div class="nav-profile">
+            <span class="profile-name"><%: DisplayName %></span>
+            <a href="logout.aspx" class="nav-logout">Log out</a>
+        </div>
 </header>
 <script>
     (function () {

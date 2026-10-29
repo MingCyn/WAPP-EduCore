@@ -15,8 +15,6 @@ namespace WAPP_EduCore.pages.Tutor
             {
                 DisplayName = name.Trim();
             }
-
-            ImgAvatar.Alt = DisplayName;
         }
     }
 }

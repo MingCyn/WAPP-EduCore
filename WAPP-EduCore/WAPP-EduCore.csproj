@@ -193,6 +193,7 @@
     <Content Include="pages\Tutor\assessmentBuilder.aspx" />
     <Content Include="pages\Tutor\courseDetails.aspx" />
     <Content Include="pages\Tutor\courses.aspx" />
+    <Content Include="pages\Tutor\logout.aspx" />
     <Content Include="pages\Tutor\messages.aspx" />
     <Content Include="pages\Tutor\settings.aspx" />
     <Content Include="pages\Tutor\studentManagement.aspx" />
