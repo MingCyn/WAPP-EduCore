@@ -4,9 +4,10 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
-    <link href="/Content/student-upgrade.css" rel="stylesheet" />
+    <link href="../../Content/student-upgrade.css" rel="stylesheet" type="text/css" />
     <title>EduCore - Unified Science Virtual Lab</title>
 <style>
         :root {
@@ -28,7 +29,6 @@
             height: 100%;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
             background-color: var(--bg-page);
             color: var(--ink);
         }
@@ -54,7 +54,7 @@
         }
 
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header-title { font-family: var(--serif); font-size: 24px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 12px; }
+        .header-title { font-size: 24px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 12px; }
         
         .lab-tabs { display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
         .tab-btn {
@@ -90,7 +90,6 @@
         }
 
         .card h3 {
-            font-family: var(--serif);
             font-size: 17px;
             font-weight: 600;
             color: var(--ink);

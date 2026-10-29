@@ -752,3 +752,18 @@ body {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(255, 112, 0, 0.5);
     }
+
+.sidebar,
+.sidebar a.menu-item,
+.sidebar .me strong,
+.sidebar .me small,
+.sidebar .logout-btn,
+.sidebar .guest-msg,
+.sidebar .sidebar-login-btn {
+    font-family: 'Merriweather', Georgia, serif;
+}
+
+    .sidebar a.menu-item {
+        font-size: 15px;
+        font-weight: 600;
+    }

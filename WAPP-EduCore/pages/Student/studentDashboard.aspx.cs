@@ -65,7 +65,7 @@ namespace WAPP_EduCore.pages.Student
 
             litGreeting.Text = GreetingText(nowLocal, uid);
 
-            // ---------- enrolled courses with progress ----------
+            // ---------- enrolled courses with progress (published courses only) ----------
             DataTable ct = Db.Query(
                 "SELECT c.course_id, c.title, c.course_img, COALESCE(u.full_name, 'TBA') AS tutor, e.enrolled_at, " +
                 "  (SELECT COUNT(*) FROM lesson l WHERE l.course_id = c.course_id) AS total, " +
@@ -74,7 +74,8 @@ namespace WAPP_EduCore.pages.Student
                 "  (SELECT MAX(lp2.completed_at) FROM lesson_progress lp2 JOIN lesson l3 ON l3.lesson_id = lp2.lesson_id " +
                 "     WHERE l3.course_id = c.course_id AND lp2.user_id = @uid AND lp2.is_completed) AS last_activity " +
                 "FROM enrollment e JOIN courses c ON c.course_id = e.course_id " +
-                "LEFT JOIN users u ON u.user_id = c.user_id WHERE e.user_id = @uid", p);
+                "LEFT JOIN users u ON u.user_id = c.user_id " +
+                "WHERE e.user_id = @uid AND lower(c.status) = 'published'", p);
 
             var all = new List<CourseItem>();
             foreach (DataRow r in ct.Rows)
@@ -94,8 +95,8 @@ namespace WAPP_EduCore.pages.Student
                     IsComplete = total > 0 && done >= total,
                     LastActivity = r["last_activity"] == DBNull.Value
                         ? (DateTime?)null
-                        : DateTime.SpecifyKind(Convert.ToDateTime(r["last_activity"]), DateTimeKind.Utc),
-                    Enrolled = DateTime.SpecifyKind(Convert.ToDateTime(r["enrolled_at"]), DateTimeKind.Utc)
+                        : ToUtc(r["last_activity"]),
+                    Enrolled = ToUtc(r["enrolled_at"])
                 });
             }
 
@@ -200,8 +201,10 @@ namespace WAPP_EduCore.pages.Student
             var deadlines = new List<DeadlineItem>();
             try
             {
+                // the course name is only shown when the course is published
                 DataTable dt = Db.Query(
-                    "SELECT e.event_title, e.event_type, e.start_time, c.title AS course_title " +
+                    "SELECT e.event_title, e.event_type, e.start_time, " +
+                    "  CASE WHEN lower(c.status) = 'published' THEN c.title END AS course_title " +
                     "FROM calendar_events e LEFT JOIN courses c ON c.course_id = e.course_id " +
                     "WHERE e.user_id = @uid AND e.event_type IN ('Deadline', 'Exam') AND e.start_time >= now() " +
                     "ORDER BY e.start_time LIMIT 3", p);
@@ -226,6 +229,7 @@ namespace WAPP_EduCore.pages.Student
             // ---------- recent achievements ----------
             var items = new List<Achievement>();
 
+            // courses completed (from the published courses above)
             foreach (CourseItem c in all.Where(x => x.IsComplete && x.LastActivity.HasValue))
             {
                 DateTime when = c.LastActivity.Value.AddHours(UtcOffsetHours);
@@ -237,6 +241,7 @@ namespace WAPP_EduCore.pages.Student
                 });
             }
 
+            // perfect quiz scores, skipping quizzes that belong to a draft course
             DataTable perfect = Db.Query(
                 "SELECT q.quiz_title, " +
                 "  (SELECT c.title FROM lesson l JOIN courses c ON c.course_id = l.course_id " +
@@ -244,6 +249,9 @@ namespace WAPP_EduCore.pages.Student
                 "  MIN(qs.done_time) AS happened " +
                 "FROM quiz_score qs JOIN quiz q ON q.quiz_id = qs.quiz_id " +
                 "WHERE qs.user_id = @uid AND qs.total_score >= 100 " +
+                "  AND NOT EXISTS (SELECT 1 FROM lesson l4 JOIN courses c4 ON c4.course_id = l4.course_id " +
+                "        WHERE (l4.lesson_id = q.lesson_id OR l4.quiz_id = q.quiz_id) " +
+                "          AND lower(COALESCE(c4.status, '')) <> 'published') " +
                 "GROUP BY q.quiz_id, q.quiz_title, q.lesson_id", p);
             foreach (DataRow r in perfect.Rows)
             {
@@ -257,9 +265,11 @@ namespace WAPP_EduCore.pages.Student
                 });
             }
 
+            // certificates, published courses only
             DataTable certs = Db.Query(
                 "SELECT c.title, ce.issued_date FROM certificates ce " +
-                "JOIN courses c ON c.course_id = ce.course_id WHERE ce.user_id = @uid", p);
+                "JOIN courses c ON c.course_id = ce.course_id " +
+                "WHERE ce.user_id = @uid AND lower(c.status) = 'published'", p);
             foreach (DataRow r in certs.Rows)
             {
                 DateTime when = ToLocal(r["issued_date"]);
@@ -303,10 +313,20 @@ namespace WAPP_EduCore.pages.Student
             return "Good " + part + ", " + first + "!";
         }
 
+        // The database library can hand a timestamp back as UTC or as this PC's local time.
+        // ToUtc turns either one into a real UTC time, so the Malaysia conversion is never applied twice.
+        private static DateTime ToUtc(object value)
+        {
+            DateTime dt = Convert.ToDateTime(value);
+            if (dt.Kind == DateTimeKind.Utc) return dt;
+            if (dt.Kind == DateTimeKind.Local) return dt.ToUniversalTime();
+            return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+        }
+
         private static DateTime ToLocal(object utcValue)
         {
             if (utcValue == null || utcValue == DBNull.Value) return DateTime.MinValue;
-            return DateTime.SpecifyKind(Convert.ToDateTime(utcValue), DateTimeKind.Utc).AddHours(UtcOffsetHours);
+            return ToUtc(utcValue).AddHours(UtcOffsetHours);
         }
 
         private string ThumbStyle(object img)
