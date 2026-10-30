@@ -10,8 +10,8 @@ namespace WAPP_EduCore.pages.Student
 {
     public partial class WebForm6 : System.Web.UI.Page
     {
-        private long _courseId;
-        private long _lessonId;
+        public long _courseId;
+        public long _lessonId;
         private int _index;
         private DataTable _lessons;
         private DataRow _course;
