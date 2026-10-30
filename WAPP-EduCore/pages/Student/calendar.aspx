@@ -108,6 +108,8 @@ function closeAdd() { document.getElementById('addModal').classList.remove('open
                             <asp:Panel ID="pnlNoUpcoming" runat="server" Visible="false" CssClass="cl-empty">
                                 No upcoming events yet. Use Add Event to plan something.
                             </asp:Panel>
+
+                            <!-- Repeater controls its items correctly -->
                             <asp:Repeater ID="rptUpcoming" runat="server" OnItemCommand="rptUpcoming_ItemCommand">
                                 <ItemTemplate>
                                     <div class="cl-item">
@@ -121,9 +123,16 @@ function closeAdd() { document.getElementById('addModal').classList.remove('open
                                 </ItemTemplate>
                             </asp:Repeater>
                         </div>
-                        <% if (Session["UserID"] == null) { %>
+
+                        <!-- Export Button with text color set to #0F1939 -->
+                        <asp:Button ID="btnExportIcs" runat="server" Text="Export to Google Calendar" CssClass="cl-add" OnClick="btnExportIcs_Click" Style="background: #FAEBD7; color: #0F1939; margin-top: 10px; width: 100%; border: none; cursor: pointer;" />
+
+                        <% if (Session["UserID"] == null)
+                            { %>
                         <a href="#" class="cl-add" onclick="openLoginPrompt(); return false;">+ Add Event</a>
-                        <% } else { %>
+                        <% }
+                        else
+                        { %>
                         <a href="#" class="cl-add" onclick="openAdd(); return false;">+ Add Event</a>
                         <% } %>
                     </div>

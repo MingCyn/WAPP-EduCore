@@ -26,7 +26,7 @@ namespace WAPP_EduCore.auth
 
             try
             {
-                // 1. Exchange authorization code for access token
+                // 1. Exchange authorization code for access token & refresh token
                 string tokenJson = ExchangeCodeForToken(code);
                 var tokenData = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(tokenJson);
 
@@ -38,6 +38,9 @@ namespace WAPP_EduCore.auth
                 }
 
                 string accessToken = tokenData["access_token"].ToString();
+
+                // Google only sends a refresh_token on the first prompt or when offline access is forced
+                string refreshToken = tokenData.ContainsKey("refresh_token") ? tokenData["refresh_token"].ToString() : null;
 
                 // 2. Fetch User Profile Info from Google
                 string userInfoJson = GetGoogleUserInfo(accessToken);
@@ -53,12 +56,12 @@ namespace WAPP_EduCore.auth
                     return;
                 }
 
-                // 3. Check or Insert User in Database
-                ProcessUserLoginOrRegistration(email, fullName);
+                // 3. Check or Insert User in Database and save Google Tokens
+                ProcessUserLoginOrRegistration(email, fullName, accessToken, refreshToken);
             }
             catch (Exception ex)
             {
-                // Temporarily output error to see what's failing
+                // Output error to see what's failing during OAuth
                 Response.Write("OAuth Error: " + ex.Message);
                 Response.End();
             }
@@ -101,7 +104,8 @@ namespace WAPP_EduCore.auth
                 }
             }
         }
-        private void ProcessUserLoginOrRegistration(string email, string fullName)
+
+        private void ProcessUserLoginOrRegistration(string email, string fullName, string accessToken, string refreshToken)
         {
             string connString = ConfigurationManager.ConnectionStrings["SupabasePostgres"].ConnectionString;
 
@@ -110,30 +114,72 @@ namespace WAPP_EduCore.auth
                 conn.Open();
 
                 // 1. Check if user already exists
-                string checkQuery = "SELECT user_id FROM public.users WHERE email = @email";
+                string checkQuery = "SELECT user_id, role, dob FROM public.users WHERE email = @email";
+                long existingUserId = 0;
+                string userRole = "Student";
+                object existingDob = null;
+
                 using (var checkCmd = new NpgsqlCommand(checkQuery, conn))
                 {
                     checkCmd.Parameters.AddWithValue("email", email);
-                    object existingUser = checkCmd.ExecuteScalar();
-
-                    if (existingUser != null && existingUser != DBNull.Value)
+                    using (var reader = checkCmd.ExecuteReader())
                     {
-                        // User already exists, send them back to login to sign in normally
-                        Response.Redirect("login.aspx?registered=google_success", false);
-                        Context.ApplicationInstance.CompleteRequest();
-                        return;
+                        if (reader.Read())
+                        {
+                            existingUserId = reader.GetInt64(0);
+                            userRole = reader.IsDBNull(1) ? "Student" : reader.GetString(1);
+                            existingDob = reader.IsDBNull(2) ? null : reader.GetValue(2);
+                        }
                     }
                 }
 
-                // Inside ProcessUserLoginOrRegistration for a new user:
-                string insertQuery = @"INSERT INTO public.users (full_name, email, role, password_hash, dob, gender) 
-                       VALUES (@full_name, @email, 'Student', 'GOOGLE_AUTH_USER', '2000-01-01', 'Other') 
-                       RETURNING user_id;";
+                if (existingUserId > 0)
+                {
+                    // User exists: Update tokens (preserve old refresh token if Google didn't send a new one)
+                    string updateTokensQuery = refreshToken != null
+                        ? "UPDATE public.users SET google_access_token = @token, google_refresh_token = @rtoken WHERE user_id = @uid"
+                        : "UPDATE public.users SET google_access_token = @token WHERE user_id = @uid";
+
+                    using (var updateCmd = new NpgsqlCommand(updateTokensQuery, conn))
+                    {
+                        updateCmd.Parameters.AddWithValue("token", accessToken);
+                        if (refreshToken != null)
+                        {
+                            updateCmd.Parameters.AddWithValue("rtoken", refreshToken);
+                        }
+                        updateCmd.Parameters.AddWithValue("uid", existingUserId);
+                        updateCmd.ExecuteNonQuery();
+                    }
+
+                    // Set up active session for the existing user
+                    Session["UserID"] = existingUserId;
+                    Session["UserRole"] = userRole;
+
+                    // Check if they completed their profile before
+                    bool isProfileIncomplete = (existingDob == null || existingDob.ToString().Contains("2000-01-01"));
+
+                    string targetUrl = isProfileIncomplete
+                        ? "complete-profile.aspx"
+                        : (userRole.Equals("Tutor", StringComparison.OrdinalIgnoreCase)
+                            ? "../pages/Tutor/tutorDashboard.aspx"
+                            : "../pages/Student/studentDashboard.aspx");
+
+                    Response.Redirect(targetUrl, false);
+                    Context.ApplicationInstance.CompleteRequest();
+                    return;
+                }
+
+                // 2. Brand new user: Insert record including Google tokens
+                string insertQuery = @"INSERT INTO public.users (full_name, email, role, password_hash, dob, gender, google_access_token, google_refresh_token) 
+                                       VALUES (@full_name, @email, 'Student', 'GOOGLE_AUTH_USER', '2000-01-01', 'Other', @token, @rtoken) 
+                                       RETURNING user_id;";
 
                 using (var insertCmd = new NpgsqlCommand(insertQuery, conn))
                 {
                     insertCmd.Parameters.AddWithValue("full_name", fullName);
                     insertCmd.Parameters.AddWithValue("email", email);
+                    insertCmd.Parameters.AddWithValue("token", accessToken);
+                    insertCmd.Parameters.AddWithValue("rtoken", (object)refreshToken ?? DBNull.Value);
 
                     object newUserId = insertCmd.ExecuteScalar();
                     if (newUserId != null)
@@ -141,7 +187,7 @@ namespace WAPP_EduCore.auth
                         Session["UserID"] = newUserId;
                         Session["UserRole"] = "Student";
 
-                        // Redirect to the profile completion screen!
+                        // Redirect to profile setup for new users
                         Response.Redirect("complete-profile.aspx", false);
                         Context.ApplicationInstance.CompleteRequest();
                     }

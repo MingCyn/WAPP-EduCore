@@ -87,6 +87,15 @@ namespace WAPP_EduCore.pages.Student
         protected global::System.Web.UI.WebControls.Repeater rptUpcoming;
 
         /// <summary>
+        /// btnExportIcs control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnExportIcs;
+
+        /// <summary>
         /// lblFormError control.
         /// </summary>
         /// <remarks>

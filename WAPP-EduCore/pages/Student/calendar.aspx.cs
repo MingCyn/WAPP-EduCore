@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Web;
+using System.Web.Script.Serialization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -122,7 +125,7 @@ namespace WAPP_EduCore.pages.Student
             for (int i = 0; i < keys.Length; i++)
             {
                 views.Append("<a class=\"" + (keys[i] == _view ? "active" : "") + "\" href=\"" +
-                             Href(keys[i], _anchor) + "\">" + labels[i] + "</a>");
+                           Href(keys[i], _anchor) + "\">" + labels[i] + "</a>");
             }
             litViews.Text = views.ToString();
 
@@ -145,8 +148,6 @@ namespace WAPP_EduCore.pages.Student
         {
             if (IsGuest) return new List<Ev>();
 
-            // The database converts both ways: the range (Malaysia time) to real moments for the
-            // filter, and each stored moment back to Malaysia wall-clock time for display.
             DataTable t = Db.Query(
                 "SELECT e.event_id, e.event_title, e.event_type, " +
                 "  (e.start_time AT TIME ZONE '" + Tz + "') AS start_local, " +
@@ -406,8 +407,7 @@ namespace WAPP_EduCore.pages.Student
                     if (en.Rows.Count > 0) courseId = cid;
                 }
 
-                // The times are sent as plain Malaysia wall-clock text, and the database turns them
-                // into the right moment with AT TIME ZONE. So 09:00 typed is stored as 01:00 UTC.
+                // Save event into EduCore database
                 Db.Execute(
                     "INSERT INTO calendar_events (user_id, course_id, event_title, event_type, start_time, end_time) " +
                     "VALUES (@uid, @cid, @t, @type, " +
@@ -422,6 +422,19 @@ namespace WAPP_EduCore.pages.Student
                         { "@s", startLocal.ToString("yyyy-MM-dd HH:mm:ss", Inv) },
                         { "@e", endLocal.ToString("yyyy-MM-dd HH:mm:ss", Inv) }
                     });
+
+                // Automatically push event to user's real-time Google Calendar via API
+                // Automatically push event to user's real-time Google Calendar via API
+                try
+                {
+                    PushEventToGoogleCalendar(UserId, title, startLocal, endLocal);
+                }
+                catch (Exception ex)
+                {
+                    // CHANGE THIS TO SHOW THE ERROR:
+                    FormError("Saved locally, but Google API failed: " + ex.Message);
+                    return;
+                }
             }
             catch (Exception ex)
             {
@@ -430,7 +443,85 @@ namespace WAPP_EduCore.pages.Student
             }
 
             Response.Redirect(ResolveUrl("~/pages/Student/calendar.aspx?view=" + _view +
-                                         "&date=" + startLocal.ToString("yyyy-MM-dd", Inv)));
+                                     "&date=" + startLocal.ToString("yyyy-MM-dd", Inv)));
+        }
+
+        // Real-time synchronization helper method to push event to Google Calendar API
+        private void PushEventToGoogleCalendar(long userId, string title, DateTime startLocal, DateTime endLocal)
+        {
+            DataTable dt = Db.Query("SELECT google_access_token FROM public.users WHERE user_id = @uid",
+                                    new Dictionary<string, object> { { "@uid", userId } });
+
+            if (dt.Rows.Count == 0 || dt.Rows[0]["google_access_token"] == DBNull.Value)
+            {
+                return; // User did not log in via Google or didn't grant token permissions
+            }
+
+            string accessToken = Convert.ToString(dt.Rows[0]["google_access_token"]);
+
+            // Change "primary" to your specific Google email address, or keep "primary" 
+            string calendarId = "primary"; // or "joslyn.cyn05@gmail.com"
+            string url = $"https://www.googleapis.com/calendar/v3/calendars/{calendarId}/events";
+
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "POST";
+            request.ContentType = "application/json";
+            request.Headers.Add("Authorization", "Bearer " + accessToken);
+
+            var eventData = new Dictionary<string, object>
+    {
+        { "summary", title },
+        { "start", new Dictionary<string, string> { { "dateTime", startLocal.ToString("yyyy-MM-dd'T'HH:mm:ss") }, { "timeZone", Tz } } },
+        { "end", new Dictionary<string, string> { { "dateTime", endLocal.ToString("yyyy-MM-dd'T'HH:mm:ss") }, { "timeZone", Tz } } }
+    };
+
+            string jsonPayload = new JavaScriptSerializer().Serialize(eventData);
+
+            using (var writer = new StreamWriter(request.GetRequestStream()))
+            {
+                writer.Write(jsonPayload);
+            }
+
+            using (var response = (HttpWebResponse)request.GetResponse())
+            {
+                // Event successfully written to Google Calendar
+            }
+        }
+
+        protected void btnExportIcs_Click(object sender, EventArgs e)
+        {
+            if (IsGuest)
+            {
+                ClientScript.RegisterStartupScript(GetType(), "openLoginPrompt", "openLoginPrompt();", true);
+                return;
+            }
+
+            // Fetch all user events from the database
+            DataTable t = Db.Query(
+                "SELECT event_title, start_time, end_time FROM calendar_events WHERE user_id = @uid",
+                new Dictionary<string, object> { { "@uid", UserId } });
+
+            int successCount = 0;
+            foreach (DataRow r in t.Rows)
+            {
+                string title = Convert.ToString(r["event_title"]);
+                DateTime start = Convert.ToDateTime(r["start_time"]);
+                DateTime end = Convert.ToDateTime(r["end_time"]);
+
+                try
+                {
+                    // Push each event directly to the user's Google Calendar via API
+                    PushEventToGoogleCalendar(UserId, title, start, end);
+                    successCount++;
+                }
+                catch (Exception)
+                {
+                    // Skip failed ones without breaking the loop
+                }
+            }
+
+            // Refresh the page with a message or alert indicating successful sync
+            ScriptManager.RegisterStartupScript(this, GetType(), "syncAlert", $"alert('Successfully synced {successCount} events to your Google Calendar!');", true);
         }
 
         private void FormError(string text)
