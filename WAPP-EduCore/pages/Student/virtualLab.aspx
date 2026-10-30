@@ -37,7 +37,7 @@
         }
 
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header-title { font-size: 24px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 12px; }
+        .header-title { font-family: 'Merriweather', Georgia, serif; font-size: 26px; font-weight: 700; color: #111c3d; display: flex; align-items: center; gap: 12px; }
 
         .lab-tabs { display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
         .tab-btn {
