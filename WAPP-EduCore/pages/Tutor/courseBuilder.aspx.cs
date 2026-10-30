@@ -158,6 +158,11 @@ namespace WAPP_EduCore.pages.Tutor
         // =====================================================================
         protected int CourseIdValue;
 
+        protected bool IsCoursePublished
+        {
+            get { return courseStatus == StatusPublished; }
+        }
+
         private int userId;
         private int courseId;
         private int lessonId;

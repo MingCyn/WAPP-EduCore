@@ -186,7 +186,7 @@
                                         <div class="component-actions">
                                             <div class="component-actions">
                                                 <a id="LnkAssessment" runat="server" class="btn btn-outline btn-sm">Edit Questions</a>
-                                                <button type="button" class="btn btn-outline btn-sm" onclick="openModal('modalDeleteAssessment')">Delete Assessment</button>
+                                                <button type="button" class="btn btn-outline btn-sm" onclick="askDeleteAssessment()">Delete Assessment</button>
                                             </div>
                                         </div>
                                     </div>
@@ -771,13 +771,26 @@
         })();
 
         // ---------- Delete a content block ----------
-        function askRemoveBlock(btn) {
-            var text = btn.getAttribute('data-text') || '';
-            document.getElementById('HdnRemoveBlockIndex').value = btn.getAttribute('data-index');
-            document.getElementById('HdnRemoveBlockType').value = btn.getAttribute('data-type');
-            document.getElementById('removeBlockText').textContent = text ? '\u201C' + text + '\u201D' : 'this item';
-            openModal('modalRemoveBlock');
-        }
+// ---------- Delete a content block ----------
+function askRemoveBlock(btn) {
+    var text = btn.getAttribute('data-text') || '';
+    document.getElementById('HdnRemoveBlockIndex').value = btn.getAttribute('data-index');
+    document.getElementById('HdnRemoveBlockType').value = btn.getAttribute('data-type');
+    document.getElementById('removeBlockText').textContent = text ? '\u201C' + text + '\u201D' : 'this item';
+    openModal('modalRemoveBlock');
+}
+
+// ---------- Delete the lesson's assessment ----------
+var COURSE_PUBLISHED = <%= IsCoursePublished ? "true" : "false" %>;
+
+function askDeleteAssessment() {
+    if (COURSE_PUBLISHED) {
+        showPopup("Couldn't delete it",
+            "This course is published, so its assessment can't be deleted. Unpublish the course first, then delete the assessment.");
+        return;
+    }
+    openModal('modalDeleteAssessment');
+}
 
         // "Remove current image" inside the edit-image dialog reuses the delete confirmation
         function askRemoveCurrentImage() {
