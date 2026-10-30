@@ -36,27 +36,41 @@ input, select, button, textarea {
     overflow-y: auto
 }
 
-    .sidebar a.menu-item {
-        font-size: 15px;
-        padding: 12px 16px;
-        margin-bottom: 8px
+    /* ===== Sidebar typography: same font as the page headings ("Good evening, Bowie!") =====
+   Headings use Merriweather, so the whole sidebar uses it too.
+   admin.css (or the Sidebar control) may set its own font on some items,
+   so this is forced with !important to keep links, buttons, names and text identical. */
+    .sidebar,
+    .sidebar * {
+        font-family: 'Merriweather',Georgia,serif !important;
+        font-style: normal;
+        -webkit-font-smoothing: antialiased;
     }
 
-        .sidebar a.menu-item.active {
-            background: #2a4496;
-            color: #fff;
-            font-weight: 600
+        .sidebar a.menu-item {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.4;
+            letter-spacing: normal;
+            padding: 12px 16px;
+            margin-bottom: 8px
         }
 
-    .sidebar .me {
-        margin-top: auto;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255,255,255,.15)
-    }
+            .sidebar a.menu-item.active {
+                background: #2a4496;
+                color: #fff;
+                font-weight: 600
+            }
 
-        .sidebar .me small {
-            color: #9aa6c8
+        .sidebar .me {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,.15)
         }
+
+            .sidebar .me small {
+                color: #9aa6c8
+            }
 
 .sidebar-guest-box {
     margin-top: auto;
