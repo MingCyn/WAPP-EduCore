@@ -77,127 +77,90 @@
          ================================================== -->
     <script type="text/javascript">
 
-var currentId = 0;   // the lesson we clicked on
+        var currentId = 0;   // the lesson we clicked on
 
-// ----- Show / hide a popup -----
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        // ----- Show / hide a popup -----
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// ----- Helpers -----
-function rowOf(id) { return document.getElementById('row' + id); }
-function show(id, text) { document.getElementById(id).innerText = text; }
-function orDash(text) { return (text == null || text == '') ? '—' : text; }
+        // ----- Helpers -----
+        function rowOf(id) { return document.getElementById('row' + id); }
+        function show(id, text) { document.getElementById(id).innerText = text; }
+        function orDash(text) { return (text == null || text == '') ? '—' : text; }
 
-// ----- POPUP 1 : lesson detail (when you click a row) -----
-function openDetail(id) {
-    currentId = id;
-    var row = rowOf(id);
+        // ----- POPUP 1 : lesson detail (when you click a row) -----
+        function openDetail(id) {
+            currentId = id;
+            var row = rowOf(id);
 
-    show('dTitle', row.getAttribute('data-title'));
-    show('dCourse', orDash(row.getAttribute('data-course')));
-    show('dCreated', row.getAttribute('data-created'));
-    show('dId', id);
+            show('dTitle', row.getAttribute('data-title'));
+            show('dCourse', orDash(row.getAttribute('data-course')));
+            show('dCreated', row.getAttribute('data-created'));
+            show('dId', id);
 
-    // description + lesson text (hidden when empty)
-    var desc = row.getAttribute('data-description');
-    show('dDesc', desc);
-    document.getElementById('dDesc').style.display = (desc == '') ? 'none' : 'block';
+            // description + lesson text (hidden when empty)
+            var desc = row.getAttribute('data-description');
+            show('dDesc', desc);
+            document.getElementById('dDesc').style.display = (desc == '') ? 'none' : 'block';
 
-    var text = row.getAttribute('data-text');
-    show('dText', text);
-    document.getElementById('dTextWrap').style.display = (text == '') ? 'none' : 'block';
+            var text = row.getAttribute('data-text');
+            show('dText', text);
+            document.getElementById('dTextWrap').style.display = (text == '') ? 'none' : 'block';
 
-    // the video link (clickable)
-    var video = row.getAttribute('data-video');
-    var link = document.getElementById('dVideo');
-    if (video == '') { link.style.display = 'none'; show('dVideoNone', '—'); }
-    else { link.style.display = 'inline'; link.href = video; link.innerText = video; show('dVideoNone', ''); }
+            // the video link (clickable)
+            var video = row.getAttribute('data-video');
+            var link = document.getElementById('dVideo');
+            if (video == '') { link.style.display = 'none'; show('dVideoNone', '—'); }
+            else { link.style.display = 'inline'; link.href = video; link.innerText = video; show('dVideoNone', ''); }
 
-    // the quiz
-    var quizId = row.getAttribute('data-quizid');
-    if (quizId == '') { show('dQuiz', 'No quiz yet'); }
-    else { show('dQuiz', row.getAttribute('data-quiz') + '  (' + row.getAttribute('data-qcount') + ' questions)'); }
+            // the quiz
+            var quizId = row.getAttribute('data-quizid');
+            if (quizId == '') { show('dQuiz', 'No quiz yet'); }
+            else { show('dQuiz', row.getAttribute('data-quiz') + '  (' + row.getAttribute('data-qcount') + ' questions)'); }
 
-    openModal('detailModal');
-}
+            openModal('detailModal');
+        }
 
-// The "Edit Lesson" button inside the detail popup
-function editFromDetail() {
-    closeModal('detailModal');
-    openEdit(currentId);
-}
+        // The "Edit Lesson" button inside the detail popup
+        function editFromDetail() {
+            closeModal('detailModal');
+            openEdit(currentId);
+        }
 
-// ----- The drop-down menu at the top right -----
-function toggleUserMenu(event) {
-    event.stopPropagation();
-    document.getElementById('userDropdown').classList.toggle('open');
-}
-document.addEventListener('click', function () {
-    document.getElementById('userDropdown').classList.remove('open');
-});
+        // ----- The drop-down menu at the top right -----
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            document.getElementById('userDropdown').classList.toggle('open');
+        }
+        document.addEventListener('click', function () {
+            document.getElementById('userDropdown').classList.remove('open');
+        });
 
-// ----- POPUP 2 : edit lesson -----
-function openEdit(id) {
-    var row = rowOf(id);
-    document.getElementById('hfEditId').value = id;
-    document.getElementById('ddlEditCourse').value = row.getAttribute('data-courseid');
-    document.getElementById('txtEditTitle').value = row.getAttribute('data-title');
-    document.getElementById('txtEditDescription').value = row.getAttribute('data-description');
-    document.getElementById('txtEditVideo').value = row.getAttribute('data-video');
-    document.getElementById('txtEditText').value = row.getAttribute('data-text');
-    openModal('editModal');
-}
+        // ----- POPUP 2 : edit lesson -----
+        function openEdit(id) {
+            var row = rowOf(id);
+            document.getElementById('hfEditId').value = id;
+            document.getElementById('ddlEditCourse').value = row.getAttribute('data-courseid');
+            document.getElementById('txtEditTitle').value = row.getAttribute('data-title');
+            document.getElementById('txtEditDescription').value = row.getAttribute('data-description');
+            document.getElementById('txtEditVideo').value = row.getAttribute('data-video');
+            document.getElementById('txtEditText').value = row.getAttribute('data-text');
+            openModal('editModal');
+        }
 
-// ----- POPUP 4 : delete lesson (asks "are you sure?") -----
-function openDelete(id) {
-    document.getElementById('hfDeleteId').value = id;
-    show('delName', rowOf(id).getAttribute('data-title'));
-    openModal('deleteModal');
-}
+        // ----- POPUP 4 : delete lesson (asks "are you sure?") -----
+        function openDelete(id) {
+            document.getElementById('hfDeleteId').value = id;
+            show('delName', rowOf(id).getAttribute('data-title'));
+            openModal('deleteModal');
+        }
     </script>
 </head>
 
 <body>
     <form id="form1" runat="server">
 
-
-        <!-- ==================================================
-             PART 1 : SIDEBAR (dark menu on the left)
-             ================================================== -->
-        <div class="sidebar">
-            <img src="../../images/logo.png" alt="EduCore" class="logo" />
-
-            <a class="menu-item" href="adminDashboard.aspx">
-                <svg class="menu-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
-                Dashboard
-            </a>
-            <a class="menu-item" href="userManagement.aspx">
-                <svg class="menu-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>
-                Users
-            </a>
-            <a class="menu-item" href="coursesManagement.aspx">
-                <svg class="menu-icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" /></svg>
-                Courses
-            </a>
-            <a class="menu-item active" href="lessonManagement.aspx">
-                <svg class="menu-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
-                Lessons
-            </a>
-            <a class="menu-item" href="quizManagement.aspx">
-                <svg class="menu-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                Quizzes
-            </a>
-            <a class="menu-item" href="adminReports.aspx">
-                <svg class="menu-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
-                Reports
-            </a>
-
-            <div class="me">
-                <%= AdminName %>
-                <small>Platform administrator</small>
-            </div>
-        </div>
-
+         <% Server.Execute("adminNav.aspx", false); %>
 
         <!-- ==================================================
              PART 2 : EVERYTHING ON THE RIGHT SIDE

@@ -205,9 +205,11 @@
     <Content Include="images\settings_icon.png" />
     <Content Include="images\study.jpg" />
     <Content Include="pages\Admin\adminDashboard.aspx" />
+    <Content Include="pages\Admin\adminNav.aspx" />
     <Content Include="pages\Admin\adminReports.aspx" />
     <Content Include="pages\Admin\adminSettings.aspx" />
     <Content Include="pages\Admin\lessonManagement.aspx" />
+    <Content Include="pages\Admin\powerBiDashboard.aspx" />
     <Content Include="pages\Admin\quizManagement.aspx" />
     <Content Include="pages\Admin\userManagement.aspx" />
     <Content Include="pages\Admin\coursesManagement.aspx" />
@@ -340,6 +342,13 @@
     <Compile Include="auth\signup.aspx.designer.cs">
       <DependentUpon>signup.aspx</DependentUpon>
     </Compile>
+    <Compile Include="pages\Admin\adminNav.aspx.cs">
+      <DependentUpon>adminNav.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Admin\adminNav.aspx.designer.cs">
+      <DependentUpon>adminNav.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Site.Mobile.Master.cs">
       <DependentUpon>Site.Mobile.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -410,6 +419,13 @@
     </Compile>
     <Compile Include="pages\Admin\lessonManagement.aspx.designer.cs">
       <DependentUpon>lessonManagement.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Admin\powerBiDashboard.aspx.cs">
+      <DependentUpon>powerBiDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="pages\Admin\powerBiDashboard.aspx.designer.cs">
+      <DependentUpon>powerBiDashboard.aspx</DependentUpon>
     </Compile>
     <Compile Include="pages\Admin\quizManagement.aspx.cs">
       <DependentUpon>quizManagement.aspx</DependentUpon>
