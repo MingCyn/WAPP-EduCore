@@ -111,8 +111,8 @@
                     Login or create an account to unlock all functions, post discussions, track your progress, and manage your schedule!
                 </p>
                 <div style="display: flex; gap: 12px; justify-content: center;">
-                    <a href="<%= ResolveUrl("~/Auth/login.aspx") %>" class="cl-btn-solid" style="text-decoration: none; padding: 10px 24px; display: inline-flex; align-items: center; justify-content: center;">Log In</a>
-                    <a href="<%= ResolveUrl("~/Auth/register.aspx") %>" class="cl-btn-ghost" style="text-decoration: none; padding: 10px 24px; display: inline-flex; align-items: center; justify-content: center;">Sign Up</a>
+                    <a href="<%= ResolveUrl("~/auth/login.aspx") %>" class="cl-btn-solid" style="text-decoration: none; padding: 10px 24px; display: inline-flex; align-items: center; justify-content: center;">Log In</a>
+                    <a href="<%= ResolveUrl("~/auth/signup.aspx") %>" class="cl-btn-ghost" style="text-decoration: none; padding: 10px 24px; display: inline-flex; align-items: center; justify-content: center;">Sign Up</a>
                     <button type="button" class="cl-btn-ghost" onclick="closeLoginPrompt()" style="padding: 10px 16px;">Cancel</button>
                 </div>
             </div>

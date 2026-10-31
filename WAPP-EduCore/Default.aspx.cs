@@ -26,10 +26,13 @@ private void BindCoursesFromSupabase()
             string connString = ConfigurationManager.ConnectionStrings["SupabasePostgres"].ConnectionString;
 
             string query = @"SELECT c.course_id, c.title, c.category, c.duration, c.course_img, u.full_name AS tutor_name 
-                 FROM courses c 
-                 LEFT JOIN users u ON c.user_id = u.user_id 
-                 WHERE TRIM(lower(c.status)) = 'published'
-                 LIMIT 4";
+                     FROM courses c 
+                     LEFT JOIN users u ON c.user_id = u.user_id 
+                     LEFT JOIN enrollment e ON c.course_id = e.course_id
+                     WHERE TRIM(lower(c.status)) = 'published'
+                     GROUP BY c.course_id, c.title, c.category, c.duration, c.course_img, u.full_name
+                     ORDER BY COUNT(e.enrollment_id) DESC
+                     LIMIT 4";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(connString))
             {

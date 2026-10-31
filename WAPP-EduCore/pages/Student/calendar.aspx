@@ -200,7 +200,7 @@ function closeAdd() { document.getElementById('addModal').classList.remove('open
         </p>
         <div style="display: flex; gap: 12px; justify-content: center;">
             <a href="<%= ResolveUrl("~/auth/login.aspx") %>" class="cl-btn-solid" style="text-decoration: none; padding: 10px 24px;">Log In</a>
-            <a href="<%= ResolveUrl("~/auth/register.aspx") %>" class="cl-btn-ghost" style="text-decoration: none; padding: 10px 24px; display: inline-flex; align-items: center;">Sign Up</a>
+            <a href="<%= ResolveUrl("~/auth/signup.aspx") %>" class="cl-btn-ghost" style="text-decoration: none; padding: 10px 24px; display: inline-flex; align-items: center;">Sign Up</a>
             <button type="button" class="cl-btn-ghost" onclick="closeLoginPrompt()" style="padding: 10px 16px;">Cancel</button>
         </div>
     </div>
