@@ -7,21 +7,15 @@
     <title>EduCore - Student Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet" />
 
-    <%-- The same style files as the other tutor pages --%>
     <link href="../../Content/dashboard.css?v=3" rel="stylesheet" type="text/css" />
-    <%-- courseBuilder.css supplies the shared nav tweaks, page header and .btn styles --%>
     <link href="../../Content/courseBuilder.css?v=4" rel="stylesheet" type="text/css" />
 
-    <%-- A few small extras that only this page needs (so the shared css files do not change) --%>
     <style type="text/css">
 
-        /* This page has 3 number boxes (the shared grid is made for 4) */
         .stats-overview-grid.sm-stats { grid-template-columns: repeat(3, 1fr); }
 
-        /* The "At Risk" number box gets an orange border (like the Figma) */
         .stat-card.sm-risk { border: 1.5px solid #E5A94B; }
 
-        /* ---------- Search + filters ---------- */
         .sm-toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -151,9 +145,6 @@
                     </div>
                 </div>
 
-                <!-- ==============================================
-                     3 NUMBER BOXES
-                     ============================================== -->
                 <div class="stats-overview-grid sm-stats">
                     <div class="stat-card">
                         <span class="stat-card-title">Class Average Score</span>

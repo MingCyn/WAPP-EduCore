@@ -178,7 +178,7 @@ namespace WAPP_EduCore.pages.Tutor
                 LblStatusPill.CssClass = "cd-pill " + (published ? "published" : "draft");
                 LitMeta.Text = Server.HtmlEncode(JoinParts(topic, level, duration));
 
-                // 2) Overview card
+                // Overview card
                 LitThumb.Text = BuildThumb(image);
                 LitDescription.Text = string.IsNullOrWhiteSpace(description)
                     ? "<span class=\"cd-muted\">No overview yet. Add learning outcomes to populate this section.</span>"
@@ -199,7 +199,7 @@ namespace WAPP_EduCore.pages.Tutor
                     SelectIfPresent(DdlCourseHours, hours);
                 }
 
-                // 3) Publishing overview
+                // Publishing overview
                 PnlLiveNotice.Visible = published;
                 LblPublishPill.Text = published ? "Published course" : "Draft course";
                 LblPublishPill.CssClass = "cd-pill " + (published ? "published" : "draft");
@@ -210,14 +210,14 @@ namespace WAPP_EduCore.pages.Tutor
                 int enrolled = CountEnrolled(conn);
                 LitEnrolled.Text = enrolled >= 0 ? enrolled.ToString(CultureInfo.InvariantCulture) : "-";
 
-                // 4) Syllabus
+                // Syllabus
                 List<LessonView> lessons = LoadLessons(conn);
                 RptLessons.DataSource = lessons;
                 RptLessons.DataBind();
                 PnlNoLessons.Visible = lessons.Count == 0;
                 LitLessonCount.Text = lessons.Count.ToString(CultureInfo.InvariantCulture);
 
-                // 5) Learning outcomes
+                // Learning outcomes
                 var outcomes = new List<OutcomeView>();
                 if (!string.IsNullOrWhiteSpace(description))
                 {
@@ -238,7 +238,7 @@ namespace WAPP_EduCore.pages.Tutor
                 PnlOutcomeList.Visible = outcomes.Count > 0;
                 PnlNoOutcomes.Visible = outcomes.Count == 0;
 
-                // 6) References
+                // References
                 var references = new List<ReferenceView>();
                 if (!string.IsNullOrWhiteSpace(referenceJson))
                 {

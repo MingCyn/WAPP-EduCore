@@ -771,26 +771,26 @@
         })();
 
         // ---------- Delete a content block ----------
-// ---------- Delete a content block ----------
-function askRemoveBlock(btn) {
-    var text = btn.getAttribute('data-text') || '';
-    document.getElementById('HdnRemoveBlockIndex').value = btn.getAttribute('data-index');
-    document.getElementById('HdnRemoveBlockType').value = btn.getAttribute('data-type');
-    document.getElementById('removeBlockText').textContent = text ? '\u201C' + text + '\u201D' : 'this item';
-    openModal('modalRemoveBlock');
-}
 
-// ---------- Delete the lesson's assessment ----------
-var COURSE_PUBLISHED = <%= IsCoursePublished ? "true" : "false" %>;
+        function askRemoveBlock(btn) {
+            var text = btn.getAttribute('data-text') || '';
+            document.getElementById('HdnRemoveBlockIndex').value = btn.getAttribute('data-index');
+            document.getElementById('HdnRemoveBlockType').value = btn.getAttribute('data-type');
+            document.getElementById('removeBlockText').textContent = text ? '\u201C' + text + '\u201D' : 'this item';
+            openModal('modalRemoveBlock');
+        }
 
-function askDeleteAssessment() {
-    if (COURSE_PUBLISHED) {
-        showPopup("Couldn't delete it",
-            "This course is published, so its assessment can't be deleted. Unpublish the course first, then delete the assessment.");
-        return;
-    }
-    openModal('modalDeleteAssessment');
-}
+        // ---------- Delete the lesson's assessment ----------
+        var COURSE_PUBLISHED = <%= IsCoursePublished ? "true" : "false" %>;
+
+        function askDeleteAssessment() {
+            if (COURSE_PUBLISHED) {
+                showPopup("Couldn't delete it",
+                    "This course is published, so its assessment can't be deleted. Unpublish the course first, then delete the assessment.");
+                return;
+            }
+            openModal('modalDeleteAssessment');
+        }
 
         // "Remove current image" inside the edit-image dialog reuses the delete confirmation
         function askRemoveCurrentImage() {

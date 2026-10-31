@@ -164,7 +164,6 @@ namespace WAPP_EduCore.pages.Tutor
                 PnlNoStudents.Visible = studentCount == 0;
 
                 // 3. Calculate Average Assessment Score (if an assessment/quiz attempt score table exists)
-                // Falls back gracefully if scores aren't populated yet.
                 double avgScore = GetAverageAssessmentScore(conn, courseId);
                 LitAvgScore.Text = avgScore.ToString("0.#", CultureInfo.InvariantCulture) + "%";
             }
@@ -174,7 +173,7 @@ namespace WAPP_EduCore.pages.Tutor
         {
             try
             {
-                // Adjust this query name if your quiz attempt/score table differs (e.g. quiz_attempts or assessment_results)
+
                 string query =
                     "SELECT AVG(qs.total_score::numeric) FROM public.quiz_score qs " +
                     "JOIN public.quiz q ON q.quiz_id = qs.quiz_id " +

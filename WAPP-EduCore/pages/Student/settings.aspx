@@ -14,35 +14,35 @@
         <link href="/Content/student-upgrade.css" rel="stylesheet" />
 
     <script type="text/javascript">
-/** drop-down menu at the top right
- * @param {Event} event */
-function stToggleMenu(event) {
-    event.stopPropagation();
-    var menu = document.getElementById('userDropdown');
-    if (menu) menu.classList.toggle('open');
-}
+        /** drop-down menu at the top right
+         * @param {Event} event */
+        function stToggleMenu(event) {
+            event.stopPropagation();
+            var menu = document.getElementById('userDropdown');
+            if (menu) menu.classList.toggle('open');
+        }
 
-document.addEventListener('click', function () {
-    var menu = document.getElementById('userDropdown');
-    if (menu) menu.classList.remove('open');
-});
+        document.addEventListener('click', function () {
+            var menu = document.getElementById('userDropdown');
+            if (menu) menu.classList.remove('open');
+        });
 
-/** the eye button: show or hide a password
- * @param {string} boxId
- * @param {HTMLElement} button */
-function stTogglePassword(boxId, button) {
-    var box = /** @type {HTMLInputElement | null} */ (document.getElementById(boxId));
-    if (!box) return;
+        /** the eye button: show or hide a password
+         * @param {string} boxId
+         * @param {HTMLElement} button */
+        function stTogglePassword(boxId, button) {
+            var box = /** @type {HTMLInputElement | null} */ (document.getElementById(boxId));
+            if (!box) return;
 
-    var showIt = (box.type === 'password');
-    box.type = showIt ? 'text' : 'password';
+            var showIt = (box.type === 'password');
+            box.type = showIt ? 'text' : 'password';
 
-    var slash = /** @type {HTMLElement | null} */ (button.querySelector('.eye-slash'));
-    var open = /** @type {HTMLElement | null} */ (button.querySelector('.eye-open'));
-    if (slash) slash.style.display = showIt ? 'none' : 'block';
-    if (open) open.style.display = showIt ? 'block' : 'none';
-}
-</script>
+            var slash = /** @type {HTMLElement | null} */ (button.querySelector('.eye-slash'));
+            var open = /** @type {HTMLElement | null} */ (button.querySelector('.eye-open'));
+            if (slash) slash.style.display = showIt ? 'none' : 'block';
+            if (open) open.style.display = showIt ? 'block' : 'none';
+        }
+    </script>
 </head>
 <body>
     <form id="form1" runat="server">

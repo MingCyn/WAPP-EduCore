@@ -84,6 +84,7 @@
                     </div>
 
                     <div class="st-grid">
+
                         <!-- left column: Personal Information -->
                         <div>
                             <div class="st-card">

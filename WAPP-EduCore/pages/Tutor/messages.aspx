@@ -8,7 +8,7 @@
     <link href="../../Content/courseBuilder.css?v=4" rel="stylesheet" type="text/css" />
     <link href="../../Content/messages.css?v=1" rel="stylesheet" type="text/css" />
     <style>
-        /* General text styling updates for clean black text and no blue underlines */
+
         body, .page-subtitle, .fm-stat, .fm-body, .fm-title, h3 {
             color: #111827 !important;
         }

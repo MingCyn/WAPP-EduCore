@@ -162,7 +162,7 @@ namespace WAPP_EduCore.pages.Tutor
 
             if (isError)
             {
-                // Inline error styling matching your UI theme
+                // Inline error styling 
                 LblStatus.Style["background-color"] = "#fdf2f2";
                 LblStatus.Style["color"] = "#991b1b";
                 LblStatus.Style["border"] = "1px solid #fecaca";

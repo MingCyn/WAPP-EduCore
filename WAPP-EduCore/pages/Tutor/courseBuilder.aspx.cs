@@ -1017,7 +1017,6 @@ namespace WAPP_EduCore.pages.Tutor
             return block == null ? "" : Str(block, "type", "").ToLowerInvariant();
         }
 
-        // Interactive / lab blocks are managed elsewhere and are not shown in this list.
         private static bool IsSeparateCard(string type)
         {
             return type == "interactive" || type == "lab";

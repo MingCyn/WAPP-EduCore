@@ -19,7 +19,7 @@ namespace WAPP_EduCore.pages.Tutor
 
         // While developing, the real database message is shown if a figure cannot be loaded.
         // Set to false before you deploy.
-        private const bool ShowDatabaseErrors = true;
+        private const bool ShowDatabaseErrors = false;
 
         // quiz_score.total_score (used for Average Score and Recent Quiz Results only):
         //   true  = already a percentage (0-100)
