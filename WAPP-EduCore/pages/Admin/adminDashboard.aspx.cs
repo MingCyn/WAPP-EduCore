@@ -1,4 +1,22 @@
-﻿using System;
+﻿// ==========================================================
+//  adminDashboard.aspx.cs
+//
+//  SECTIONS IN THIS FILE  (use Ctrl+F and search the words "SECTION 3")
+//  ----------------------------------------------------------
+//    1.  SETTINGS  (the variables this page uses)
+//    2.  STEP 1: Page opens  ->  fill every box with data
+//    3.  ADMIN NAME (sidebar + top-right circle)
+//    4.  ROW 1 : THE 6 NUMBER BOXES
+//    5.  ROW 2 - CHART 1 : DONUT  (Users by Role)
+//    6.  ROW 2 - CHART 2 : COLUMNS  (Courses by Topic)
+//    7.  ROW 3 - RECENT ACTIVITY
+//    8.  ROW 3 - NEEDS ATTENTION (yellow box, only courses without lessons)
+//    9.  LOGOUT  (the "Logout" option in the drop-down menu)
+//   10.  HELPERS  (small tools used again and again)
+//   11.  WHO IS LOGGED IN?  (used by every admin page)
+// ==========================================================
+
+using System;
 using System.Data;
 using System.Globalization;
 using System.Text;
@@ -11,6 +29,9 @@ namespace WAPP_EduCore.pages.Admin
     // NOTE: the class name is WebForm1 because your .aspx first line says Inherits="...WebForm1"
     public partial class WebForm1 : System.Web.UI.Page
     {
+        // =====================================================
+        //  SECTION 1 :  SETTINGS  (the variables this page uses)
+        // =====================================================
         // These are shown in the sidebar and the top-right circle
         protected string AdminName = "Administrator";
         protected string AdminInitials = "AD";
@@ -20,7 +41,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  STEP 1: Page opens  ->  fill every box with data
+        //  SECTION 2 :  STEP 1: Page opens  ->  fill every box with data
         // =====================================================
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -46,7 +67,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  ADMIN NAME (sidebar + top-right circle)
+        //  SECTION 3 :  ADMIN NAME (sidebar + top-right circle)
         // =====================================================
         private void LoadAdminInfo()
         {
@@ -84,7 +105,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  ROW 1 : THE 6 NUMBER BOXES
+        //  SECTION 4 :  ROW 1 : THE 6 NUMBER BOXES
         // =====================================================
         private void LoadTopNumbers()
         {
@@ -108,7 +129,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  ROW 2 - CHART 1 : DONUT  (Users by Role)
+        //  SECTION 5 :  ROW 2 - CHART 1 : DONUT  (Users by Role)
         // =====================================================
         private void LoadRoleDonut()
         {
@@ -169,7 +190,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  ROW 2 - CHART 2 : COLUMNS  (Courses by Topic)
+        //  SECTION 6 :  ROW 2 - CHART 2 : COLUMNS  (Courses by Topic)
         //  The 5 topics that have the most courses.
         // =====================================================
         private void LoadTopicChart()
@@ -225,7 +246,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  ROW 3 - RECENT ACTIVITY
+        //  SECTION 7 :  ROW 3 - RECENT ACTIVITY
         //  The 5 newest things: new accounts and new courses.
         // =====================================================
         private void LoadRecentActivity()
@@ -285,7 +306,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  ROW 3 - NEEDS ATTENTION (yellow box, only courses without lessons)
+        //  SECTION 8 :  ROW 3 - NEEDS ATTENTION (yellow box, only courses without lessons)
         // =====================================================
         private void LoadNeedsAttention()
         {
@@ -299,7 +320,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  LOGOUT  (the "Logout" option in the drop-down menu)
+        //  SECTION 9 :  LOGOUT  (the "Logout" option in the drop-down menu)
         // =====================================================
         protected void lnkLogout_Click(object sender, EventArgs e)
         {
@@ -311,7 +332,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  HELPERS  (small tools used again and again)
+        //  SECTION 10 :  HELPERS  (small tools used again and again)
         // =====================================================
 
         // Turns a decimal number into text the browser understands (always with a dot)
@@ -343,7 +364,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  WHO IS LOGGED IN?  (used by every admin page)
+        //  SECTION 11 :  WHO IS LOGGED IN?  (used by every admin page)
         //  The login page saves the user number in Session["UserID"].
         //  (Session["user_id"] is also checked, in case an older page saved it.)
         //  Gives back 0 when nobody is logged in.

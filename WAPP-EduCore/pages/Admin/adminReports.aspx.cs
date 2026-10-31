@@ -1,4 +1,24 @@
-﻿using System;
+﻿// ==========================================================
+//  adminReports.aspx.cs
+//
+//  SECTIONS IN THIS FILE  (use Ctrl+F and search the words "SECTION 3")
+//  ----------------------------------------------------------
+//    1.  SETTINGS  (the variables this page uses)
+//    2.  STEP 1: When the page opens, fill every tab with data
+//    3.  Get the admin's name from the database
+//    4.  LOGOUT  (the "Logout" option in the drop-down menu)
+//    5.  STEP 2: Clicking a tab shows ONE panel, hides the others
+//    6.  TAB 1 : USERS  (users table + the "who was active" tables)
+//    7.  TAB 2 : COURSES  (courses + lesson + enrollment + users tables)
+//    8.  TAB 3 : LEARNING PERFORMANCE
+//    9.  "WHO WAS ACTIVE?"
+//   10.  HELPERS  (small tools used again and again)
+//   11.  CHART DRAWING  (pictures made from SVG text: bars, columns, line)
+//   12.  DATABASE HELPERS  (ask the database for a number or a table)
+//   13.  WHO IS LOGGED IN?  (used by every admin page)
+// ==========================================================
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -13,7 +33,7 @@ namespace WAPP_EduCore.pages.Admin
     public partial class adminReports : Page
     {
         // =====================================================
-        //  STEP 1: When the page opens, fill every tab with data
+        //  SECTION 1 :  SETTINGS  (the variables this page uses)
         // =====================================================
         // These two are shown in the sidebar and the top-right circle.
         // The .aspx page reads them with <%= AdminName %> and <%= AdminInitials %>
@@ -29,6 +49,9 @@ namespace WAPP_EduCore.pages.Admin
         // The id of the admin who is looking at this page right now
         private int adminId = 0;
 
+        // =====================================================
+        //  SECTION 2 :  STEP 1: When the page opens, fill every tab with data
+        // =====================================================
         protected void Page_Load(object sender, EventArgs e)
         {
             // Not logged in, or the session ran out (for example after resting for a while)?
@@ -56,7 +79,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  Get the admin's name from the database
+        //  SECTION 3 :  Get the admin's name from the database
         //  - If the login page saved Session["user_id"], use that user.
         //  - If not, use the first user whose role is 'Admin'.
         // =====================================================
@@ -103,7 +126,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  LOGOUT  (the "Logout" option in the drop-down menu)
+        //  SECTION 4 :  LOGOUT  (the "Logout" option in the drop-down menu)
         // =====================================================
         protected void lnkLogout_Click(object sender, EventArgs e)
         {
@@ -114,7 +137,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  STEP 2: Clicking a tab shows ONE panel, hides the others
+        //  SECTION 5 :  STEP 2: Clicking a tab shows ONE panel, hides the others
         // =====================================================
         protected void Tab_Click(object sender, EventArgs e)
         {
@@ -135,7 +158,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  TAB 1 : USERS  (users table + the "who was active" tables)
+        //  SECTION 6 :  TAB 1 : USERS  (users table + the "who was active" tables)
         // =====================================================
         private void LoadUsersTab()
         {
@@ -214,16 +237,16 @@ namespace WAPP_EduCore.pages.Admin
             rows.Append(RoleTableRow("Student", students, total, activeStudents));
             rows.Append(RoleTableRow("Tutor", tutors, total, activeTutors));
             rows.Append(RoleTableRow("Admin", admins, total, activeAdmins));
-            rows.Append("<tr class='total'><td>All roles</td><td>" + total.ToString("N0") + "</td><td>100%</td><td>" +
-                        active.ToString("N0") + "</td><td>" + inactive.ToString("N0") + "</td><td>" + Percent(active, total) + "</td></tr>");
+            rows.Append("<tr class='total'><td>All roles</td><td class='center'>" + total.ToString("N0") + "</td><td class='center'>100%</td><td class='center'>" +
+                        active.ToString("N0") + "</td><td class='center'>" + inactive.ToString("N0") + "</td><td class='center'>" + Percent(active, total) + "</td></tr>");
             litRoleTable.Text = rows.ToString();
         }
 
         private string RoleTableRow(string role, int count, int total, int active)
         {
-            return "<tr><td>" + role + "</td><td>" + count.ToString("N0") + "</td><td>" + Percent(count, total) +
-                   "</td><td>" + active.ToString("N0") + "</td><td>" + (count - active).ToString("N0") +
-                   "</td><td>" + Percent(active, count) + "</td></tr>";
+            return "<tr><td>" + role + "</td><td class='center'>" + count.ToString("N0") + "</td><td class='center'>" + Percent(count, total) +
+                   "</td><td class='center'>" + active.ToString("N0") + "</td><td class='center'>" + (count - active).ToString("N0") +
+                   "</td><td class='center'>" + Percent(active, count) + "</td></tr>";
         }
 
         // "+4.8% growth" (this month so far compared with the same days last month)
@@ -237,7 +260,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  TAB 2 : COURSES  (courses + lesson + enrollment + users tables)
+        //  SECTION 7 :  TAB 2 : COURSES  (courses + lesson + enrollment + users tables)
         // =====================================================
         private void LoadCoursesTab()
         {
@@ -389,11 +412,11 @@ namespace WAPP_EduCore.pages.Admin
                 sb.Append("<tr>");
                 sb.Append("<td>" + rank + "</td>");
                 sb.Append("<td>" + Server.HtmlEncode(r["title"].ToString()) + "</td>");
-                sb.Append("<td>" + OrDash(r["instructor"]) + "</td>");
-                sb.Append("<td>" + OrDash(r["course_level"]) + "</td>");
-                sb.Append("<td>" + OrDash(r["category"]) + "</td>");
-                sb.Append("<td>" + OrDash(r["status"]) + "</td>");
-                sb.Append("<td>" + Convert.ToInt32(r["enrolments"]).ToString("N0") + "</td>");
+                sb.Append("<td class='center'>" + OrDash(r["instructor"]) + "</td>");
+                sb.Append("<td class='center'>" + OrDash(r["course_level"]) + "</td>");
+                sb.Append("<td class='center'>" + OrDash(r["category"]) + "</td>");
+                sb.Append("<td class='center'>" + OrDash(r["status"]) + "</td>");
+                sb.Append("<td class='center'>" + Convert.ToInt32(r["enrolments"]).ToString("N0") + "</td>");
                 sb.Append("</tr>");
                 rank++;
             }
@@ -408,7 +431,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  TAB 3 : LEARNING PERFORMANCE
+        //  SECTION 8 :  TAB 3 : LEARNING PERFORMANCE
         //  (enrollment + quiz_score + quiz + lesson + courses tables)
         //  "Reporting cohort" = the PUBLISHED courses that have enrolments.
         // =====================================================
@@ -532,8 +555,8 @@ namespace WAPP_EduCore.pages.Admin
                 // the bar is as long as the completion rate, the number at the end is  completed/enrolled  (like 2/4)
                 completionBars.Append(BarRow(name, rate, 100, done + "/" + enrol, rate < 70));
 
-                table.Append("<tr><td>" + Server.HtmlEncode(name) + "</td><td>" + OrDash(topic) + "</td><td>" + enrol.ToString("N0") +
-                             "</td><td>" + done.ToString("N0") + "</td><td>" + rate + "%</td><td>" +
+                table.Append("<tr><td>" + Server.HtmlEncode(name) + "</td><td class='center'>" + OrDash(topic) + "</td><td class='center'>" + enrol.ToString("N0") +
+                             "</td><td class='center'>" + done.ToString("N0") + "</td><td class='center'>" + rate + "%</td><td class='center'>" +
                              (quiz < 0 ? "—" : quiz + "%") + "</td></tr>");
             }
 
@@ -553,9 +576,9 @@ namespace WAPP_EduCore.pages.Admin
             {
                 completionBars.Append("<div class='note'>Numbers show completed / enrolled students · the bar shows the completion rate (0–100%).</div>");
 
-                table.Append("<tr class='total'><td>Published courses</td><td>" + cohortTopics.Count + " topics</td><td>" + totalEnrol.ToString("N0") +
-                             "</td><td>" + totalDone.ToString("N0") + "</td><td>" + overallRate.ToString("0.0", Inv) +
-                             "%</td><td>" + (hasQuiz ? avgQuiz + "%" : "—") + "</td></tr>");
+                table.Append("<tr class='total'><td>Published courses</td><td class='center'>" + cohortTopics.Count + " topics</td><td class='center'>" + totalEnrol.ToString("N0") +
+                             "</td><td class='center'>" + totalDone.ToString("N0") + "</td><td class='center'>" + overallRate.ToString("0.0", Inv) +
+                             "%</td><td class='center'>" + (hasQuiz ? avgQuiz + "%" : "—") + "</td></tr>");
             }
 
             litCompletionBars.Text = completionBars.ToString();
@@ -563,7 +586,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  "WHO WAS ACTIVE?"
+        //  SECTION 9 :  "WHO WAS ACTIVE?"
         //  A user is ACTIVE when they did something in the last 30 days.
         //  Every table below is checked, and a table is skipped if it
         //  (or its date column) is not in the database.
@@ -635,7 +658,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  HELPERS  (small tools used again and again)
+        //  SECTION 10 :  HELPERS  (small tools used again and again)
         // =====================================================
 
         // 7 out of 10  ->  "70.0%"   (0 when there is nothing to divide by)
@@ -693,6 +716,9 @@ namespace WAPP_EduCore.pages.Admin
                    "<span>0</span><span>" + (max / 2).ToString("N0") + "</span><span>" + max.ToString("N0") + "</span></div>";
         }
 
+        // =====================================================
+        //  SECTION 11 :  CHART DRAWING  (pictures made from SVG text: bars, columns, line)
+        // =====================================================
         // Draws a column chart for the "courses per topic" table.
         // The first column (the topic with the MOST courses) is the darkest blue.
         private string BuildColumnChart(DataTable topics)
@@ -832,6 +858,9 @@ namespace WAPP_EduCore.pages.Admin
                    "</svg>";
         }
 
+        // =====================================================
+        //  SECTION 12 :  DATABASE HELPERS  (ask the database for a number or a table)
+        // =====================================================
         // Asks the database for ONE number (like a count)
         private int GetNumber(string sql)
         {
@@ -856,7 +885,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  WHO IS LOGGED IN?  (used by every admin page)
+        //  SECTION 13 :  WHO IS LOGGED IN?  (used by every admin page)
         //  The login page saves the user number in Session["UserID"].
         //  (Session["user_id"] is also checked, in case an older page saved it.)
         //  Gives back 0 when nobody is logged in.

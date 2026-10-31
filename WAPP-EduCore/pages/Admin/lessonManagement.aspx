@@ -1,21 +1,37 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="lessonManagement.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.lessonManagement" %>
 
+<%--
+    MAP OF THIS PAGE   (use Ctrl+F and search the name in capital letters)
+
+    <head>   HEAD 1 FONT  |  HEAD 2 SHARED STYLES  |  HEAD 3 PAGE STYLES  |  HEAD 4 JAVASCRIPT
+    <body>   PART 1 SIDEBAR
+             PART 2 THE RIGHT SIDE
+                     TOP BAR
+                     MESSAGE (green / red)
+                     5 NUMBER BOXES
+                     LESSON TABLE CARD  (toolbar, table, footer, "no results")
+             POPUP 1 : LESSON DETAIL
+             POPUP 2 : EDIT LESSON
+             POPUP 3 : CREATE LESSON
+             POPUP 4 : DELETE LESSON
+--%>
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head runat="server">
     <title>EduCore - Lesson Management</title>
 
-    <!-- Font -->
+    <!-- HEAD 1 of 4 : FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Our own styles (colors, cards, tables, popups...) -->
+    <!-- HEAD 2 of 4 : SHARED STYLES  (sidebar, cards, tables, popups ... all live in admin.css) -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
 
-    <!-- Small extra styles only this page needs (so admin.css does not change) -->
+    <!-- HEAD 3 of 4 : PAGE STYLES  -  Small extra styles only this page needs (so admin.css does not change) -->
     <style type="text/css">
 
-        /* The little arrow of every dropdown */
+        /* ---------- The little arrow of every dropdown ---------- */
         select.input {
             appearance: none;
             -webkit-appearance: none;
@@ -26,67 +42,205 @@
             background-size: 14px;
         }
 
-        /* Number boxes with a little icon */
-        .stat-top { display: flex; justify-content: space-between; align-items: flex-start; }
-        .stat-top svg { flex-shrink: 0; color: var(--blue); }
+        /* ---------- Number boxes with a little icon ---------- */
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
 
-        /* Sidebar icons */
-        .sidebar a.menu-item { display: flex; align-items: center; gap: 12px; }
-        .menu-icon { width: 18px; height: 18px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .stat-top svg {
+            flex-shrink: 0;
+            color: var(--blue);
+        }
 
-        /* The avatar + drop-down menu (top right) */
-        .user-menu { position: relative; }
-        .user-btn { display: flex; align-items: center; padding: 0; background: none; border: none; cursor: pointer; }
-        .user-btn .avatar { margin-left: 0; }
-        .user-dropdown { display: none; position: absolute; right: 0; top: 44px; min-width: 180px; padding: 6px; background: white; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(15, 27, 76, 0.15); z-index: 50; }
-        .user-dropdown.open { display: block; }
-        .user-dropdown a { display: block; padding: 10px 12px; border-radius: 6px; color: var(--text); font-size: 13px; text-decoration: none; }
-        .user-dropdown a:hover { background: #F1F5F9; }
-        .user-dropdown a.logout { color: #DC2626; }
+        /* ---------- Sidebar icons ---------- */
+        .sidebar a.menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-        /* Big text box */
-        .input.textarea { height: auto; padding: 10px 12px; font-family: inherit; resize: vertical; }
+        .menu-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
 
-        /* Small grey line under a box */
-        .form-hint { margin: -6px 0 14px 0; color: var(--grey); font-size: 12px; }
+        /* ---------- The avatar + drop-down menu (top right) ---------- */
+        .user-menu {
+            position: relative;
+        }
 
-        /* The "which course" text under a lesson title in the table */
-        .sub-line { margin-top: 2px; color: var(--grey); font-size: 12px; }
+        .user-btn {
+            display: flex;
+            align-items: center;
+            padding: 0;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
 
-        /* A blue badge */
-        .badge.blue { background: #EEF2FF; color: var(--blue); }
+        .user-btn .avatar {
+            margin-left: 0;
+        }
 
-        /* The lesson text in the detail popup */
-        .text-box { margin-bottom: 16px; padding: 12px 14px; background: white; border: 1px solid var(--line); border-radius: 10px; color: var(--text); font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 44px;
+            min-width: 180px;
+            padding: 6px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(15, 27, 76, 0.15);
+            z-index: 50;
+        }
+
+        .user-dropdown.open {
+            display: block;
+        }
+
+        .user-dropdown a {
+            display: block;
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .user-dropdown a:hover {
+            background: #F1F5F9;
+        }
+
+        .user-dropdown a.logout {
+            color: #DC2626;
+        }
+
+        /* ---------- Big text box ---------- */
+        .input.textarea {
+            height: auto;
+            padding: 10px 12px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        /* ---------- Small grey line under a box ---------- */
+        .form-hint {
+            margin: -6px 0 14px 0;
+            color: var(--grey);
+            font-size: 12px;
+        }
+
+        /* ---------- The "which course" text under a lesson title in the table ---------- */
+        .sub-line {
+            margin-top: 2px;
+            color: var(--grey);
+            font-size: 12px;
+        }
+
+        /* ---------- A blue badge ---------- */
+        .badge.blue {
+            background: #EEF2FF;
+            color: var(--blue);
+        }
+
+        /* ---------- The lesson text in the detail popup ---------- */
+        .text-box {
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 13px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
 
         /* ---------- Table columns: fixed widths, so the 3 action icons stay on ONE row ---------- */
-        table.data { table-layout: fixed; }
-        th.c-id      { width: 56px; }
-        th.c-lesson  { width: 30%; }      /* smaller = the Lesson column is narrower */
-        th.c-course  { width: 26%; }
-        th.c-video   { width: 100px; }
-        th.c-quiz    { width: 130px; }
-        th.c-created { width: 120px; }
-        th.c-actions { width: 150px; }    /* bigger = more room for the icons */
-        td.actions, td.nowrap { white-space: nowrap; }
-        .badge { white-space: nowrap; }
+        table.data {
+            table-layout: fixed;
+        }
+
+        th.c-id {
+            width: 56px;
+        }
+
+        th.c-lesson {
+            width: 30%; /* smaller = the Lesson column is narrower */
+        }
+
+        th.c-course {
+            width: 26%;
+        }
+
+        th.c-video {
+            width: 100px;
+        }
+
+        th.c-quiz {
+            width: 130px;
+        }
+
+        th.c-created {
+            width: 120px;
+        }
+
+        th.c-actions {
+            width: 150px; /* bigger = more room for the icons */
+        }
+
+        td.actions, td.nowrap {
+            white-space: nowrap;
+        }
+
+        .badge {
+            white-space: nowrap;
+        }
+        /* ---------- Centered table columns (add class="center" to the <th> and to the <td>) ---------- */
+        table.data th.center,
+        table.data td.center {
+            text-align: center;
+        }
     </style>
 
     <!-- ==================================================
-         JAVASCRIPT : controls the popups
+         HEAD 4 of 4 : JAVASCRIPT : controls the popups
          ================================================== -->
     <script type="text/javascript">
 
         var currentId = 0;   // the lesson we clicked on
 
         // ----- Show / hide a popup -----
-        function openModal(id) { document.getElementById(id).classList.add('open'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
 
         // ----- Helpers -----
-        function rowOf(id) { return document.getElementById('row' + id); }
-        function show(id, text) { document.getElementById(id).innerText = text; }
-        function orDash(text) { return (text == null || text == '') ? '—' : text; }
+        function rowOf(id) {
+            return document.getElementById('row' + id);
+        }
+
+        function show(id, text) {
+            document.getElementById(id).innerText = text;
+        }
+
+        function orDash(text) {
+            return (text == null || text == '') ? '—' : text;
+        }
 
         // ----- POPUP 1 : lesson detail (when you click a row) -----
         function openDetail(id) {
@@ -110,13 +264,23 @@
             // the video link (clickable)
             var video = row.getAttribute('data-video');
             var link = document.getElementById('dVideo');
-            if (video == '') { link.style.display = 'none'; show('dVideoNone', '—'); }
-            else { link.style.display = 'inline'; link.href = video; link.innerText = video; show('dVideoNone', ''); }
+            if (video == '') {
+                link.style.display = 'none';
+                show('dVideoNone', '—');
+            } else {
+                link.style.display = 'inline';
+                link.href = video;
+                link.innerText = video;
+                show('dVideoNone', '');
+            }
 
             // the quiz
             var quizId = row.getAttribute('data-quizid');
-            if (quizId == '') { show('dQuiz', 'No quiz yet'); }
-            else { show('dQuiz', row.getAttribute('data-quiz') + '  (' + row.getAttribute('data-qcount') + ' questions)'); }
+            if (quizId == '') {
+                show('dQuiz', 'No quiz yet');
+            } else {
+                show('dQuiz', row.getAttribute('data-quiz') + '  (' + row.getAttribute('data-qcount') + ' questions)');
+            }
 
             openModal('detailModal');
         }
@@ -160,7 +324,11 @@
 <body>
     <form id="form1" runat="server">
 
-         <% Server.Execute("adminNav.aspx", false); %>
+        <!-- ==================================================
+             PART 1 : THE SIDEBAR  (the dark menu on the left)
+             It lives in its own file: adminNav.aspx
+             ================================================== -->
+        <% Server.Execute("adminNav.aspx", false); %>
 
         <!-- ==================================================
              PART 2 : EVERYTHING ON THE RIGHT SIDE
@@ -277,15 +445,16 @@
                     <!-- The table (only shown when we found lessons) -->
                     <asp:Panel ID="pnlTable" runat="server">
 
+                        <!-- Columns are on the LEFT. A column with class="center" (on its <th> and its <td>) is CENTERED  (rule is in PAGE STYLES). -->
                         <table class="data">
                             <tr>
                                 <th class="c-id">ID</th>
                                 <th class="c-lesson">Lesson</th>
                                 <th class="c-course">Course</th>
-                                <th class="c-video">Video</th>
-                                <th class="c-quiz">Quiz</th>
-                                <th class="c-created">Created</th>
-                                <th class="c-actions">Actions</th>
+                                <th class="c-video center">Video</th>
+                                <th class="c-quiz center">Quiz</th>
+                                <th class="c-created center">Created</th>
+                                <th class="c-actions center">Actions</th>
                             </tr>
 
                             <!-- C# fills the rows here -->
@@ -318,8 +487,8 @@
 
                 </div>
 
-            </div>
-        </div>
+            </div> <!-- end of the content area -->
+        </div> <!-- end of PART 2 : the right side -->
 
 
         <!-- ==================================================

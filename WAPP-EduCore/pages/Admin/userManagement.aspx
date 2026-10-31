@@ -1,18 +1,35 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="userManagement.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.WebForm2" %>
 
+<%--
+    MAP OF THIS PAGE   (use Ctrl+F and search the name in capital letters)
+
+    <head>   HEAD 1 FONT  |  HEAD 2 SHARED STYLES  |  HEAD 3 PAGE STYLES  |  HEAD 4 JAVASCRIPT
+    <body>   PART 1 SIDEBAR
+             PART 2 THE RIGHT SIDE
+                     TOP BAR
+                     MESSAGE (green / red)
+                     5 NUMBER BOXES
+                     USER TABLE CARD  (toolbar, table, footer, "no results")
+             POPUP 1 : USER DETAIL
+             POPUP 2 : EDIT USER
+             POPUP 3 : ADD USER
+             POPUP 4 : DELETE USER
+             BOTTOM : JAVASCRIPT for the password eye
+--%>
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head runat="server">
     <title>EduCore - User Management</title>
 
-    <!-- Font -->
+    <!-- HEAD 1 of 4 : FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Our own styles (colors, cards, tables, popups...) -->
+    <!-- HEAD 2 of 4 : SHARED STYLES  (sidebar, cards, tables, popups ... all live in admin.css) -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
 
-    <!-- Small styles that live in this page (so they work even if admin.css was not updated) -->
+    <!-- HEAD 3 of 4 : PAGE STYLES  -  Small styles that live in this page (so they work even if admin.css was not updated) -->
     <style type="text/css">
 
         /* ALL dropdowns: move the little arrow away from the right edge.
@@ -27,7 +44,7 @@
             background-size: 14px;
         }
 
-        /* Password box with the eye INSIDE it (same idea as the calendar icon) */
+        /* ---------- Password box with the eye INSIDE it (same idea as the calendar icon) ---------- */
         .password-wrap {
             position: relative;           /* the eye is placed inside this box */
         }
@@ -163,10 +180,15 @@
             opacity: 0;
             pointer-events: none;
         }
+        /* ---------- Centered table columns (add class="center" to the <th> and to the <td>) ---------- */
+        table.data th.center,
+        table.data td.center {
+            text-align: center;
+        }
     </style>
 
     <!-- ==================================================
-         JAVASCRIPT : controls the popups
+         HEAD 4 of 4 : JAVASCRIPT : controls the popups
          (no server needed, the browser does this by itself)
          ================================================== -->
     <script type="text/javascript">
@@ -174,12 +196,24 @@
         var currentId = 0;   // the user we clicked on
 
         // ----- Show / hide a popup -----
-        function openModal(id)  { document.getElementById(id).classList.add('open'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
 
         // ----- Helpers -----
-        function rowOf(id)       { return document.getElementById('row' + id); }          // the table row of a user
-        function show(id, text)  { document.getElementById(id).innerText = text; }        // put text in a box
+        // the table row of a user
+        function rowOf(id) {
+            return document.getElementById('row' + id);
+        }
+
+        // put text in a box
+        function show(id, text) {
+            document.getElementById(id).innerText = text;
+        }
 
         // ----- POPUP 1 : user detail (when you click a row) -----
         function openDetail(id) {
@@ -217,7 +251,9 @@
 
         // 2012-05-30  ->  30/05/2012
         function toDisplayDate(iso) {
-            if (!iso) { return ''; }
+            if (!iso) {
+                return '';
+            }
             var p = iso.split('-');
             return p[2] + '/' + p[1] + '/' + p[0];
         }
@@ -231,8 +267,11 @@
         // While typing: only numbers are kept, and the "/" is added by itself
         function maskDate(box) {
             var v = box.value.replace(/[^\d]/g, '').substring(0, 8);
-            if (v.length > 4)      { v = v.substring(0, 2) + '/' + v.substring(2, 4) + '/' + v.substring(4); }
-            else if (v.length > 2) { v = v.substring(0, 2) + '/' + v.substring(2); }
+            if (v.length > 4) {
+                v = v.substring(0, 2) + '/' + v.substring(2, 4) + '/' + v.substring(4);
+            } else if (v.length > 2) {
+                v = v.substring(0, 2) + '/' + v.substring(2);
+            }
             box.value = v;
         }
 
@@ -240,7 +279,11 @@
         function openCalendar(boxId, pickerId) {
             var picker = document.getElementById(pickerId);
             picker.value = toIsoDate(document.getElementById(boxId).value);   // start on the date already typed
-            if (picker.showPicker) { picker.showPicker(); } else { picker.click(); }
+            if (picker.showPicker) {
+                picker.showPicker();
+            } else {
+                picker.click();
+            }
         }
 
         // A date was picked in the calendar: write it in the box as day/month/year
@@ -273,8 +316,12 @@
 <body>
     <form id="form1" runat="server">
 
-        
-         <% Server.Execute("adminNav.aspx", false); %>
+
+        <!-- ==================================================
+             PART 1 : THE SIDEBAR  (the dark menu on the left)
+             It lives in its own file: adminNav.aspx
+             ================================================== -->
+        <% Server.Execute("adminNav.aspx", false); %>
 
         <!-- ==================================================
              PART 2 : EVERYTHING ON THE RIGHT SIDE
@@ -390,16 +437,17 @@
                     <!-- The table (only shown when we found users) -->
                     <asp:Panel ID="pnlTable" runat="server">
 
+                        <!-- Columns are on the LEFT. A column with class="center" (on its <th> and its <td>) is CENTERED  (rule is in PAGE STYLES). -->
                         <table class="data">
                             <tr>
                                 <th>ID</th>
                                 <th>User name</th>
                                 <th>Email</th>
-                                <th>Date of birth</th>
-                                <th>Gender</th>
-                                <th>Role</th>
-                                <th>Registration date</th>
-                                <th>Actions</th>
+                                <th class="center">Date of birth</th>
+                                <th class="center">Gender</th>
+                                <th class="center">Role</th>
+                                <th class="center">Registration date</th>
+                                <th class="center">Actions</th>
                             </tr>
 
                             <!-- C# fills the rows here -->
@@ -432,8 +480,8 @@
 
                 </div>
 
-            </div>
-        </div>
+            </div> <!-- end of the content area -->
+        </div> <!-- end of PART 2 : the right side -->
 
 
         <!-- ==================================================
@@ -653,7 +701,7 @@
     </form>
 
     <!-- ==================================================
-         JAVASCRIPT : the password eye
+         BOTTOM OF THE PAGE : JAVASCRIPT : the password eye
          (the date of birth helpers are in the <head> above)
          ================================================== -->
     <script type="text/javascript">

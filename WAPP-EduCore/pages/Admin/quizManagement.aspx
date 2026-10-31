@@ -1,21 +1,40 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="quizManagement.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.quizManagement" %>
 
+<%--
+    MAP OF THIS PAGE   (use Ctrl+F and search the name in capital letters)
+
+    <head>   HEAD 1 FONT  |  HEAD 2 SHARED STYLES  |  HEAD 3 PAGE STYLES  |  HEAD 4 JAVASCRIPT
+    <body>   PART 1 SIDEBAR
+             PART 2 THE RIGHT SIDE
+                     TOP BAR
+                     MESSAGE (green / red)
+                     5 NUMBER BOXES
+                     QUIZ TABLE CARD  (toolbar, table, footer, "no results")
+             HIDDEN QUESTIONS (the popups read them)
+             POPUP 1 : QUIZ DETAIL + QUESTIONS
+             POPUP 2 : EDIT QUIZ
+             POPUP 3 : CREATE QUIZ
+             POPUP 4 : DELETE QUIZ
+             POPUP 5 : ADD / EDIT ONE QUESTION
+             POPUP 6 : DELETE ONE QUESTION
+--%>
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head runat="server">
     <title>EduCore - Quiz Management</title>
 
-    <!-- Font -->
+    <!-- HEAD 1 of 4 : FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Our own styles (colors, cards, tables, popups...) -->
+    <!-- HEAD 2 of 4 : SHARED STYLES  (sidebar, cards, tables, popups ... all live in admin.css) -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
 
-    <!-- Small extra styles only this page needs (so admin.css does not change) -->
+    <!-- HEAD 3 of 4 : PAGE STYLES  -  Small extra styles only this page needs (so admin.css does not change) -->
     <style type="text/css">
 
-        /* The little arrow of every dropdown */
+        /* ---------- The little arrow of every dropdown ---------- */
         select.input {
             appearance: none;
             -webkit-appearance: none;
@@ -26,280 +45,490 @@
             background-size: 14px;
         }
 
-        /* Number boxes with a little icon */
-        .stat-top { display: flex; justify-content: space-between; align-items: flex-start; }
-        .stat-top svg { flex-shrink: 0; color: var(--blue); }
+        /* ---------- Number boxes with a little icon ---------- */
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
 
-        /* Sidebar icons */
-        .sidebar a.menu-item { display: flex; align-items: center; gap: 12px; }
-        .menu-icon { width: 18px; height: 18px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .stat-top svg {
+            flex-shrink: 0;
+            color: var(--blue);
+        }
 
-        /* The avatar + drop-down menu (top right) */
-        .user-menu { position: relative; }
-        .user-btn { display: flex; align-items: center; padding: 0; background: none; border: none; cursor: pointer; }
-        .user-btn .avatar { margin-left: 0; }
-        .user-dropdown { display: none; position: absolute; right: 0; top: 44px; min-width: 180px; padding: 6px; background: white; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(15, 27, 76, 0.15); z-index: 50; }
-        .user-dropdown.open { display: block; }
-        .user-dropdown a { display: block; padding: 10px 12px; border-radius: 6px; color: var(--text); font-size: 13px; text-decoration: none; }
-        .user-dropdown a:hover { background: #F1F5F9; }
-        .user-dropdown a.logout { color: #DC2626; }
+        /* ---------- Sidebar icons ---------- */
+        .sidebar a.menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-        /* Big text box + two small boxes side by side */
-        .input.textarea { height: auto; padding: 10px 12px; font-family: inherit; resize: vertical; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .menu-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
 
-        /* A blue badge */
-        .badge.blue { background: #EEF2FF; color: var(--blue); }
+        /* ---------- The avatar + drop-down menu (top right) ---------- */
+        .user-menu {
+            position: relative;
+        }
 
-        /* The wider popup that shows the questions */
-        .modal-box.wide { max-width: 640px; }
+        .user-btn {
+            display: flex;
+            align-items: center;
+            padding: 0;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .user-btn .avatar {
+            margin-left: 0;
+        }
+
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 44px;
+            min-width: 180px;
+            padding: 6px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(15, 27, 76, 0.15);
+            z-index: 50;
+        }
+
+        .user-dropdown.open {
+            display: block;
+        }
+
+        .user-dropdown a {
+            display: block;
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .user-dropdown a:hover {
+            background: #F1F5F9;
+        }
+
+        .user-dropdown a.logout {
+            color: #DC2626;
+        }
+
+        /* ---------- Big text box + two small boxes side by side ---------- */
+        .input.textarea {
+            height: auto;
+            padding: 10px 12px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* ---------- A blue badge ---------- */
+        .badge.blue {
+            background: #EEF2FF;
+            color: var(--blue);
+        }
+
+        /* ---------- The wider popup that shows the questions ---------- */
+        .modal-box.wide {
+            max-width: 640px;
+        }
 
         /* ---------- The question cards inside the quiz popup ---------- */
-        .q-head { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 10px 0; }
-        .q-head h4 { margin: 0; font-size: 14px; }
+        .q-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 4px 0 10px 0;
+        }
 
-        .q-card { margin-bottom: 10px; padding: 12px 14px; background: white; border: 1px solid var(--line); border-radius: 10px; }
-        .q-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; color: var(--grey); }
-        .q-text { margin-bottom: 8px; font-size: 13px; font-weight: 600; line-height: 1.4; }
-        .q-opt { padding: 5px 10px; margin-bottom: 4px; border-radius: 6px; background: #F8FAFC; font-size: 12px; }
-        .q-opt.correct { background: #DCFCE7; color: #166534; font-weight: 600; }
-        .q-explain { margin-top: 6px; color: var(--grey); font-size: 12px; }
-        .q-empty { padding: 18px; text-align: center; color: var(--grey); font-size: 13px; background: #F8FAFC; border-radius: 10px; margin-bottom: 14px; }
+        .q-head h4 {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .q-card {
+            margin-bottom: 10px;
+            padding: 12px 14px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+        }
+
+        .q-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: var(--grey);
+        }
+
+        .q-text {
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .q-opt {
+            padding: 5px 10px;
+            margin-bottom: 4px;
+            border-radius: 6px;
+            background: #F8FAFC;
+            font-size: 12px;
+        }
+
+        .q-opt.correct {
+            background: #DCFCE7;
+            color: #166534;
+            font-weight: 600;
+        }
+
+        .q-explain {
+            margin-top: 6px;
+            color: var(--grey);
+            font-size: 12px;
+        }
+
+        .q-empty {
+            padding: 18px;
+            text-align: center;
+            color: var(--grey);
+            font-size: 13px;
+            background: #F8FAFC;
+            border-radius: 10px;
+            margin-bottom: 14px;
+        }
 
         /* ---------- Table columns: fixed widths, so the 3 action icons stay on ONE row ---------- */
-        table.data { table-layout: fixed; }
-        th.c-id      { width: 56px; }
-        th.c-quiz    { width: 22%; }
-        th.c-lesson  { width: 22%; }
-        th.c-course  { width: 19%; }      /* smaller = the Course column is narrower */
-        th.c-q       { width: 140px; }
-        th.c-pass    { width: 80px; }
-        th.c-att     { width: 100px; }
-        th.c-actions { width: 150px; }    /* bigger = more room for the icons */
-        th.center, td.center { text-align: center; }
-        td.actions { white-space: nowrap; }
-        .badge { white-space: nowrap; }
+        table.data {
+            table-layout: fixed;
+        }
+
+        th.c-id {
+            width: 56px;
+        }
+
+        th.c-quiz {
+            width: 22%;
+        }
+
+        th.c-lesson {
+            width: 22%;
+        }
+
+        th.c-course {
+            width: 19%; /* smaller = the Course column is narrower */
+        }
+
+        th.c-q {
+            width: 140px;
+        }
+
+        th.c-pass {
+            width: 80px;
+        }
+
+        th.c-att {
+            width: 100px;
+        }
+
+        th.c-actions {
+            width: 150px; /* bigger = more room for the icons */
+        }
+
+        th.center, td.center {
+            text-align: center;
+        }
+
+        td.actions {
+            white-space: nowrap;
+        }
+
+        .badge {
+            white-space: nowrap;
+        }
+        /* ---------- Centered table columns (add class="center" to the <th> and to the <td>) ---------- */
+        table.data th.center,
+        table.data td.center {
+            text-align: center;
+        }
     </style>
 
     <!-- ==================================================
-         JAVASCRIPT : controls the popups
+         HEAD 4 of 4 : JAVASCRIPT : controls the popups
          ================================================== -->
     <script type="text/javascript">
 
-var currentId = 0;   // the quiz we clicked on
+        var currentId = 0;   // the quiz we clicked on
 
-// ----- Show / hide a popup -----
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-// ----- Helpers -----
-function rowOf(id) { return document.getElementById('row' + id); }
-function show(id, text) { document.getElementById(id).innerText = text; }
-function orDash(text) { return (text == null || text == '') ? '—' : text; }
-
-// Makes a small element with some text  (for example a <div class="q-text">)
-function make(tag, cssClass, text) {
-    var el = document.createElement(tag);
-    if (cssClass) { el.className = cssClass; }
-    if (text != null) { el.innerText = text; }
-    return el;
-}
-
-// ----- POPUP 1 : quiz detail + its questions (when you click a row) -----
-function openDetail(id) {
-    currentId = id;
-    var row = rowOf(id);
-
-    show('dTitle', row.getAttribute('data-title'));
-    show('dLesson', orDash(row.getAttribute('data-lesson')));
-    show('dCourse', orDash(row.getAttribute('data-course')));
-    show('dPass', row.getAttribute('data-pass') + '%');
-    show('dAttempts', row.getAttribute('data-attempts'));
-    show('dId', id);
-
-    buildQuestions(id, 'dQuestions', 'dQCount', 'detail');
-    openModal('detailModal');
-}
-
-// Draws the question cards. The questions are hidden in the page (id="qs12"), we read them here.
-// boxId = where the cards go,  countId = where "2 questions" goes,  from = 'detail' or 'edit' (the popup we are in)
-function buildQuestions(quizId, boxId, countId, from) {
-    var box = document.getElementById(boxId);
-    box.innerHTML = '';
-
-    var list = document.getElementById('qs' + quizId).children;
-    show(countId, list.length + (list.length == 1 ? ' question' : ' questions'));
-
-    if (list.length == 0) {
-        box.appendChild(make('div', 'q-empty', 'This quiz has no questions yet. Click "Add Question".'));
-        return;
-    }
-
-    for (var i = 0; i < list.length; i++) {
-        var q = list[i];
-        var qid = q.getAttribute('data-id');
-        var card = make('div', 'q-card');
-
-        // top line: "Question 1 · Medium · 10 points"  +  edit / delete buttons
-        var top = make('div', 'q-top');
-        var meta = 'Question ' + (i + 1);
-        var dif = q.getAttribute('data-difficulty');
-        var pts = q.getAttribute('data-points');
-        if (dif != '') { meta += ' · ' + dif; }
-        if (pts != '') { meta += ' · ' + pts + (pts == '1' ? ' point' : ' points'); }
-        top.appendChild(make('span', '', meta));
-
-        var buttons = make('span');
-        var edit = make('button', 'icon-btn', 'Edit');
-        edit.type = 'button';
-        edit.setAttribute('onclick', 'openQuestion(' + qid + ',' + quizId + ',\'' + from + '\')');
-        var del = make('button', 'icon-btn red', 'Delete');
-        del.type = 'button';
-        del.setAttribute('onclick', 'openQuestionDelete(' + qid + ',' + quizId + ',\'' + from + '\')');
-        buttons.appendChild(edit);
-        buttons.appendChild(del);
-        top.appendChild(buttons);
-        card.appendChild(top);
-
-        // the question + the 4 answers (the right one is green)
-        card.appendChild(make('div', 'q-text', q.getAttribute('data-text')));
-
-        var letters = ['A', 'B', 'C', 'D'];
-        for (var k = 0; k < 4; k++) {
-            var option = q.getAttribute('data-' + letters[k].toLowerCase());
-            if (option == '') { continue; }
-            var isRight = (q.getAttribute('data-correct') == letters[k]);
-            card.appendChild(make('div', 'q-opt' + (isRight ? ' correct' : ''), letters[k] + '.  ' + option));
+        // ----- Show / hide a popup -----
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
         }
 
-        var why = q.getAttribute('data-explain');
-        if (why != '') { card.appendChild(make('div', 'q-explain', 'Explanation: ' + why)); }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
 
-        box.appendChild(card);
-    }
-}
+        // ----- Helpers -----
+        function rowOf(id) {
+            return document.getElementById('row' + id);
+        }
 
-// The "Edit Quiz" button inside the detail popup
-function editFromDetail() {
-    closeModal('detailModal');
-    openEdit(currentId);
-}
+        function show(id, text) {
+            document.getElementById(id).innerText = text;
+        }
 
-// The "Add Question" button inside the detail popup
-function addQuestionFromDetail() {
-    openQuestion(0, currentId, 'detail');
-}
+        function orDash(text) {
+            return (text == null || text == '') ? '—' : text;
+        }
 
-// The "+ Add Question" button inside the Edit Quiz popup
-function addQuestionFromEdit() {
-    openQuestion(0, document.getElementById('hfEditId').value, 'edit');
-}
+        // Makes a small element with some text  (for example a <div class="q-text">)
+        function make(tag, cssClass, text) {
+            var el = document.createElement(tag);
+            if (cssClass) {
+                el.className = cssClass;
+            }
+            if (text != null) {
+                el.innerText = text;
+            }
+            return el;
+        }
 
-// Go back to the popup we came from
-function goBack(from, quizId) {
-    if (from == 'edit') { openEdit(quizId); } else { openDetail(quizId); }
-}
+        // ----- POPUP 1 : quiz detail + its questions (when you click a row) -----
+        function openDetail(id) {
+            currentId = id;
+            var row = rowOf(id);
 
-// ----- The drop-down menu at the top right -----
-function toggleUserMenu(event) {
-    event.stopPropagation();
-    document.getElementById('userDropdown').classList.toggle('open');
-}
-document.addEventListener('click', function () {
-    document.getElementById('userDropdown').classList.remove('open');
-});
+            show('dTitle', row.getAttribute('data-title'));
+            show('dLesson', orDash(row.getAttribute('data-lesson')));
+            show('dCourse', orDash(row.getAttribute('data-course')));
+            show('dPass', row.getAttribute('data-pass') + '%');
+            show('dAttempts', row.getAttribute('data-attempts'));
+            show('dId', id);
 
-// ----- POPUP 2 : edit quiz -----
-function openEdit(id) {
-    var row = rowOf(id);
-    document.getElementById('hfEditId').value = id;
-    document.getElementById('txtEditTitle').value = row.getAttribute('data-title');
-    document.getElementById('ddlEditLesson').value = row.getAttribute('data-lessonid');
-    document.getElementById('txtEditPass').value = row.getAttribute('data-pass');
-    buildQuestions(id, 'eQuestions', 'eQCount', 'edit');   // the questions of this quiz (add / edit / delete)
-    openModal('editModal');
-}
+            buildQuestions(id, 'dQuestions', 'dQCount', 'detail');
+            openModal('detailModal');
+        }
 
-// ----- POPUP 4 : delete quiz -----
-function openDelete(id) {
-    document.getElementById('hfDeleteId').value = id;
-    show('delName', rowOf(id).getAttribute('data-title'));
-    openModal('deleteModal');
-}
+        // Draws the question cards. The questions are hidden in the page (id="qs12"), we read them here.
+        // boxId = where the cards go,  countId = where "2 questions" goes,  from = 'detail' or 'edit' (the popup we are in)
+        function buildQuestions(quizId, boxId, countId, from) {
+            var box = document.getElementById(boxId);
+            box.innerHTML = '';
 
-// ----- POPUP 5 : add / edit ONE question  (qid = 0 means a new question) -----
-function openQuestion(qid, quizId, from) {
-    closeModal('detailModal');
-    closeModal('editModal');
+            var list = document.getElementById('qs' + quizId).children;
+            show(countId, list.length + (list.length == 1 ? ' question' : ' questions'));
 
-    document.getElementById('hfQId').value = qid;
-    document.getElementById('hfQQuiz').value = quizId;
-    document.getElementById('hfQFrom').value = from || 'detail';
+            if (list.length == 0) {
+                box.appendChild(make('div', 'q-empty', 'This quiz has no questions yet. Click "Add Question".'));
+                return;
+            }
 
-    if (qid == 0) {
-        show('qTitle', 'Add Question');
-        document.getElementById('txtQText').value = '';
-        document.getElementById('txtQA').value = '';
-        document.getElementById('txtQB').value = '';
-        document.getElementById('txtQC').value = '';
-        document.getElementById('txtQD').value = '';
-        document.getElementById('ddlQCorrect').value = 'A';
-        document.getElementById('txtQExplain').value = '';
-        setDifficulty('Medium');
-        document.getElementById('txtQPoints').value = '10';
-    } else {
-        var q = document.getElementById('qd' + qid);
-        show('qTitle', 'Edit Question');
-        document.getElementById('txtQText').value = q.getAttribute('data-text');
-        document.getElementById('txtQA').value = q.getAttribute('data-a');
-        document.getElementById('txtQB').value = q.getAttribute('data-b');
-        document.getElementById('txtQC').value = q.getAttribute('data-c');
-        document.getElementById('txtQD').value = q.getAttribute('data-d');
-        document.getElementById('ddlQCorrect').value = q.getAttribute('data-correct') || 'A';
-        document.getElementById('txtQExplain').value = q.getAttribute('data-explain');
-        setDifficulty(q.getAttribute('data-difficulty'));
-        document.getElementById('txtQPoints').value = q.getAttribute('data-points') || '10';
-    }
-    openModal('questionModal');
-}
+            for (var i = 0; i < list.length; i++) {
+                var q = list[i];
+                var qid = q.getAttribute('data-id');
+                var card = make('div', 'q-card');
 
-// Chooses the difficulty in the dropdown (it does not matter if it is written easy, Easy or EASY)
-function setDifficulty(value) {
-    var box = document.getElementById('ddlQDifficulty');
-    box.value = 'Medium';
-    for (var i = 0; i < box.options.length; i++) {
-        if (box.options[i].value.toLowerCase() == String(value).toLowerCase()) { box.value = box.options[i].value; }
-    }
-}
+                // top line: "Question 1 · Medium · 10 points"  +  edit / delete buttons
+                var top = make('div', 'q-top');
+                var meta = 'Question ' + (i + 1);
+                var dif = q.getAttribute('data-difficulty');
+                var pts = q.getAttribute('data-points');
+                if (dif != '') {
+                    meta += ' · ' + dif;
+                }
+                if (pts != '') {
+                    meta += ' · ' + pts + (pts == '1' ? ' point' : ' points');
+                }
+                top.appendChild(make('span', '', meta));
 
-// Cancel in the question popup: go back to the quiz popup
-function cancelQuestion() {
-    closeModal('questionModal');
-    goBack(document.getElementById('hfQFrom').value, document.getElementById('hfQQuiz').value);
-}
+                var buttons = make('span');
+                var edit = make('button', 'icon-btn', 'Edit');
+                edit.type = 'button';
+                edit.setAttribute('onclick', 'openQuestion(' + qid + ',' + quizId + ',\'' + from + '\')');
+                var del = make('button', 'icon-btn red', 'Delete');
+                del.type = 'button';
+                del.setAttribute('onclick', 'openQuestionDelete(' + qid + ',' + quizId + ',\'' + from + '\')');
+                buttons.appendChild(edit);
+                buttons.appendChild(del);
+                top.appendChild(buttons);
+                card.appendChild(top);
 
-// ----- POPUP 6 : delete ONE question -----
-function openQuestionDelete(qid, quizId, from) {
-    closeModal('detailModal');
-    closeModal('editModal');
-    document.getElementById('hfQDeleteFrom').value = from || 'detail';
-    document.getElementById('hfQDeleteId').value = qid;
-    document.getElementById('hfQDeleteQuiz').value = quizId;
-    show('delQText', document.getElementById('qd' + qid).getAttribute('data-text'));
-    openModal('questionDeleteModal');
-}
+                // the question + the 4 answers (the right one is green)
+                card.appendChild(make('div', 'q-text', q.getAttribute('data-text')));
 
-function cancelQuestionDelete() {
-    closeModal('questionDeleteModal');
-    goBack(document.getElementById('hfQDeleteFrom').value, document.getElementById('hfQDeleteQuiz').value);
-}
+                var letters = ['A', 'B', 'C', 'D'];
+                for (var k = 0; k < 4; k++) {
+                    var option = q.getAttribute('data-' + letters[k].toLowerCase());
+                    if (option == '') {
+                        continue;
+                    }
+                    var isRight = (q.getAttribute('data-correct') == letters[k]);
+                    card.appendChild(make('div', 'q-opt' + (isRight ? ' correct' : ''), letters[k] + '.  ' + option));
+                }
+
+                var why = q.getAttribute('data-explain');
+                if (why != '') {
+                    card.appendChild(make('div', 'q-explain', 'Explanation: ' + why));
+                }
+
+                box.appendChild(card);
+            }
+        }
+
+        // The "Edit Quiz" button inside the detail popup
+        function editFromDetail() {
+            closeModal('detailModal');
+            openEdit(currentId);
+        }
+
+        // The "Add Question" button inside the detail popup
+        function addQuestionFromDetail() {
+            openQuestion(0, currentId, 'detail');
+        }
+
+        // The "+ Add Question" button inside the Edit Quiz popup
+        function addQuestionFromEdit() {
+            openQuestion(0, document.getElementById('hfEditId').value, 'edit');
+        }
+
+        // Go back to the popup we came from
+        function goBack(from, quizId) {
+            if (from == 'edit') {
+                openEdit(quizId);
+            } else {
+                openDetail(quizId);
+            }
+        }
+
+        // ----- The drop-down menu at the top right -----
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            document.getElementById('userDropdown').classList.toggle('open');
+        }
+        document.addEventListener('click', function () {
+            document.getElementById('userDropdown').classList.remove('open');
+        });
+
+        // ----- POPUP 2 : edit quiz -----
+        function openEdit(id) {
+            var row = rowOf(id);
+            document.getElementById('hfEditId').value = id;
+            document.getElementById('txtEditTitle').value = row.getAttribute('data-title');
+            document.getElementById('ddlEditLesson').value = row.getAttribute('data-lessonid');
+            document.getElementById('txtEditPass').value = row.getAttribute('data-pass');
+            buildQuestions(id, 'eQuestions', 'eQCount', 'edit');   // the questions of this quiz (add / edit / delete)
+            openModal('editModal');
+        }
+
+        // ----- POPUP 4 : delete quiz -----
+        function openDelete(id) {
+            document.getElementById('hfDeleteId').value = id;
+            show('delName', rowOf(id).getAttribute('data-title'));
+            openModal('deleteModal');
+        }
+
+        // ----- POPUP 5 : add / edit ONE question  (qid = 0 means a new question) -----
+        function openQuestion(qid, quizId, from) {
+            closeModal('detailModal');
+            closeModal('editModal');
+
+            document.getElementById('hfQId').value = qid;
+            document.getElementById('hfQQuiz').value = quizId;
+            document.getElementById('hfQFrom').value = from || 'detail';
+
+            if (qid == 0) {
+                show('qTitle', 'Add Question');
+                document.getElementById('txtQText').value = '';
+                document.getElementById('txtQA').value = '';
+                document.getElementById('txtQB').value = '';
+                document.getElementById('txtQC').value = '';
+                document.getElementById('txtQD').value = '';
+                document.getElementById('ddlQCorrect').value = 'A';
+                document.getElementById('txtQExplain').value = '';
+                setDifficulty('Medium');
+                document.getElementById('txtQPoints').value = '10';
+            } else {
+                var q = document.getElementById('qd' + qid);
+                show('qTitle', 'Edit Question');
+                document.getElementById('txtQText').value = q.getAttribute('data-text');
+                document.getElementById('txtQA').value = q.getAttribute('data-a');
+                document.getElementById('txtQB').value = q.getAttribute('data-b');
+                document.getElementById('txtQC').value = q.getAttribute('data-c');
+                document.getElementById('txtQD').value = q.getAttribute('data-d');
+                document.getElementById('ddlQCorrect').value = q.getAttribute('data-correct') || 'A';
+                document.getElementById('txtQExplain').value = q.getAttribute('data-explain');
+                setDifficulty(q.getAttribute('data-difficulty'));
+                document.getElementById('txtQPoints').value = q.getAttribute('data-points') || '10';
+            }
+            openModal('questionModal');
+        }
+
+        // Chooses the difficulty in the dropdown (it does not matter if it is written easy, Easy or EASY)
+        function setDifficulty(value) {
+            var box = document.getElementById('ddlQDifficulty');
+            box.value = 'Medium';
+            for (var i = 0; i < box.options.length; i++) {
+                if (box.options[i].value.toLowerCase() == String(value).toLowerCase()) {
+                    box.value = box.options[i].value;
+                }
+            }
+        }
+
+        // Cancel in the question popup: go back to the quiz popup
+        function cancelQuestion() {
+            closeModal('questionModal');
+            goBack(document.getElementById('hfQFrom').value, document.getElementById('hfQQuiz').value);
+        }
+
+        // ----- POPUP 6 : delete ONE question -----
+        function openQuestionDelete(qid, quizId, from) {
+            closeModal('detailModal');
+            closeModal('editModal');
+            document.getElementById('hfQDeleteFrom').value = from || 'detail';
+            document.getElementById('hfQDeleteId').value = qid;
+            document.getElementById('hfQDeleteQuiz').value = quizId;
+            show('delQText', document.getElementById('qd' + qid).getAttribute('data-text'));
+            openModal('questionDeleteModal');
+        }
+
+        function cancelQuestionDelete() {
+            closeModal('questionDeleteModal');
+            goBack(document.getElementById('hfQDeleteFrom').value, document.getElementById('hfQDeleteQuiz').value);
+        }
     </script>
 </head>
 
 <body>
     <form id="form1" runat="server">
-        
-         <% Server.Execute("adminNav.aspx", false); %>
+
+        <!-- ==================================================
+             PART 1 : THE SIDEBAR  (the dark menu on the left)
+             It lives in its own file: adminNav.aspx
+             ================================================== -->
+        <% Server.Execute("adminNav.aspx", false); %>
 
         <!-- ==================================================
              PART 2 : EVERYTHING ON THE RIGHT SIDE
@@ -412,6 +641,7 @@ function cancelQuestionDelete() {
 
                     <asp:Panel ID="pnlTable" runat="server">
 
+                        <!-- Columns are on the LEFT. A column with class="center" (on its <th> and its <td>) is CENTERED  (rule is in PAGE STYLES). -->
                         <table class="data">
                             <tr>
                                 <th class="c-id">ID</th>
@@ -421,7 +651,7 @@ function cancelQuestionDelete() {
                                 <th class="c-q center">Questions</th>
                                 <th class="c-pass center">Pass</th>
                                 <th class="c-att center">Attempts</th>
-                                <th class="c-actions">Actions</th>
+                                <th class="c-actions center">Actions</th>
                             </tr>
 
                             <!-- C# fills the rows here -->
@@ -453,8 +683,8 @@ function cancelQuestionDelete() {
 
                 </div>
 
-            </div>
-        </div>
+            </div> <!-- end of the content area -->
+        </div> <!-- end of PART 2 : the right side -->
 
 
         <!-- The questions of the quizzes on this page. They are hidden: the quiz popup reads them. -->

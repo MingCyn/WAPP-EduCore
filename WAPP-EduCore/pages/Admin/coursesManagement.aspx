@@ -1,21 +1,38 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="coursesManagement.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.WebForm4" %>
 
+<%--
+    MAP OF THIS PAGE   (use Ctrl+F and search the name in capital letters)
+
+    <head>   HEAD 1 FONT  |  HEAD 2 SHARED STYLES  |  HEAD 3 PAGE STYLES  |  HEAD 4 JAVASCRIPT
+    <body>   PART 1 SIDEBAR
+             PART 2 THE RIGHT SIDE
+                     TOP BAR
+                     MESSAGE (green / red)
+                     5 NUMBER BOXES
+                     COURSE TABLE CARD  (toolbar, table, footer, "no results")
+             TOPIC LIST (hidden, used by the topic boxes)
+             POPUP 1 : COURSE DETAIL
+             POPUP 2 : EDIT COURSE
+             POPUP 3 : CREATE COURSE
+             POPUP 4 : DELETE COURSE
+--%>
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head runat="server">
     <title>EduCore - Course Management</title>
 
-    <!-- Font -->
+    <!-- HEAD 1 of 4 : FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Our own styles (colors, cards, tables, popups...) -->
+    <!-- HEAD 2 of 4 : SHARED STYLES  (sidebar, cards, tables, popups ... all live in admin.css) -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
 
-    <!-- Small extra styles only this page needs (so admin.css does not change) -->
+    <!-- HEAD 3 of 4 : PAGE STYLES  -  Small extra styles only this page needs (so admin.css does not change) -->
     <style type="text/css">
 
-        /* The little arrow of every dropdown, moved a bit to the left */
+        /* ---------- The little arrow of every dropdown, moved a bit to the left ---------- */
         select.input {
             appearance: none;
             -webkit-appearance: none;
@@ -26,7 +43,7 @@
             background-size: 14px;
         }
 
-        /* Green "Published" and red "Draft" badges (the Status column) */
+        /* ---------- Green "Published" and red "Draft" badges (the Status column) ---------- */
         .badge.published {
             background: #DCFCE7;
             color: #15803D;
@@ -37,7 +54,7 @@
             color: #B91C1C;
         }
 
-        /* A blue "New" badge */
+        /* ---------- A blue "New" badge ---------- */
         .badge.new {
             background: #EEF2FF;
             color: var(--blue);
@@ -52,7 +69,7 @@
             border-radius: 12px;
         }
 
-        /* The picture box on top of the card */
+        /* ---------- The picture box on top of the card ---------- */
         .preview-img-box {
             display: flex;
             align-items: center;
@@ -86,7 +103,7 @@
             line-height: 1.5;
         }
 
-        /* Big text box for the description */
+        /* ---------- Big text box for the description ---------- */
         .input.textarea {
             height: auto;
             padding: 10px 12px;
@@ -94,7 +111,7 @@
             resize: vertical;
         }
 
-        /* "Choose file" button */
+        /* ---------- "Choose file" button ---------- */
         .file-input {
             width: 100%;
             margin-bottom: 14px;
@@ -194,7 +211,7 @@
             background-size: 14px;
         }
 
-        /* hide the browser's own little arrow (ours is shown instead, the click still works) */
+        /* ---------- hide the browser's own little arrow (ours is shown instead, the click still works) ---------- */
         input[list]::-webkit-calendar-picker-indicator {
             opacity: 0;
             cursor: pointer;
@@ -207,33 +224,56 @@
             gap: 12px;
         }
 
-        /* Small grey line under a box */
+        /* ---------- Small grey line under a box ---------- */
         .form-hint {
             margin: -6px 0 14px 0;
             color: var(--grey);
             font-size: 12px;
         }
+        /* ---------- Centered table columns (add class="center" to the <th> and to the <td>) ---------- */
+        table.data th.center,
+        table.data td.center {
+            text-align: center;
+        }
     </style>
 
     <!-- ==================================================
-         JAVASCRIPT : controls the popups
+         HEAD 4 of 4 : JAVASCRIPT : controls the popups
          ================================================== -->
     <script type="text/javascript">
 
         var currentId = 0;   // the course we clicked on
 
         // ----- Show / hide a popup -----
-        function openModal(id)  { document.getElementById(id).classList.add('open'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
 
         // ----- Helpers -----
-        function rowOf(id)       { return document.getElementById('row' + id); }                   // the table row of a course
-        function show(id, text)  { document.getElementById(id).innerText = text; }                 // put text in a box
-        function orDash(text)    { return (text == null || text == '') ? '—' : text; }             // empty -> a dash
+        // the table row of a course
+        function rowOf(id) {
+            return document.getElementById('row' + id);
+        }
+
+        // put text in a box
+        function show(id, text) {
+            document.getElementById(id).innerText = text;
+        }
+
+        // empty -> a dash
+        function orDash(text) {
+            return (text == null || text == '') ? '—' : text;
+        }
 
         // The Status column holds "published" or "draft".
         // Anything that is not "published" is shown as a draft.
-        function cleanStatus(text) { return (text == 'published') ? 'published' : 'draft'; }
+        function cleanStatus(text) {
+            return (text == 'published') ? 'published' : 'draft';
+        }
 
         // Put the green "Published" or red "Draft" badge in a box
         function showStatus(id, text) {
@@ -246,10 +286,14 @@
         // The references are saved in the database like a list:  ["Book one", "Book two"]
         // This turns that list into plain lines (one reference per line)
         function referencesToLines(text) {
-            if (text == null || text == '') { return ''; }
+            if (text == null || text == '') {
+                return '';
+            }
             try {
                 var list = JSON.parse(text);
-                if (Array.isArray(list)) { return list.join('\n'); }
+                if (Array.isArray(list)) {
+                    return list.join('\n');
+                }
             } catch (e) { }
             return text;     // not a list: just show the text as it is
         }
@@ -295,7 +339,10 @@
             var info = { level: '', name: row.getAttribute('data-title'), weeks: '', hours: '' };
 
             var parts = /^(SPM|IGCSE)\b[^:]*:\s*(.*)$/i.exec(info.name);
-            if (parts) { info.level = parts[1].toUpperCase(); info.name = parts[2]; }
+            if (parts) {
+                info.level = parts[1].toUpperCase();
+                info.name = parts[2];
+            }
             else {
                 // no "SPM ...:" in the title, so use the course_level column
                 var saved = (row.getAttribute('data-level') || '').toUpperCase();
@@ -303,7 +350,10 @@
             }
 
             var d = /(\d+(?:\.\d+)?)\s*weeks?\s*\(\s*(\d+(?:\.\d+)?)\s*hrs?\s*\/\s*week\s*\)/i.exec(row.getAttribute('data-duration'));
-            if (d) { info.weeks = String(parseInt(d[1])); info.hours = String(parseInt(d[2])); }
+            if (d) {
+                info.weeks = String(parseInt(d[1]));
+                info.hours = String(parseInt(d[2]));
+            }
 
             return info;
         }
@@ -394,7 +444,9 @@
 
             // The description box only exists when the table has a description column
             var box = document.getElementById('txtEditDescription');
-            if (box != null) { box.value = row.getAttribute('data-description'); }
+            if (box != null) {
+                box.value = row.getAttribute('data-description');
+            }
 
             openModal('editModal');
         }
@@ -404,7 +456,11 @@
 <body>
     <form id="form1" runat="server">
 
-         <% Server.Execute("adminNav.aspx", false); %>
+        <!-- ==================================================
+             PART 1 : THE SIDEBAR  (the dark menu on the left)
+             It lives in its own file: adminNav.aspx
+             ================================================== -->
+        <% Server.Execute("adminNav.aspx", false); %>
 
         <!-- ==================================================
              PART 2 : EVERYTHING ON THE RIGHT SIDE
@@ -523,16 +579,17 @@
                     <!-- The table (only shown when we found courses) -->
                     <asp:Panel ID="pnlTable" runat="server">
 
+                        <!-- Columns are on the LEFT. A column with class="center" (on its <th> and its <td>) is CENTERED  (rule is in PAGE STYLES). -->
                         <table class="data">
                             <tr>
                                 <th>ID</th>
                                 <th>Course title</th>
-                                <th>Topic</th>
-                                <th>Duration</th>
-                                <th>Lessons</th>
-                                <th>Status</th>
-                                <th>Created</th>
-                                <th>Actions</th>
+                                <th class="center">Topic</th>
+                                <th class="center">Duration</th>
+                                <th class="center">Lessons</th>
+                                <th class="center">Status</th>
+                                <th class="center">Created</th>
+                                <th class="center">Actions</th>
                             </tr>
 
                             <!-- C# fills the rows here -->
@@ -565,8 +622,8 @@
 
                 </div>
 
-            </div>
-        </div>
+            </div> <!-- end of the content area -->
+        </div> <!-- end of PART 2 : the right side -->
 
 
         <!-- A hidden list of topics. The Topic boxes use it to suggest topics while you type. -->
@@ -690,11 +747,63 @@
                 <div class="form-row">
                     <div class="form-field">
                         <label>Duration (weeks, 1-24)</label>
-                        <asp:DropDownList ID="ddlEditWeeks" runat="server" ClientIDMode="Static" CssClass="input"><asp:ListItem Value="">Select weeks</asp:ListItem><asp:ListItem Value="1">1</asp:ListItem><asp:ListItem Value="2">2</asp:ListItem><asp:ListItem Value="3">3</asp:ListItem><asp:ListItem Value="4">4</asp:ListItem><asp:ListItem Value="5">5</asp:ListItem><asp:ListItem Value="6">6</asp:ListItem><asp:ListItem Value="7">7</asp:ListItem><asp:ListItem Value="8">8</asp:ListItem><asp:ListItem Value="9">9</asp:ListItem><asp:ListItem Value="10">10</asp:ListItem><asp:ListItem Value="11">11</asp:ListItem><asp:ListItem Value="12">12</asp:ListItem><asp:ListItem Value="13">13</asp:ListItem><asp:ListItem Value="14">14</asp:ListItem><asp:ListItem Value="15">15</asp:ListItem><asp:ListItem Value="16">16</asp:ListItem><asp:ListItem Value="17">17</asp:ListItem><asp:ListItem Value="18">18</asp:ListItem><asp:ListItem Value="19">19</asp:ListItem><asp:ListItem Value="20">20</asp:ListItem><asp:ListItem Value="21">21</asp:ListItem><asp:ListItem Value="22">22</asp:ListItem><asp:ListItem Value="23">23</asp:ListItem><asp:ListItem Value="24">24</asp:ListItem></asp:DropDownList>
+                        <asp:DropDownList ID="ddlEditWeeks" runat="server" ClientIDMode="Static" CssClass="input">
+                            <asp:ListItem Value="">Select weeks</asp:ListItem>
+                            <asp:ListItem Value="1">1</asp:ListItem>
+                            <asp:ListItem Value="2">2</asp:ListItem>
+                            <asp:ListItem Value="3">3</asp:ListItem>
+                            <asp:ListItem Value="4">4</asp:ListItem>
+                            <asp:ListItem Value="5">5</asp:ListItem>
+                            <asp:ListItem Value="6">6</asp:ListItem>
+                            <asp:ListItem Value="7">7</asp:ListItem>
+                            <asp:ListItem Value="8">8</asp:ListItem>
+                            <asp:ListItem Value="9">9</asp:ListItem>
+                            <asp:ListItem Value="10">10</asp:ListItem>
+                            <asp:ListItem Value="11">11</asp:ListItem>
+                            <asp:ListItem Value="12">12</asp:ListItem>
+                            <asp:ListItem Value="13">13</asp:ListItem>
+                            <asp:ListItem Value="14">14</asp:ListItem>
+                            <asp:ListItem Value="15">15</asp:ListItem>
+                            <asp:ListItem Value="16">16</asp:ListItem>
+                            <asp:ListItem Value="17">17</asp:ListItem>
+                            <asp:ListItem Value="18">18</asp:ListItem>
+                            <asp:ListItem Value="19">19</asp:ListItem>
+                            <asp:ListItem Value="20">20</asp:ListItem>
+                            <asp:ListItem Value="21">21</asp:ListItem>
+                            <asp:ListItem Value="22">22</asp:ListItem>
+                            <asp:ListItem Value="23">23</asp:ListItem>
+                            <asp:ListItem Value="24">24</asp:ListItem>
+                        </asp:DropDownList>
                     </div>
                     <div class="form-field">
                         <label>Hours per week (1-24)</label>
-                        <asp:DropDownList ID="ddlEditHours" runat="server" ClientIDMode="Static" CssClass="input"><asp:ListItem Value="">Select hours</asp:ListItem><asp:ListItem Value="1">1</asp:ListItem><asp:ListItem Value="2">2</asp:ListItem><asp:ListItem Value="3">3</asp:ListItem><asp:ListItem Value="4">4</asp:ListItem><asp:ListItem Value="5">5</asp:ListItem><asp:ListItem Value="6">6</asp:ListItem><asp:ListItem Value="7">7</asp:ListItem><asp:ListItem Value="8">8</asp:ListItem><asp:ListItem Value="9">9</asp:ListItem><asp:ListItem Value="10">10</asp:ListItem><asp:ListItem Value="11">11</asp:ListItem><asp:ListItem Value="12">12</asp:ListItem><asp:ListItem Value="13">13</asp:ListItem><asp:ListItem Value="14">14</asp:ListItem><asp:ListItem Value="15">15</asp:ListItem><asp:ListItem Value="16">16</asp:ListItem><asp:ListItem Value="17">17</asp:ListItem><asp:ListItem Value="18">18</asp:ListItem><asp:ListItem Value="19">19</asp:ListItem><asp:ListItem Value="20">20</asp:ListItem><asp:ListItem Value="21">21</asp:ListItem><asp:ListItem Value="22">22</asp:ListItem><asp:ListItem Value="23">23</asp:ListItem><asp:ListItem Value="24">24</asp:ListItem></asp:DropDownList>
+                        <asp:DropDownList ID="ddlEditHours" runat="server" ClientIDMode="Static" CssClass="input">
+                            <asp:ListItem Value="">Select hours</asp:ListItem>
+                            <asp:ListItem Value="1">1</asp:ListItem>
+                            <asp:ListItem Value="2">2</asp:ListItem>
+                            <asp:ListItem Value="3">3</asp:ListItem>
+                            <asp:ListItem Value="4">4</asp:ListItem>
+                            <asp:ListItem Value="5">5</asp:ListItem>
+                            <asp:ListItem Value="6">6</asp:ListItem>
+                            <asp:ListItem Value="7">7</asp:ListItem>
+                            <asp:ListItem Value="8">8</asp:ListItem>
+                            <asp:ListItem Value="9">9</asp:ListItem>
+                            <asp:ListItem Value="10">10</asp:ListItem>
+                            <asp:ListItem Value="11">11</asp:ListItem>
+                            <asp:ListItem Value="12">12</asp:ListItem>
+                            <asp:ListItem Value="13">13</asp:ListItem>
+                            <asp:ListItem Value="14">14</asp:ListItem>
+                            <asp:ListItem Value="15">15</asp:ListItem>
+                            <asp:ListItem Value="16">16</asp:ListItem>
+                            <asp:ListItem Value="17">17</asp:ListItem>
+                            <asp:ListItem Value="18">18</asp:ListItem>
+                            <asp:ListItem Value="19">19</asp:ListItem>
+                            <asp:ListItem Value="20">20</asp:ListItem>
+                            <asp:ListItem Value="21">21</asp:ListItem>
+                            <asp:ListItem Value="22">22</asp:ListItem>
+                            <asp:ListItem Value="23">23</asp:ListItem>
+                            <asp:ListItem Value="24">24</asp:ListItem>
+                        </asp:DropDownList>
                     </div>
                 </div>
 
@@ -775,11 +884,63 @@
                     <div class="form-row">
                         <div class="form-field">
                             <label>Duration (weeks, 1-24)</label>
-                            <asp:DropDownList ID="ddlAddWeeks" runat="server" ClientIDMode="Static" CssClass="input"><asp:ListItem Value="">Select weeks</asp:ListItem><asp:ListItem Value="1">1</asp:ListItem><asp:ListItem Value="2">2</asp:ListItem><asp:ListItem Value="3">3</asp:ListItem><asp:ListItem Value="4">4</asp:ListItem><asp:ListItem Value="5">5</asp:ListItem><asp:ListItem Value="6">6</asp:ListItem><asp:ListItem Value="7">7</asp:ListItem><asp:ListItem Value="8">8</asp:ListItem><asp:ListItem Value="9">9</asp:ListItem><asp:ListItem Value="10">10</asp:ListItem><asp:ListItem Value="11">11</asp:ListItem><asp:ListItem Value="12">12</asp:ListItem><asp:ListItem Value="13">13</asp:ListItem><asp:ListItem Value="14">14</asp:ListItem><asp:ListItem Value="15">15</asp:ListItem><asp:ListItem Value="16">16</asp:ListItem><asp:ListItem Value="17">17</asp:ListItem><asp:ListItem Value="18">18</asp:ListItem><asp:ListItem Value="19">19</asp:ListItem><asp:ListItem Value="20">20</asp:ListItem><asp:ListItem Value="21">21</asp:ListItem><asp:ListItem Value="22">22</asp:ListItem><asp:ListItem Value="23">23</asp:ListItem><asp:ListItem Value="24">24</asp:ListItem></asp:DropDownList>
+                            <asp:DropDownList ID="ddlAddWeeks" runat="server" ClientIDMode="Static" CssClass="input">
+                                <asp:ListItem Value="">Select weeks</asp:ListItem>
+                                <asp:ListItem Value="1">1</asp:ListItem>
+                                <asp:ListItem Value="2">2</asp:ListItem>
+                                <asp:ListItem Value="3">3</asp:ListItem>
+                                <asp:ListItem Value="4">4</asp:ListItem>
+                                <asp:ListItem Value="5">5</asp:ListItem>
+                                <asp:ListItem Value="6">6</asp:ListItem>
+                                <asp:ListItem Value="7">7</asp:ListItem>
+                                <asp:ListItem Value="8">8</asp:ListItem>
+                                <asp:ListItem Value="9">9</asp:ListItem>
+                                <asp:ListItem Value="10">10</asp:ListItem>
+                                <asp:ListItem Value="11">11</asp:ListItem>
+                                <asp:ListItem Value="12">12</asp:ListItem>
+                                <asp:ListItem Value="13">13</asp:ListItem>
+                                <asp:ListItem Value="14">14</asp:ListItem>
+                                <asp:ListItem Value="15">15</asp:ListItem>
+                                <asp:ListItem Value="16">16</asp:ListItem>
+                                <asp:ListItem Value="17">17</asp:ListItem>
+                                <asp:ListItem Value="18">18</asp:ListItem>
+                                <asp:ListItem Value="19">19</asp:ListItem>
+                                <asp:ListItem Value="20">20</asp:ListItem>
+                                <asp:ListItem Value="21">21</asp:ListItem>
+                                <asp:ListItem Value="22">22</asp:ListItem>
+                                <asp:ListItem Value="23">23</asp:ListItem>
+                                <asp:ListItem Value="24">24</asp:ListItem>
+                            </asp:DropDownList>
                         </div>
                         <div class="form-field">
                             <label>Hours per week (1-24)</label>
-                            <asp:DropDownList ID="ddlAddHours" runat="server" ClientIDMode="Static" CssClass="input"><asp:ListItem Value="">Select hours</asp:ListItem><asp:ListItem Value="1">1</asp:ListItem><asp:ListItem Value="2">2</asp:ListItem><asp:ListItem Value="3">3</asp:ListItem><asp:ListItem Value="4">4</asp:ListItem><asp:ListItem Value="5">5</asp:ListItem><asp:ListItem Value="6">6</asp:ListItem><asp:ListItem Value="7">7</asp:ListItem><asp:ListItem Value="8">8</asp:ListItem><asp:ListItem Value="9">9</asp:ListItem><asp:ListItem Value="10">10</asp:ListItem><asp:ListItem Value="11">11</asp:ListItem><asp:ListItem Value="12">12</asp:ListItem><asp:ListItem Value="13">13</asp:ListItem><asp:ListItem Value="14">14</asp:ListItem><asp:ListItem Value="15">15</asp:ListItem><asp:ListItem Value="16">16</asp:ListItem><asp:ListItem Value="17">17</asp:ListItem><asp:ListItem Value="18">18</asp:ListItem><asp:ListItem Value="19">19</asp:ListItem><asp:ListItem Value="20">20</asp:ListItem><asp:ListItem Value="21">21</asp:ListItem><asp:ListItem Value="22">22</asp:ListItem><asp:ListItem Value="23">23</asp:ListItem><asp:ListItem Value="24">24</asp:ListItem></asp:DropDownList>
+                            <asp:DropDownList ID="ddlAddHours" runat="server" ClientIDMode="Static" CssClass="input">
+                                <asp:ListItem Value="">Select hours</asp:ListItem>
+                                <asp:ListItem Value="1">1</asp:ListItem>
+                                <asp:ListItem Value="2">2</asp:ListItem>
+                                <asp:ListItem Value="3">3</asp:ListItem>
+                                <asp:ListItem Value="4">4</asp:ListItem>
+                                <asp:ListItem Value="5">5</asp:ListItem>
+                                <asp:ListItem Value="6">6</asp:ListItem>
+                                <asp:ListItem Value="7">7</asp:ListItem>
+                                <asp:ListItem Value="8">8</asp:ListItem>
+                                <asp:ListItem Value="9">9</asp:ListItem>
+                                <asp:ListItem Value="10">10</asp:ListItem>
+                                <asp:ListItem Value="11">11</asp:ListItem>
+                                <asp:ListItem Value="12">12</asp:ListItem>
+                                <asp:ListItem Value="13">13</asp:ListItem>
+                                <asp:ListItem Value="14">14</asp:ListItem>
+                                <asp:ListItem Value="15">15</asp:ListItem>
+                                <asp:ListItem Value="16">16</asp:ListItem>
+                                <asp:ListItem Value="17">17</asp:ListItem>
+                                <asp:ListItem Value="18">18</asp:ListItem>
+                                <asp:ListItem Value="19">19</asp:ListItem>
+                                <asp:ListItem Value="20">20</asp:ListItem>
+                                <asp:ListItem Value="21">21</asp:ListItem>
+                                <asp:ListItem Value="22">22</asp:ListItem>
+                                <asp:ListItem Value="23">23</asp:ListItem>
+                                <asp:ListItem Value="24">24</asp:ListItem>
+                            </asp:DropDownList>
                         </div>
                     </div>
 

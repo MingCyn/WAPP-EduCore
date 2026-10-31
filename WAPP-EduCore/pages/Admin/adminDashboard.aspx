@@ -1,19 +1,31 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="adminDashboard.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.WebForm1" %>
 
+<%--
+    MAP OF THIS PAGE   (use Ctrl+F and search the name in capital letters)
+
+    <head>   HEAD 1 FONT  |  HEAD 2 SHARED STYLES  |  HEAD 3 PAGE STYLES  |  HEAD 4 JAVASCRIPT
+    <body>   PART 1 SIDEBAR
+             PART 2 THE RIGHT SIDE
+                     TOP BAR
+                     ROW 1 : SIX NUMBER BOXES
+                     ROW 2 : TWO CHARTS SIDE BY SIDE
+                     ROW 3 : RECENT ACTIVITY (left) + NEEDS ATTENTION and QUICK ACTIONS (right)
+--%>
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head runat="server">
     <title>EduCore - Admin Dashboard</title>
 
-    <!-- Font -->
+    <!-- HEAD 1 of 4 : FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Our own styles (sidebar, cards, colors...) -->
+    <!-- HEAD 2 of 4 : SHARED STYLES  (sidebar, cards, tables, popups ... all live in admin.css) -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
 
     <!-- ==================================================
-         STYLES ONLY THE DASHBOARD NEEDS
+         HEAD 3 of 4 : STYLES ONLY THE DASHBOARD NEEDS
          They are here, so you do NOT have to change admin.css.
          ================================================== -->
     <style type="text/css">
@@ -160,7 +172,7 @@
             align-items: stretch;      /* both sides are as tall as the taller one */
         }
 
-        /* The Recent Activity card: the list grows, the footer link stays at the bottom */
+        /* ---------- The Recent Activity card: the list grows, the footer link stays at the bottom ---------- */
         .activity-card {
             display: flex;
             flex-direction: column;
@@ -182,7 +194,7 @@
             gap: 18px;
         }
 
-        /* Quick Actions card takes the left-over height, its 3 rows share it */
+        /* ---------- Quick Actions card takes the left-over height, its 3 rows share it ---------- */
         .qa-card {
             flex: 1;
             display: flex;
@@ -415,7 +427,7 @@
     </style>
 
     <!-- ==================================================
-         JAVASCRIPT : opens / closes the drop-down menu
+         HEAD 4 of 4 : JAVASCRIPT : opens / closes the drop-down menu
          ================================================== -->
     <script type="text/javascript">
 
@@ -435,6 +447,10 @@
 <body>
     <form id="form1" runat="server">
 
+        <!-- ==================================================
+             PART 1 : THE SIDEBAR  (the dark menu on the left)
+             It lives in its own file: adminNav.aspx
+             ================================================== -->
         <% Server.Execute("adminNav.aspx", false); %>
         <!-- ==================================================
              PART 2 : EVERYTHING ON THE RIGHT SIDE
@@ -614,34 +630,34 @@
                             <p class="sub">Everyday administration, one step away</p>
 
                             <div class="qa-list">
-                            <a class="qa-row" href="userManagement.aspx">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg>
-                                <span class="qa-name">Manage Users</span>
-                                <span class="qa-desc">Maintain access and account roles</span>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                            </a>
+                                <a class="qa-row" href="userManagement.aspx">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg>
+                                    <span class="qa-name">Manage Users</span>
+                                    <span class="qa-desc">Maintain access and account roles</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                                </a>
 
-                            <a class="qa-row" href="coursesManagement.aspx">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" /></svg>
-                                <span class="qa-name">Review Courses</span>
-                                <span class="qa-desc">Check and update the course catalogue</span>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                            </a>
+                                <a class="qa-row" href="coursesManagement.aspx">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" /></svg>
+                                    <span class="qa-name">Review Courses</span>
+                                    <span class="qa-desc">Check and update the course catalogue</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                                </a>
 
-                            <a class="qa-row" href="adminReports.aspx">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
-                                <span class="qa-name">View Reports</span>
-                                <span class="qa-desc">See user, course and learning numbers</span>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                            </a>
+                                <a class="qa-row" href="adminReports.aspx">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
+                                    <span class="qa-name">View Reports</span>
+                                    <span class="qa-desc">See user, course and learning numbers</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                                </a>
                             </div>
                         </div>
 
                     </div>
                 </div>
 
-            </div>
-        </div>
+            </div> <!-- end of the content area -->
+        </div> <!-- end of PART 2 : the right side -->
 
     </form>
 </body>

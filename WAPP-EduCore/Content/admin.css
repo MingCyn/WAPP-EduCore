@@ -253,17 +253,16 @@ body {
 }
 
     .stat-row.four {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, 1fr); /* 4 boxes */
     }
-    /* 4 boxes */
+
     .stat-row.five {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(5, 1fr); /* 5 boxes */
     }
-    /* 5 boxes */
+
     .stat-row.six {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(6, 1fr); /* 6 boxes */
     }
-/* 6 boxes */
 
 /* Two cards side by side */
 .two-cols {
@@ -517,21 +516,23 @@ table.data {
     font-size: 12px;
 }
 
+    /* green */
     .badge.active {
         background: #DCFCE7;
         color: #15803D;
     }
-    /* green  */
+
+    /* grey */
     .badge.inactive {
         background: #EEF2F6;
         color: var(--grey);
     }
-    /* grey   */
+
+    /* yellow */
     .badge.pending {
         background: #FEF3C7;
         color: #B45309;
     }
-/* yellow */
 
 
 /* ==========================================================
@@ -806,6 +807,7 @@ select.input {
     gap: 12px; /* space between the icon and the name */
 }
 
+    /* The icon itself (an empty box that is filled with the picture below) */
     .sidebar a.menu-item::before {
         content: "";
         width: 18px;
@@ -844,9 +846,10 @@ select.input {
         mask-image: var(--icon-adminReports);
     }
 
-    /* ----------------------------------------------------------
-       23. SIDEBAR ICONS FOR LESSONS AND QUIZZES
-       ---------------------------------------------------------- */
+
+    /* ==========================================================
+   23. SIDEBAR ICONS FOR LESSONS AND QUIZZES
+   ========================================================== */
 
     /* Lessons (page with lines) */
     .sidebar a.menu-item[href="lessonManagement.aspx"]::before {

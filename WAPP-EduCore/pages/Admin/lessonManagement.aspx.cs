@@ -1,4 +1,23 @@
-﻿using System;
+﻿// ==========================================================
+//  lessonManagement.aspx.cs
+//
+//  SECTIONS IN THIS FILE  (use Ctrl+F and search the words "SECTION 3")
+//  ----------------------------------------------------------
+//    1.  SETTINGS  (the variables this page uses)
+//    2.  STEP 1: Page opens  ->  find out who the admin is
+//    3.  STEP 2: PreRender (runs just before the page is drawn)
+//    4.  ADMIN NAME (sidebar + top-right circle)
+//    5.  THE COURSE DROPDOWNS (filter + Create popup + Edit popup)
+//    6.  THE 5 NUMBER BOXES
+//    7.  THE LESSON TABLE  (search + filters + pages)
+//    8.  BUTTONS
+//    9.  LOGOUT  (the "Logout" option in the drop-down menu)
+//   10.  THE LESSON CONTENT  (the jsonb column)
+//   11.  HELPERS  (small tools used again and again)
+//   12.  WHO IS LOGGED IN?  (used by every admin page)
+// ==========================================================
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -14,6 +33,9 @@ namespace WAPP_EduCore.pages.Admin
     // NOTE: the class name is lessonManagement because the .aspx first line says Inherits="...lessonManagement"
     public partial class lessonManagement : System.Web.UI.Page
     {
+        // =====================================================
+        //  SECTION 1 :  SETTINGS  (the variables this page uses)
+        // =====================================================
         // These are shown in the sidebar and the top-right circle
         protected string AdminName = "Administrator";
         protected string AdminInitials = "AD";
@@ -44,7 +66,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  STEP 1: Page opens  ->  find out who the admin is
+        //  SECTION 2 :  STEP 1: Page opens  ->  find out who the admin is
         // =====================================================
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -64,7 +86,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  STEP 2: PreRender runs AFTER every button click and
+        //  SECTION 3 :  STEP 2: PreRender runs AFTER every button click and
         //  just BEFORE the page is drawn. So everything on the
         //  page is always fresh.
         // =====================================================
@@ -79,7 +101,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  ADMIN NAME (sidebar + top-right circle)
+        //  SECTION 4 :  ADMIN NAME (sidebar + top-right circle)
         // =====================================================
         private void LoadAdminInfo()
         {
@@ -117,7 +139,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  THE COURSE DROPDOWNS (filter + Create popup + Edit popup)
+        //  SECTION 5 :  THE COURSE DROPDOWNS (filter + Create popup + Edit popup)
         // =====================================================
         private void FillCourseLists()
         {
@@ -146,7 +168,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  THE 5 NUMBER BOXES
+        //  SECTION 6 :  THE 5 NUMBER BOXES
         // =====================================================
         private void LoadStats()
         {
@@ -177,7 +199,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  THE LESSON TABLE  (search + filters + pages)
+        //  SECTION 7 :  THE LESSON TABLE  (search + filters + pages)
         // =====================================================
         private void LoadLessons()
         {
@@ -298,19 +320,19 @@ namespace WAPP_EduCore.pages.Admin
             sb.Append("<td class='grey-text'>" + (course == "" ? "—" : Server.HtmlEncode(course)) + "</td>");
 
             if (video == "")
-                sb.Append("<td><span class='badge inactive'>No video</span></td>");
+                sb.Append("<td class='center'><span class='badge inactive'>No video</span></td>");
             else
-                sb.Append("<td><span class='badge active'>Video</span></td>");
+                sb.Append("<td class='center'><span class='badge active'>Video</span></td>");
 
             if (quizId == "")
-                sb.Append("<td><span class='badge pending'>No quiz</span></td>");
+                sb.Append("<td class='center'><span class='badge pending'>No quiz</span></td>");
             else
-                sb.Append("<td><span class='badge blue'>" + qcount + " questions</span></td>");
+                sb.Append("<td class='center'><span class='badge blue'>" + qcount + " questions</span></td>");
 
-            sb.Append("<td class='grey-text nowrap'>" + FormatDate(r["created_at"]) + "</td>");
+            sb.Append("<td class='grey-text nowrap center'>" + FormatDate(r["created_at"]) + "</td>");
 
             // The 3 little icons: view, edit and delete
-            sb.Append("<td class='actions'>");
+            sb.Append("<td class='actions center'>");
             sb.Append(IconButton("blue", "View", "openDetail(" + id + ")",
                 "<path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/>"));
             sb.Append(IconButton("", "Edit", "openEdit(" + id + ")",
@@ -325,7 +347,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  BUTTONS
+        //  SECTION 8 :  BUTTONS
         // =====================================================
 
         // Search button / dropdown changed  ->  go back to page 1
@@ -625,7 +647,9 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // ----- Logout (the "Logout" option in the drop-down menu) -----
+        // =====================================================
+        //  SECTION 9 :  LOGOUT  (the "Logout" option in the drop-down menu)
+        // =====================================================
         protected void lnkLogout_Click(object sender, EventArgs e)
         {
             WAPP_EduCore.Data.LoginKeeper.Forget(Context);   // remove the "remember me" cookie
@@ -636,9 +660,9 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  THE LESSON CONTENT  (the jsonb column)
+        //  SECTION 10 :  THE LESSON CONTENT  (the jsonb column)
         //  It is a list of blocks, for example:
-        //     [ {"type":"video","url":"https://..."},  {"type":"paragraph","content":"Some text"} ]
+        //  [ {"type":"video","url":"https://..."},  {"type":"paragraph","content":"Some text"} ]
         //  We only touch the "video" and "paragraph" blocks. Other blocks (tables, labs...) stay as they are.
         // =====================================================
 
@@ -725,7 +749,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  HELPERS  (small tools used again and again)
+        //  SECTION 11 :  HELPERS  (small tools used again and again)
         // =====================================================
 
         // Shows a green (ok) or red (error) message at the top
@@ -845,7 +869,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  WHO IS LOGGED IN?  (used by every admin page)
+        //  SECTION 12 :  WHO IS LOGGED IN?  (used by every admin page)
         //  The login page saves the user number in Session["UserID"].
         //  (Session["user_id"] is also checked, in case an older page saved it.)
         //  Gives back 0 when nobody is logged in.

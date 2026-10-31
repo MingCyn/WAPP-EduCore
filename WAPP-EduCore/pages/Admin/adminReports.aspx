@@ -1,21 +1,34 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="adminReports.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.adminReports" %>
 
+<%--
+    MAP OF THIS PAGE   (use Ctrl+F and search the name in capital letters)
+
+    <head>   HEAD 1 FONT  |  HEAD 2 SHARED STYLES  |  HEAD 3 PAGE STYLES  |  HEAD 4 JAVASCRIPT
+    <body>   PART 1 SIDEBAR
+             PART 2 THE RIGHT SIDE
+                     TOP BAR
+                     THE 3 TABS
+                     TAB 1 : USERS
+                     TAB 2 : COURSES
+                     TAB 3 : LEARNING PERFORMANCE
+--%>
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head runat="server">
     <title>EduCore - Reports</title>
 
-    <!-- Font -->
+    <!-- HEAD 1 of 4 : FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Our own styles (colors, cards, tables...) -->
+    <!-- HEAD 2 of 4 : SHARED STYLES  (sidebar, cards, tables, popups ... all live in admin.css) -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
 
-    <!-- Small extra styles only this page needs (so admin.css does not change) -->
+    <!-- HEAD 3 of 4 : PAGE STYLES  -  Small extra styles only this page needs (so admin.css does not change) -->
     <style type="text/css">
 
-        /* The label on the left and a little icon on the right (top of every number box) */
+        /* ---------- The label on the left and a little icon on the right (top of every number box) ---------- */
         .stat-top {
             display: flex;
             justify-content: space-between;
@@ -37,19 +50,19 @@
             color: #B45309;
         }
 
-        /* A row with 3 number boxes (admin.css only has 4, 5 and 6) */
+        /* ---------- A row with 3 number boxes (admin.css only has 4, 5 and 6) ---------- */
         .stat-row.three {
             grid-template-columns: repeat(3, 1fr);
         }
 
-        /* Title row */
+        /* ---------- Title row ---------- */
         .title-row {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
         }
 
-        /* "Top 5 · Highest enrolment" on the left, "Ranked from..." on the right */
+        /* ---------- "Top 5 · Highest enrolment" on the left, "Ranked from..." on the right ---------- */
         .mini-row {
             display: flex;
             justify-content: space-between;
@@ -134,8 +147,29 @@
             color: #DC2626;
         }
 
+        /* ---------- Centered table columns (add class="center" to the <th> and to the <td>) ---------- */
+        table.data th.center,
+        table.data td.center {
+            text-align: center;
+        }
+
+        /* ---------- Top 5 and Lowest 5 tables: SAME column widths ----------
+           (fixed layout: every column keeps its width, the Course title column takes what is left) */
+        table.rank-table {
+            table-layout: fixed;
+        }
+
+        table.rank-table th:nth-child(1) { width: 70px; }    /* Rank */
+        table.rank-table th:nth-child(3) { width: 16%; }     /* Instructor */
+        table.rank-table th:nth-child(4) { width: 90px; }    /* Level */
+        table.rank-table th:nth-child(5) { width: 14%; }     /* Topic */
+        table.rank-table th:nth-child(6) { width: 110px; }   /* Status */
+        table.rank-table th:nth-child(7) { width: 120px; }   /* Enrolments */
     </style>
 
+    <!-- ==================================================
+         HEAD 4 of 4 : JAVASCRIPT : opens / closes the drop-down menu
+         ================================================== -->
     <script type="text/javascript">
         // ----- The drop-down menu at the top right -----
         function toggleUserMenu(event) {
@@ -152,6 +186,10 @@
 <body>
     <form id="form1" runat="server">
 
+        <!-- ==================================================
+             PART 1 : THE SIDEBAR  (the dark menu on the left)
+             It lives in its own file: adminNav.aspx
+             ================================================== -->
         <% Server.Execute("adminNav.aspx", false); %>
 
         <!-- ==================================================
@@ -266,14 +304,15 @@
                         <p class="sub">Account totals and activity by role</p>
 
                         <div class="table-wrap">
+                            <!-- Columns are on the LEFT. A column with class="center" (on its <th> and its <td>) is CENTERED  (rule is in PAGE STYLES). -->
                             <table class="data">
                                 <tr>
                                     <th>Role</th>
-                                    <th>Total users</th>
-                                    <th>Share of users</th>
-                                    <th>Active users</th>
-                                    <th>Inactive users</th>
-                                    <th>Activity rate</th>
+                                    <th class="center">Total users</th>
+                                    <th class="center">Share of users</th>
+                                    <th class="center">Active users</th>
+                                    <th class="center">Inactive users</th>
+                                    <th class="center">Activity rate</th>
                                 </tr>
                                 <asp:Literal ID="litRoleTable" runat="server"></asp:Literal>
                             </table>
@@ -383,15 +422,16 @@
                             <span class="note-right">Ranked from highest to lowest</span>
                         </div>
                         <div class="table-wrap">
-                            <table class="data">
+                            <!-- Columns are on the LEFT. A column with class="center" (on its <th> and its <td>) is CENTERED  (rule is in PAGE STYLES). -->
+                            <table class="data rank-table">
                                 <tr>
                                     <th>Rank</th>
                                     <th>Course title</th>
-                                    <th>Instructor</th>
-                                    <th>Level</th>
-                                    <th>Topic</th>
-                                    <th>Status</th>
-                                    <th>Enrolments</th>
+                                    <th class="center">Instructor</th>
+                                    <th class="center">Level</th>
+                                    <th class="center">Topic</th>
+                                    <th class="center">Status</th>
+                                    <th class="center">Enrolments</th>
                                 </tr>
                                 <asp:Literal ID="litTopCourses" runat="server"></asp:Literal>
                             </table>
@@ -402,15 +442,16 @@
                             <span class="note-right">Ranked from lowest to highest</span>
                         </div>
                         <div class="table-wrap">
-                            <table class="data">
+                            <!-- Columns are on the LEFT. A column with class="center" (on its <th> and its <td>) is CENTERED  (rule is in PAGE STYLES). -->
+                            <table class="data rank-table">
                                 <tr>
                                     <th>Rank</th>
                                     <th>Course title</th>
-                                    <th>Instructor</th>
-                                    <th>Level</th>
-                                    <th>Topic</th>
-                                    <th>Status</th>
-                                    <th>Enrolments</th>
+                                    <th class="center">Instructor</th>
+                                    <th class="center">Level</th>
+                                    <th class="center">Topic</th>
+                                    <th class="center">Status</th>
+                                    <th class="center">Enrolments</th>
                                 </tr>
                                 <asp:Literal ID="litLowCourses" runat="server"></asp:Literal>
                             </table>
@@ -490,14 +531,15 @@
                         <p class="sub">Course-level learning outcomes · published courses with enrolments</p>
 
                         <div class="table-wrap">
+                            <!-- Columns are on the LEFT. A column with class="center" (on its <th> and its <td>) is CENTERED  (rule is in PAGE STYLES). -->
                             <table class="data">
                                 <tr>
                                     <th>Course</th>
-                                    <th>Topic</th>
-                                    <th>Enrolments</th>
-                                    <th>Completed users</th>
-                                    <th>Completion rate</th>
-                                    <th>Avg. quiz score</th>
+                                    <th class="center">Topic</th>
+                                    <th class="center">Enrolments</th>
+                                    <th class="center">Completed users</th>
+                                    <th class="center">Completion rate</th>
+                                    <th class="center">Avg. quiz score</th>
                                 </tr>
                                 <asp:Literal ID="litPerfTable" runat="server"></asp:Literal>
                             </table>
@@ -508,8 +550,8 @@
 
                 </asp:Panel>
 
-            </div>
-        </div>
+            </div> <!-- end of the content area -->
+        </div> <!-- end of PART 2 : the right side -->
 
     </form>
 </body>

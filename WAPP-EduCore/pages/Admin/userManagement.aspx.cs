@@ -1,4 +1,21 @@
-﻿using System;
+﻿// ==========================================================
+//  userManagement.aspx.cs
+//
+//  SECTIONS IN THIS FILE  (use Ctrl+F and search the words "SECTION 3")
+//  ----------------------------------------------------------
+//    1.  SETTINGS  (the variables this page uses)
+//    2.  STEP 1: Page opens  ->  find out who the admin is
+//    3.  STEP 2: PreRender (runs just before the page is drawn)
+//    4.  ADMIN NAME (sidebar + top-right circle)
+//    5.  THE 5 NUMBER BOXES
+//    6.  THE USER TABLE  (search + filter + pages)
+//    7.  BUTTONS
+//    8.  LOGOUT  (the "Logout" option in the drop-down menu)
+//    9.  HELPERS  (small tools used again and again)
+//   10.  WHO IS LOGGED IN?  (used by every admin page)
+// ==========================================================
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -13,6 +30,9 @@ namespace WAPP_EduCore.pages.Admin
     // NOTE: the class name is WebForm2 because your .aspx first line says Inherits="...WebForm2"
     public partial class WebForm2 : System.Web.UI.Page
     {
+        // =====================================================
+        //  SECTION 1 :  SETTINGS  (the variables this page uses)
+        // =====================================================
         // These are shown in the sidebar and the top-right circle
         protected string AdminName = "Administrator";
         protected string AdminInitials = "AD";
@@ -34,7 +54,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  STEP 1: Page opens  ->  find out who the admin is
+        //  SECTION 2 :  STEP 1: Page opens  ->  find out who the admin is
         // =====================================================
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -54,7 +74,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  STEP 2: PreRender runs AFTER every button click and
+        //  SECTION 3 :  STEP 2: PreRender runs AFTER every button click and
         //  just BEFORE the page is drawn. So the numbers and the
         //  table are always fresh.
         // =====================================================
@@ -66,7 +86,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  ADMIN NAME (sidebar + top-right circle)
+        //  SECTION 4 :  ADMIN NAME (sidebar + top-right circle)
         // =====================================================
         private void LoadAdminInfo()
         {
@@ -105,7 +125,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  THE 5 NUMBER BOXES
+        //  SECTION 5 :  THE 5 NUMBER BOXES
         // =====================================================
         private void LoadStats()
         {
@@ -130,7 +150,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  THE USER TABLE  (search + filter + pages)
+        //  SECTION 6 :  THE USER TABLE  (search + filter + pages)
         // =====================================================
         private void LoadUsers()
         {
@@ -230,13 +250,13 @@ namespace WAPP_EduCore.pages.Admin
             sb.Append("<td class='grey-text'>" + id + "</td>");
             sb.Append("<td>" + Server.HtmlEncode(name) + "</td>");
             sb.Append("<td class='grey-text'>" + Server.HtmlEncode(email) + "</td>");
-            sb.Append("<td class='grey-text'>" + FormatDate(r["dob"]) + "</td>");
-            sb.Append("<td class='grey-text'>" + (r["gender"] == DBNull.Value ? "—" : Server.HtmlEncode(r["gender"].ToString())) + "</td>");
-            sb.Append("<td>" + roleText + "</td>");
-            sb.Append("<td class='grey-text'>" + FormatDate(r["created_at"]) + "</td>");
+            sb.Append("<td class='grey-text center'>" + FormatDate(r["dob"]) + "</td>");
+            sb.Append("<td class='grey-text center'>" + (r["gender"] == DBNull.Value ? "—" : Server.HtmlEncode(r["gender"].ToString())) + "</td>");
+            sb.Append("<td class='center'>" + roleText + "</td>");
+            sb.Append("<td class='grey-text center'>" + FormatDate(r["created_at"]) + "</td>");
 
             // The 3 little icons: view, edit and delete
-            sb.Append("<td>");
+            sb.Append("<td class='center'>");
             sb.Append(IconButton("blue", "View", "openDetail(" + id + ")",
                 "<path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/>"));
             sb.Append(IconButton("", "Edit", "openEdit(" + id + ")",
@@ -251,7 +271,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  BUTTONS
+        //  SECTION 7 :  BUTTONS
         // =====================================================
 
         // Search button / dropdown changed  ->  go back to page 1
@@ -501,7 +521,9 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // ----- Logout (the "Logout" option in the drop-down menu) -----
+        // =====================================================
+        //  SECTION 8 :  LOGOUT  (the "Logout" option in the drop-down menu)
+        // =====================================================
         protected void lnkLogout_Click(object sender, EventArgs e)
         {
             WAPP_EduCore.Data.LoginKeeper.Forget(Context);   // remove the "remember me" cookie
@@ -512,7 +534,7 @@ namespace WAPP_EduCore.pages.Admin
 
 
         // =====================================================
-        //  HELPERS  (small tools used again and again)
+        //  SECTION 9 :  HELPERS  (small tools used again and again)
         // =====================================================
 
         // Shows a green (ok) or red (error) message at the top
@@ -622,7 +644,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
         // =====================================================
-        //  WHO IS LOGGED IN?  (used by every admin page)
+        //  SECTION 10 :  WHO IS LOGGED IN?  (used by every admin page)
         //  The login page saves the user number in Session["UserID"].
         //  (Session["user_id"] is also checked, in case an older page saved it.)
         //  Gives back 0 when nobody is logged in.
