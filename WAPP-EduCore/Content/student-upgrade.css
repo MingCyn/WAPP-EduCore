@@ -1,181 +1,755 @@
-﻿/* ===== Modal popup (Submit Assessment + Not Logged In) =====
-   Replace everything in student-upgrade.css from the comment
-   "Not Logged In Modal Popup Styles" down to (and including) the
-   "#btnCancelSubmit:active" rule with this whole block. */
+﻿/* ==========================================================================
+   EduCore student area: visual upgrade layer (Merriweather & Larger Text)
+   Link AFTER admin.css and student.css:
+      <link href="/Content/student-upgrade.css" rel="stylesheet" />
+   ========================================================================== */
 
-.modal-back {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 27, 72, 0.5);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 2000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
+:root {
+    --serif: 'Merriweather', Georgia, serif;
+    --ec-font: 'Merriweather', Georgia, serif;
+    --ec-bg: #f3f5fb;
+    --ec-ink: #0e1630;
+    --ec-muted: #64708a;
+    --ec-line: #e4e8f3;
+    --ec-night: #0a1128;
+    --ec-night-2: #101a3d;
+    --ec-indigo: #FF7000;
+    --ec-blue: #FF7000;
+    --ec-cyan: #FF7000;
+    --ec-green: #10b981;
+    --ec-grad: linear-gradient(135deg, #FF7000 0%, #ff8e3c 100%);
+    --ec-ease: cubic-bezier(.22, 1, .36, 1);
+    --ec-shadow-1: 0 1px 2px rgba(14, 22, 48, .06), 0 4px 12px -4px rgba(14, 22, 48, .08);
+    --ec-shadow-2: 0 2px 4px rgba(14, 22, 48, .06), 0 14px 28px -10px rgba(14, 22, 48, .16), 0 30px 60px -24px rgba(255, 112, 0, .25);
 }
 
-    .modal-back.open {
-        opacity: 1;
-        visibility: visible;
+/* ---------- Base ---------- */
+body {
+    font-family: var(--ec-font);
+    font-size: 16px; /* Base font size increased slightly */
+    color: var(--ec-ink);
+    background: radial-gradient(700px 360px at 100% 0%, rgba(255, 112, 0, .08), transparent 65%), radial-gradient(600px 300px at 0% 100%, rgba(15, 25, 57, .05), transparent 65%), var(--ec-bg);
+    -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+    outline: 2px solid #FF7000;
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+::selection {
+    background: rgba(255, 112, 0, .25);
+}
+
+/* Headings: Merriweather with slightly larger relative scaling */
+.title, .course h4, .course-hero h2, .panel h3, .syllabus-title, .lesson-name, .access-title,
+.quiz-side h3, .q-text, .result-score, .lv-title, .lv-side h3, .lv-right h3, .tutor-name,
+.gr-num, .gr-card h3, .lv-content .lesson-subheading, .modal-head h3 {
+    font-family: var(--ec-font);
+    letter-spacing: -0.01em;
+}
+
+.title {
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+    background: radial-gradient(260px 260px at 0% 0%, rgba(255, 112, 0, .25), transparent 70%), radial-gradient(240px 240px at 100% 100%, rgba(15, 25, 57, .2), transparent 70%), linear-gradient(180deg, var(--ec-night-2), var(--ec-night));
+    border-right: 1px solid rgba(255, 255, 255, .06);
+    box-shadow: 10px 0 40px -20px rgba(10, 17, 40, .6);
+}
+
+    .sidebar a.menu-item {
+        position: relative;
+        border-radius: 12px;
+        color: #b6c2e2;
+        font-size: 15px; /* Sidebar text made bigger */
+        font-weight: 600;
+        transition: background .25s, color .25s, transform .25s var(--ec-ease);
     }
 
-.modal-box {
-    background: #fff;
-    border: 1px solid #ebe7e1;
+        .sidebar a.menu-item:hover {
+            background: rgba(255, 255, 255, .07);
+            color: #fff;
+            transform: translateX(3px);
+        }
+
+        .sidebar a.menu-item.active {
+            color: #fff;
+            background: linear-gradient(135deg, #FF7000, #ff8e3c);
+            box-shadow: 0 10px 24px -10px rgba(255, 112, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .2);
+        }
+
+            .sidebar a.menu-item.active::before {
+                content: "" !important;
+                display: block !important;
+                position: absolute;
+                left: -24px;
+                top: 20%;
+                bottom: 20%;
+                width: 4px;
+                border-radius: 0 4px 4px 0;
+                background: #FF7000;
+                box-shadow: 0 0 14px #FF7000;
+            }
+
+    .sidebar .me {
+        border-top-color: rgba(255, 255, 255, .1);
+    }
+
+.me-avatar {
+    background: var(--ec-grad);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, .12);
+}
+
+.sidebar .logout-btn {
+    border: 1px solid rgba(255, 255, 255, .12);
+    transition: all .25s;
+}
+
+    .sidebar .logout-btn:hover {
+        background: rgba(244, 63, 94, .18);
+        border-color: rgba(244, 63, 94, .4);
+    }
+
+.sidebar .sidebar-login-btn {
+    background: var(--ec-grad);
+    color: #fff;
+    border: 0;
+}
+
+/* ---------- Topbar ---------- */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: rgba(243, 245, 251, .72);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
+    border-bottom: 1px solid rgba(228, 232, 243, .8);
+}
+
+.search input {
+    border: 1px solid var(--ec-line);
+    background: rgba(255, 255, 255, .8);
+    font-size: 15px; /* Input text larger */
+    border-radius: 12px;
+    transition: border-color .2s, box-shadow .2s, width .3s var(--ec-ease);
+}
+
+    .search input:focus {
+        outline: none;
+        border-color: #FF7000;
+        box-shadow: 0 0 0 4px rgba(255, 112, 0, .15);
+    }
+
+/* ---------- Buttons (Vivid Orange & Larger Font) ---------- */
+.btn, .btn-start, .btn-solid, .course .btn {
+    position: relative;
+    overflow: hidden;
+    background: #FF7000;
+    color: #fff;
+    font-size: 15px; /* Button font size increased */
+    font-weight: 700;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px -8px rgba(255, 112, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .25);
+    transition: transform .25s var(--ec-ease), box-shadow .25s var(--ec-ease), filter .25s;
+}
+
+    .btn:hover, .btn-start:hover, .btn-solid:hover, .course .btn:hover {
+        background: #FF7000;
+        filter: brightness(1.1);
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px -8px rgba(255, 112, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .3);
+    }
+
+    .btn:active, .btn-start:active, .btn-solid:active, .course .btn:active, .btn-ghost:active, .pill:active {
+        transform: scale(.96);
+        transition-duration: .08s;
+    }
+
+.btn-start {
+    border-radius: 12px;
+}
+
+.btn-ghost {
+    border-radius: 10px;
+    font-size: 15px;
+    border-color: var(--ec-line);
+    transition: all .25s var(--ec-ease);
+}
+
+    .btn-ghost:hover {
+        border-color: #FF7000;
+        color: #FF7000;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px -10px rgba(255, 112, 0, .3);
+    }
+
+.fx-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .45);
+    transform: scale(0);
+    animation: fx-ripple .6s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes fx-ripple {
+    to {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+/* ---------- Filter pills ---------- */
+.pill {
+    border-color: var(--ec-line);
+    font-size: 14px;
+    transition: all .25s var(--ec-ease);
+}
+
+    .pill:hover {
+        border-color: #FF7000;
+        color: #FF7000;
+        transform: translateY(-2px);
+    }
+
+    .pill.active {
+        background: #FF7000;
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 10px 22px -10px rgba(255, 112, 0, .6);
+    }
+
+.filters select {
+    border-color: var(--ec-line);
+    font-size: 14px;
+    border-radius: 10px;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+    .filters select:focus {
+        outline: none;
+        border-color: #FF7000;
+        box-shadow: 0 0 0 4px rgba(255, 112, 0, .15);
+    }
+
+/* ---------- Surfaces: lift + spotlight ---------- */
+.course-card, .course, .card, .stat, .gr-stat, .gr-card, .panel, .lesson-row,
+.access-card, .q-card, .tutor-card, .result-box {
+    position: relative;
+    --mx: 50%;
+    --my: 50%;
     border-radius: 16px;
-    width: 100%;
-    max-width: 440px;
-    padding: 32px;
-    box-shadow: 0 20px 48px rgba(16, 24, 40, 0.22);
-    transform: translateY(10px) scale(.98);
-    transition: transform 0.2s ease;
+    transition: transform .4s var(--ec-ease), box-shadow .4s var(--ec-ease), border-color .3s;
+}
+
+    .course-card::before, .course::before, .card::before, .stat::before, .gr-stat::before, .gr-card::before,
+    .panel::before, .lesson-row::before, .access-card::before, .q-card::before, .tutor-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(380px circle at var(--mx) var(--my), rgba(255, 112, 0, .12), transparent 45%);
+        opacity: 0;
+        transition: opacity .35s;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .course-card:hover::before, .course:hover::before, .card:hover::before, .stat:hover::before,
+    .gr-stat:hover::before, .gr-card:hover::before, .panel:hover::before, .lesson-row:hover::before,
+    .access-card:hover::before, .q-card:hover::before, .tutor-card:hover::before {
+        opacity: 1;
+    }
+
+.course-card, .course, .stat, .gr-stat, .lesson-row {
+    box-shadow: var(--ec-shadow-1);
+}
+
+    .course-card:hover, .course:hover, .stat:hover, .gr-stat:hover, .lesson-row:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--ec-shadow-2);
+        border-color: rgba(255, 112, 0, .4);
+    }
+
+    .lesson-row:hover {
+        transform: translateY(-3px);
+    }
+
+.course {
+    background: #fff;
+    border: 1px solid var(--ec-line);
+}
+
+.course-card .meta {
+    background: #fff;
+}
+
+.course .media, .course-card .thumb {
+    position: relative;
+    transition: transform .8s var(--ec-ease);
+    background-color: #101a3d;
+}
+
+    .course .media::after, .course-card .thumb::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, transparent 45%, rgba(10, 17, 40, .55));
+    }
+
+.course:hover .media, .course-card:hover .thumb {
+    transform: scale(1.06);
+}
+
+.course, .course-card {
+    overflow: hidden;
+}
+
+    .course .body, .course .footer {
+        position: relative;
+        z-index: 2;
+        background: #fff;
+    }
+
+    .course .footer {
+        border-top-color: var(--ec-line);
+    }
+
+    .course .tag, .tag {
+        background: rgba(255, 112, 0, .1);
+        color: #FF7000;
+        font-size: 13px; /* Tag text larger */
+        border-radius: 999px;
+        padding: 5px 12px;
+    }
+
+    .course .duration {
+        font-size: 14px;
+        color: var(--ec-muted);
+    }
+
+.access-card, .tutor-card, .gr-stat {
+    background: #fff;
+    border-color: var(--ec-line);
+}
+
+.access-card {
+    background: linear-gradient(180deg, #fff, #fff9f5);
+}
+
+.q-chip, .fm-chip {
+    background: rgba(255, 112, 0, .1);
+    color: #FF7000;
+    border-radius: 999px;
+}
+
+.badge {
+    background: rgba(251, 191, 36, .16);
+    color: #92400e;
+}
+
+.thought {
+    background: rgba(255, 255, 255, .85);
+    border: 1px solid var(--ec-line);
+    backdrop-filter: blur(10px);
+}
+
+.stat .num, .gr-num, .result-score {
+    color: #FF7000;
+    font-size: 1.3em;
+}
+
+/* ---------- Dashboard hero ---------- */
+.hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+    background: radial-gradient(500px 260px at 90% 0%, rgba(255, 112, 0, .22), transparent 70%), radial-gradient(500px 300px at 10% 100%, rgba(15, 25, 57, .85), transparent 70%), linear-gradient(135deg, #0a1128, #17205a);
+    box-shadow: 0 30px 60px -28px rgba(10, 17, 40, .7);
+    color: #fff;
+}
+
+    .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .05) 1px, transparent 1px);
+        background-size: 44px 44px;
+        -webkit-mask-image: radial-gradient(ellipse at 80% 20%, #000, transparent 70%);
+        mask-image: radial-gradient(ellipse at 80% 20%, #000, transparent 70%);
+    }
+
+    .hero > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero h2 {
+        font-size: 2rem; /* Hero header larger */
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .hero p {
+        font-size: 1.1rem; /* Hero description larger */
+    }
+
+.course-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+    box-shadow: 0 30px 60px -28px rgba(10, 17, 40, .6);
+}
+
+    .course-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background: linear-gradient(180deg, rgba(10, 17, 40, .1) 20%, rgba(10, 17, 40, .88));
+    }
+
+    .course-hero > * {
+        position: relative;
+        z-index: 1;
+    }
+
+.chip {
+    background: #FF7000;
+    backdrop-filter: blur(6px);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 14px;
+    color: #fff;
+}
+
+.hero-avatar {
+    background: #FF7000;
+    color: #fff;
+}
+
+/* ---------- Progress ---------- */
+.progress, .course .progress {
+    background: #e7ebf5;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+    .progress > span, .course .progress-bar, .lv-bar-fill {
+        background: #10b981;
+        box-shadow: 0 0 12px rgba(16, 185, 129, .4);
+        border-radius: 99px;
+    }
+
+.lv-bar {
+    background: #e7ebf5;
+    border-radius: 99px;
+}
+
+.lv-item.done .lv-check {
+    background: #10b981;
+    border-color: #10b981;
+}
+
+.lesson-done, .learn-list li::before {
+    color: #10b981;
+}
+
+.skill-fill {
+    background: #FF7000;
+}
+
+.wk-bar {
+    background: #FF7000;
+    border-radius: 6px 6px 0 0;
+    transition: filter .2s, transform .3s var(--ec-ease);
+    transform-origin: bottom;
+}
+
+    .wk-bar:hover {
+        filter: brightness(1.15);
+        transform: scaleY(1.03);
+    }
+
+.hm {
+    background: #eef1f8;
+}
+
+.hm1 {
+    background: #ffe3d1;
+}
+
+.hm2 {
+    background: #ffb88a;
+}
+
+.hm3 {
+    background: #ff9347;
+}
+
+.hm4 {
+    background: #FF7000;
+    box-shadow: 0 0 10px rgba(255, 112, 0, .4);
+}
+
+.ms-dot {
+    background: #FF7000;
+    box-shadow: 0 0 0 4px rgba(255, 112, 0, .18);
+}
+
+/* ---------- Lesson viewer ---------- */
+.lv-side, .lv-right, .quiz-side {
+    background: rgba(255, 255, 255, .8);
+    backdrop-filter: blur(12px);
+    font-size: 16px;
+}
+
+.lv-item {
+    font-size: 15px; /* Lesson list item text larger */
+    transition: background .2s, transform .2s var(--ec-ease);
+}
+
+    .lv-item:hover {
+        transform: translateX(3px);
+    }
+
+    .lv-item.current {
+        background: rgba(255, 112, 0, .08);
+        color: #FF7000;
+        box-shadow: inset 3px 0 0 #FF7000;
+    }
+
+.lv-video {
+    box-shadow: 0 30px 60px -28px rgba(10, 17, 40, .7);
+}
+
+.lv-done {
+    background: rgba(16, 185, 129, .12);
+    color: #047857;
+    border-radius: 10px;
+}
+
+/* ---------- Quiz ---------- */
+.opt {
+    border-radius: 12px;
+    background: #fff;
+    font-size: 16px; /* Quiz options text larger */
+    transition: all .25s var(--ec-ease);
+}
+
+    .opt:hover {
+        border-color: #FF7000;
+        transform: translateX(4px);
+        box-shadow: 0 10px 22px -12px rgba(255, 112, 0, .4);
+    }
+
+    .opt:active {
+        transform: scale(.985);
+    }
+
+    .opt.selected {
+        background: rgba(255, 112, 0, .08);
+        border-color: #FF7000;
+    }
+
+        .opt.selected .opt-letter, .dot.answered {
+            background: #FF7000;
+            border-color: #FF7000;
+            color: #fff;
+        }
+
+    .opt.correct {
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, .14);
+        animation: fx-pop .4s var(--ec-ease);
+    }
+
+    .opt.wrong {
+        animation: fx-shake .4s;
+    }
+
+.explain {
+    animation: fx-rise .4s var(--ec-ease) both;
+}
+
+.dot {
+    transition: all .2s var(--ec-ease);
+}
+
+    .dot:hover {
+        transform: scale(1.12);
+    }
+
+    .dot.current {
+        border-color: #FF7000;
+        box-shadow: 0 0 0 4px rgba(255, 112, 0, .18);
+    }
+
+@keyframes fx-pop {
+    0% {
+        transform: scale(.97);
+    }
+
+    60% {
+        transform: scale(1.02);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes fx-shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-6px);
+    }
+
+    75% {
+        transform: translateX(6px);
+    }
+}
+
+@keyframes fx-rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* ---------- Modal ---------- */
+.modal-back {
+    background: rgba(6, 10, 24, .55);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.modal-box {
+    background: rgba(255, 255, 255, .92);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, .6);
+    border-radius: 20px;
+    font-size: 16px; /* Modal text larger */
+    box-shadow: 0 40px 80px -24px rgba(10, 17, 40, .6), 0 0 60px -20px rgba(255, 112, 0, .2);
+    transform: translateY(16px) scale(.96);
+    transition: transform .35s var(--ec-ease);
 }
 
 .modal-back.open .modal-box {
-    transform: translateY(0) scale(1);
+    transform: none;
 }
 
-.modal-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-}
-
-    .modal-head h3 {
-        font-family: 'Merriweather', Georgia, serif;
-        font-size: 20px;
-        font-weight: 700;
-        color: #111c3d;
-        margin: 0;
-    }
-
-/* Message text inside the modal */
-.modal-text {
-    margin: 0;
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-    font-size: 14px;
-    line-height: 1.65;
-    color: #5a6478;
-}
-
-/* Modal action buttons alignment */
-.modal-buttons {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    margin-top: 28px;
-}
-
-/* Form error text inside modals */
-.form-error {
-    display: block;
-    margin-bottom: 14px;
-    padding: 10px 14px;
-    background: #fdeceb;
-    border: 1px solid #f3c4c1;
+/* ---------- Misc polish ---------- */
+.deadline-item, .achievements li {
+    font-size: 15px;
+    transition: background .2s, padding .25s var(--ec-ease);
     border-radius: 8px;
-    color: #8f2d2a;
-    font-size: 13px;
 }
 
-/* ---------- Modal buttons ----------
-   .cl-btn-ghost / .cl-btn-solid  -> used by assessment.aspx
-   #btnCancelSubmit               -> kept so older pages that use it still look right */
-.cl-btn-ghost,
-.cl-btn-solid,
-#btnCancelSubmit {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 104px;
-    height: 42px;
-    padding: 0 22px;
-    border-radius: 8px;
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1;
-    text-decoration: none;
-    cursor: pointer;
-    -webkit-appearance: none;
-    appearance: none;
-    transition: background-color .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease, transform .15s ease;
+    .deadline-item:hover, .achievements li:hover {
+        background: rgba(255, 112, 0, .05);
+        padding-left: 8px;
+    }
+
+.main > * {
+    animation: fx-rise .55s var(--ec-ease) both;
 }
 
-/* Cancel (ghost) */
-.cl-btn-ghost,
-#btnCancelSubmit {
-    background: #ffffff;
-    border: 1px solid #d9dde6;
-    color: #4a5468;
+    .main > *:nth-child(2) {
+        animation-delay: .06s;
+    }
+
+    .main > *:nth-child(3) {
+        animation-delay: .12s;
+    }
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
 }
 
-    .cl-btn-ghost:hover,
-    #btnCancelSubmit:hover {
-        background: #f8fafc;
-        border-color: #b9c0cf;
-        color: #0f172a;
-        transform: translateY(-1px);
-    }
-
-/* Confirm (solid) */
-.cl-btn-solid {
-    background: #243f86;
-    border: 1px solid #243f86;
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(36, 63, 134, .25);
+::-webkit-scrollbar-thumb {
+    background: #c9d0e4;
+    border-radius: 99px;
+    border: 3px solid transparent;
+    background-clip: content-box;
 }
 
-    .cl-btn-solid:hover {
-        background: #1b3270;
-        border-color: #1b3270;
-        box-shadow: 0 6px 16px rgba(36, 63, 134, .32);
-        transform: translateY(-1px);
+    ::-webkit-scrollbar-thumb:hover {
+        background: #FF7000;
+        background-clip: content-box;
     }
-
-    .cl-btn-ghost:active,
-    .cl-btn-solid:active,
-    #btnCancelSubmit:active {
-        transform: scale(0.97);
-    }
-
-    .cl-btn-ghost:focus-visible,
-    .cl-btn-solid:focus-visible,
-    #btnCancelSubmit:focus-visible {
-        outline: 2px solid #4f67cc;
-        outline-offset: 2px;
-    }
-
-@media (max-width: 480px) {
-    .modal-box {
-        padding: 24px;
-    }
-
-    .modal-buttons {
-        flex-direction: column-reverse;
-    }
-
-    .cl-btn-ghost,
-    .cl-btn-solid {
-        width: 100%;
-    }
-}
 
 @media (prefers-reduced-motion: reduce) {
-    .modal-back,
-    .modal-box,
-    .cl-btn-ghost,
-    .cl-btn-solid,
-    #btnCancelSubmit {
-        transition: none;
+    *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
     }
 }
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .topbar {
+        background: #f3f5fb;
+    }
+
+    .modal-box {
+        background: #fff;
+    }
+}
+
+/* Styled Cancel Button */
+.cl-btn-ghost {
+    padding: 12px 22px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #64748b;
+    font-family: inherit;
+    font-size: 15px; /* Button text larger */
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+    .cl-btn-ghost:hover {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+
+/* Styled Primary Submit Button with Vivid Orange */
+#btnConfirmSubmit {
+    padding: 12px 26px;
+    border-radius: 10px;
+    border: none;
+    background: #FF7000;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 15px; /* Submit button text larger */
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 112, 0, 0.35);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+    #btnConfirmSubmit:hover {
+        background: #ff8e3c;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 112, 0, 0.5);
+    }
