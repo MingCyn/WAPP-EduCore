@@ -20,6 +20,14 @@ namespace WAPP_EduCore.pages.Admin
         protected string AdminInitials = "AD";
 
         private int adminId = 0;            // the id of the admin who is logged in
+
+        // Where the course pictures are saved. This is the SAME folder and the SAME
+        // path style that the tutor page (courseBuilder) uses, so the student page can show them:
+        //   ~/uploads/courses/course-12-abc123.jpg
+        private const string ImageFolder = "~/uploads/courses/";
+
+        // Pictures saved by an older version of this page were in this folder (still shown, still deleted)
+        private const string OldImageFolder = "~/images/courses/";
         private const int PageSize = 10;    // how many courses per page (change me!)
 
         // The page number we are on (0 = first page). It is remembered between clicks.
@@ -406,8 +414,9 @@ namespace WAPP_EduCore.pages.Admin
                 return;
             }
 
-            // The title is saved like  "SPM Biology: Cell Physiology & Organization"
-            string title = BuildTitle(ddlEditLevel.SelectedValue, topic, name);
+            // The title is saved as the course name only (like "Cell Physiology & Organization").
+            // The qualification and the topic are saved in their own columns (course_level, category).
+            string title = name;
 
             // The duration is saved like  "4 weeks (3 hrs/week)"
             string duration;
@@ -470,7 +479,7 @@ namespace WAPP_EduCore.pages.Admin
             try
             {
                 // A new picture was chosen: save the file, then store its path
-                newImage = SaveCourseImage(fuEditImage);
+                newImage = SaveCourseImage(fuEditImage, "course-" + id);
                 if (newImage != "")
                 {
                     oldImage = Convert.ToString(GetValueOrNull("SELECT course_img::text FROM public.courses WHERE course_id = @id", new NpgsqlParameter("@id", id)));
@@ -484,7 +493,7 @@ namespace WAPP_EduCore.pages.Admin
                 RunSql(sql, parameters.ToArray());
 
                 // The old picture file is not needed any more (only files WE saved are deleted)
-                if (newImage != "" && oldImage.StartsWith("~/images/courses/"))
+                if (newImage != "" && IsOurImage(oldImage))
                     DeleteImageFile(oldImage);
 
                 ShowMessage("Saved! \"" + title + "\" was updated.", true);
@@ -516,8 +525,9 @@ namespace WAPP_EduCore.pages.Admin
                 return;
             }
 
-            // The title is saved like  "SPM Biology: Cell Physiology & Organization"
-            string title = BuildTitle(ddlAddLevel.SelectedValue, topic, name);
+            // The title is saved as the course name only (like "Cell Physiology & Organization").
+            // The qualification and the topic are saved in their own columns (course_level, category).
+            string title = name;
 
             // The duration is saved like  "4 weeks (3 hrs/week)"
             string duration;
@@ -534,7 +544,7 @@ namespace WAPP_EduCore.pages.Admin
             try
             {
                 // 1) Save the picture file (if the admin chose one)
-                imagePath = SaveCourseImage(fuAddImage);
+                imagePath = SaveCourseImage(fuAddImage, "course-new");
 
                 // 2) Make lists of the columns we want to fill, and the values for them
                 List<string> columns = new List<string>();
@@ -737,7 +747,7 @@ namespace WAPP_EduCore.pages.Admin
                 }
 
                 // 4) The picture file we saved for this course is not needed any more
-                if (imagePath.StartsWith("~/images/courses/"))
+                if (IsOurImage(imagePath))
                     DeleteImageFile(imagePath);
 
                 ShowMessage("Deleted! \"" + title + "\" was permanently removed, together with everything linked to it.", true);
@@ -767,10 +777,11 @@ namespace WAPP_EduCore.pages.Admin
         //  PICTURE FILES
         // =====================================================
 
-        // Saves the chosen picture in the folder  images/courses
-        // and gives back the path to store in the database, like  ~/images/courses/abc123.png
+        // Saves the chosen picture in the folder  uploads/courses  (same as the tutor page)
+        // and gives back the path to store in the database, like  ~/uploads/courses/course-12-abc123.png
         // (gives back "" when no picture was chosen)
-        private string SaveCourseImage(FileUpload upload)
+        // namePrefix = the start of the file name, like "course-12"
+        private string SaveCourseImage(FileUpload upload, string namePrefix)
         {
             if (!upload.HasFile) return "";
 
@@ -783,13 +794,20 @@ namespace WAPP_EduCore.pages.Admin
             if (upload.PostedFile.ContentLength > 3 * 1024 * 1024)
                 throw new Exception("The picture is too big. Please choose one under 3 MB.");
 
-            string folder = Server.MapPath("~/images/courses/");
+            string folder = Server.MapPath(ImageFolder);
             Directory.CreateDirectory(folder);                       // make the folder if it is not there yet
 
-            string fileName = Guid.NewGuid().ToString("N") + extension;   // a random name, so two files never clash
+            string fileName = namePrefix + "-" + Guid.NewGuid().ToString("N") + extension;   // a random part, so two files never clash
             upload.SaveAs(Path.Combine(folder, fileName));
 
-            return "~/images/courses/" + fileName;
+            return ImageFolder + fileName;
+        }
+
+        // Is this picture one that WE saved? (the new folder, or the old folder of an older version)
+        private bool IsOurImage(string imagePath)
+        {
+            return imagePath.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase)
+                || imagePath.StartsWith(OldImageFolder, StringComparison.OrdinalIgnoreCase);
         }
 
         // Deletes a picture file we saved (used when creating the course failed)
@@ -861,14 +879,6 @@ namespace WAPP_EduCore.pages.Admin
         // =====================================================
         //  HELPERS  (small tools used again and again)
         // =====================================================
-
-        // Makes the title like:  SPM Biology: Cell Physiology & Organization
-        //   level = SPM or IGCSE,  topic = Biology,  name = Cell Physiology & Organization
-        private string BuildTitle(string level, string topic, string name)
-        {
-            if (level == "") return name;
-            return level + (topic != "" ? " " + topic : "") + ": " + name;
-        }
 
         // Makes the duration like:  4 weeks (3 hrs/week)
         // Both boxes empty  -> duration = ""  (nothing)

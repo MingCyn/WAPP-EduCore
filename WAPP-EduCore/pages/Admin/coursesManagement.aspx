@@ -321,7 +321,6 @@
             show('dTopic',    orDash(row.getAttribute('data-topic')));
             show('dWeeks',    info.weeks == '' ? '—' : info.weeks + (info.weeks == '1' ? ' week' : ' weeks'));
             show('dHours',    info.hours == '' ? '—' : info.hours + (info.hours == '1' ? ' hr/week' : ' hrs/week'));
-            show('dDuration', orDash(row.getAttribute('data-duration')));
             show('dCreated',  row.getAttribute('data-created'));
             show('dId',       id);
 
@@ -362,30 +361,6 @@
             document.getElementById('userDropdown').classList.remove('open');
         });
 
-        // ----- The title is saved like:  SPM Biology: Cell Physiology & Organization -----
-        //  = qualification (SPM / IGCSE)  +  topic  +  ":"  +  course name
-        function buildTitle(level, topic, name) {
-            if (level == '') { return name; }
-            return level + (topic != '' ? ' ' + topic : '') + ': ' + name;
-        }
-
-        // Shows the admin how the title will look when saved (updates while typing)
-        function showPreview(levelId, topicId, nameId, previewId) {
-            var name = document.getElementById(nameId).value.trim();
-            var text = '';
-
-            if (name != '') {
-                text = 'Saved as: ' + buildTitle(document.getElementById(levelId).value,
-                                                 document.getElementById(topicId).value.trim(), name);
-            }
-            document.getElementById(previewId).innerText = text;
-        }
-
-        function previewAdd()  { showPreview('ddlAddLevel',  'ddlAddTopic',  'txtAddTitle',  'addPreview'); }
-        function previewEdit() { showPreview('ddlEditLevel', 'ddlEditTopic', 'txtEditTitle', 'editPreview'); }
-
-        window.addEventListener('load', function () { previewAdd(); previewEdit(); });
-
         // ----- POPUP 4 : delete course (asks "are you sure?") -----
         function openDelete(id) {
             document.getElementById('hfDeleteId').value = id;
@@ -421,7 +396,6 @@
             var box = document.getElementById('txtEditDescription');
             if (box != null) { box.value = row.getAttribute('data-description'); }
 
-            previewEdit();
             openModal('editModal');
         }
     </script>
@@ -647,9 +621,6 @@
                     <div class="info-label">Hours per week</div>
                     <div class="info-value" id="dHours"></div>
 
-                    <div class="info-label">Duration (saved as)</div>
-                    <div class="info-value" id="dDuration"></div>
-
                     <div class="info-label">Status</div>
                     <div class="info-value"><span id="dStatus" class="badge draft">Draft</span></div>
 
@@ -691,7 +662,7 @@
 
                 <div class="form-field">
                     <label>Course name</label>
-                    <asp:TextBox ID="txtEditTitle" runat="server" ClientIDMode="Static" CssClass="input" oninput="previewEdit()"></asp:TextBox>
+                    <asp:TextBox ID="txtEditTitle" runat="server" ClientIDMode="Static" CssClass="input"></asp:TextBox>
                 </div>
 
                 <!-- Only shown when the table has a description column -->
@@ -702,7 +673,7 @@
 
                 <div class="form-field">
                     <label>Qualification</label>
-                    <asp:DropDownList ID="ddlEditLevel" runat="server" ClientIDMode="Static" CssClass="input" onchange="previewEdit()">
+                    <asp:DropDownList ID="ddlEditLevel" runat="server" ClientIDMode="Static" CssClass="input">
                         <asp:ListItem Text="Not set" Value=""></asp:ListItem>
                         <asp:ListItem Text="SPM" Value="SPM"></asp:ListItem>
                         <asp:ListItem Text="IGCSE" Value="IGCSE"></asp:ListItem>
@@ -712,10 +683,8 @@
                 <div class="form-field">
                     <label>Topic</label>
                     <!-- A dropdown (the admin picks a topic, cannot type). C# fills it with the same topics as the Create popup list. -->
-                    <asp:DropDownList ID="ddlEditTopic" runat="server" ClientIDMode="Static" CssClass="input" onchange="previewEdit()"></asp:DropDownList>
+                    <asp:DropDownList ID="ddlEditTopic" runat="server" ClientIDMode="Static" CssClass="input"></asp:DropDownList>
                 </div>
-
-                <div class="form-hint" id="editPreview"></div>
 
                 <!-- The duration is saved like:  4 weeks (3 hrs/week) -->
                 <div class="form-row">
@@ -779,7 +748,7 @@
 
                     <div class="form-field">
                         <label>Course name</label>
-                        <asp:TextBox ID="txtAddTitle" runat="server" ClientIDMode="Static" CssClass="input" placeholder="e.g. Cell Physiology &amp; Organization" oninput="previewAdd()"></asp:TextBox>
+                        <asp:TextBox ID="txtAddTitle" runat="server" ClientIDMode="Static" CssClass="input" placeholder="e.g. Cell Physiology &amp; Organization"></asp:TextBox>
                     </div>
 
                     <!-- Only shown when the table has a description column -->
@@ -790,7 +759,7 @@
 
                     <div class="form-field">
                         <label>Qualification</label>
-                        <asp:DropDownList ID="ddlAddLevel" runat="server" ClientIDMode="Static" CssClass="input" onchange="previewAdd()">
+                        <asp:DropDownList ID="ddlAddLevel" runat="server" ClientIDMode="Static" CssClass="input">
                             <asp:ListItem Text="SPM" Value="SPM"></asp:ListItem>
                             <asp:ListItem Text="IGCSE" Value="IGCSE"></asp:ListItem>
                         </asp:DropDownList>
@@ -799,10 +768,8 @@
                     <div class="form-field">
                         <label>Topic</label>
                         <!-- A dropdown (the admin picks a topic, cannot type). C# fills it with the topics from the database. -->
-                        <asp:DropDownList ID="ddlAddTopic" runat="server" ClientIDMode="Static" CssClass="input" onchange="previewAdd()"></asp:DropDownList>
+                        <asp:DropDownList ID="ddlAddTopic" runat="server" ClientIDMode="Static" CssClass="input"></asp:DropDownList>
                     </div>
-
-                    <div class="form-hint" id="addPreview"></div>
 
                     <!-- The duration is saved like:  4 weeks (3 hrs/week) -->
                     <div class="form-row">
