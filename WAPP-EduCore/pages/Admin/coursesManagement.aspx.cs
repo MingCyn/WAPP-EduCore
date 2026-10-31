@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Npgsql;
@@ -12,33 +14,24 @@ using WAPP_EduCore.Data;
 
 namespace WAPP_EduCore.pages.Admin
 {
-    // NOTE: the class name is WebForm4 because your .aspx first line says Inherits="...WebForm4"
     public partial class WebForm4 : System.Web.UI.Page
     {
-        // These are shown in the sidebar and the top-right circle
         protected string AdminName = "Administrator";
         protected string AdminInitials = "AD";
 
-        private int adminId = 0;            // the id of the admin who is logged in
+        private int adminId = 0;
 
-        // Where the course pictures are saved. This is the SAME folder and the SAME
-        // path style that the tutor page (courseBuilder) uses, so the student page can show them:
-        //   ~/uploads/courses/course-12-abc123.jpg
         private const string ImageFolder = "~/uploads/courses/";
-
-        // Pictures saved by an older version of this page were in this folder (still shown, still deleted)
         private const string OldImageFolder = "~/images/courses/";
-        private const int PageSize = 10;    // how many courses per page (change me!)
+        private const int MaxImageBytes = 3 * 1024 * 1024; // 3 MB
+        private const int PageSize = 10;
 
-        // The page number we are on (0 = first page). It is remembered between clicks.
         private int CurrentPage
         {
             get { return ViewState["page"] == null ? 0 : (int)ViewState["page"]; }
             set { ViewState["page"] = value; }
         }
 
-        // The SQL for "which courses?"  (used for counting AND for the table)
-        // c = the course,  l.n = how many lessons that course has
         private const string FromAndWhere =
             @" FROM public.courses c
                LEFT JOIN (SELECT course_id, COUNT(*) AS n FROM public.lesson GROUP BY course_id) l
@@ -49,53 +42,33 @@ namespace WAPP_EduCore.pages.Admin
                       OR (@lessons = 'with'    AND COALESCE(l.n, 0) > 0)
                       OR (@lessons = 'without' AND COALESCE(l.n, 0) = 0)) ";
 
-        // The name of the "description" column in the courses table.
-        // We look for it in the database, because it may be called differently.
         private string descriptionColumn = null;
         private bool descriptionChecked = false;
 
-
-        // =====================================================
-        //  STEP 1: Page opens  ->  find out who the admin is
-        // =====================================================
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Not logged in, or the session ran out (for example after resting for a while)?
-            // Then go to the login page. We do NOT guess an admin any more.
             int signedInAdmin = CurrentUserId();
             if (signedInAdmin == 0)
             {
-                Response.Redirect("~/Default.aspx");     // the first page of the website (it has the Log In button)
+                Response.Redirect("~/Default.aspx");
                 return;
             }
 
-            // Remember this admin in the browser until he/she clicks Logout
             WAPP_EduCore.Data.LoginKeeper.Remember(Context, signedInAdmin);
-
             LoadAdminInfo();
         }
 
-        // =====================================================
-        //  STEP 2: PreRender runs AFTER every button click and
-        //  just BEFORE the page is drawn. So everything on the
-        //  page is always fresh.
-        // =====================================================
         protected void Page_PreRender(object sender, EventArgs e)
         {
-            // Show the Description boxes only if the table has a description column
             bool hasDescription = (DescriptionColumn() != null);
             pnlAddDesc.Visible = hasDescription;
             pnlEditDesc.Visible = hasDescription;
 
-            RefreshTopicList();   // topics in the dropdown + the suggestion list
-            LoadStats();          // the 5 number boxes
-            LoadCourses();        // the table
+            RefreshTopicList();
+            LoadStats();
+            LoadCourses();
         }
 
-
-        // =====================================================
-        //  ADMIN NAME (sidebar + top-right circle)
-        // =====================================================
         private void LoadAdminInfo()
         {
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
@@ -122,24 +95,18 @@ namespace WAPP_EduCore.pages.Admin
                         AdminName = Server.HtmlEncode(fullName);
 
                         string[] words = fullName.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (words.Length == 1)
-                            AdminInitials = words[0].Substring(0, 1).ToUpper();
-                        else if (words.Length > 1)
+                        if (words.Length > 0)
                             AdminInitials = words[0].Substring(0, 1).ToUpper();
                     }
                 }
             }
         }
 
-
-        // =====================================================
-        //  THE TOPIC DROPDOWN  +  the suggestion list in the popups
-        // =====================================================
         private void RefreshTopicList()
         {
-            string keep = ddlTopic.SelectedValue;     // remember what was chosen
-            string keepAdd = ddlAddTopic.SelectedValue;     // the Create popup dropdown remembers its choice too
-            string keepEdit = ddlEditTopic.SelectedValue;   // the Edit popup dropdown remembers its choice too
+            string keep = ddlTopic.SelectedValue;
+            string keepAdd = ddlAddTopic.SelectedValue;
+            string keepEdit = ddlEditTopic.SelectedValue;
 
             DataTable topics = GetTable("SELECT DISTINCT category FROM public.courses WHERE category IS NOT NULL AND category <> '' ORDER BY category");
 
@@ -157,13 +124,13 @@ namespace WAPP_EduCore.pages.Admin
             {
                 string topic = r["category"].ToString();
                 ddlTopic.Items.Add(new ListItem(topic, topic));
-                ddlAddTopic.Items.Add(new ListItem(topic, topic));    // same topics in the Create popup
-                ddlEditTopic.Items.Add(new ListItem(topic, topic));   // same topics in the Edit popup
+                ddlAddTopic.Items.Add(new ListItem(topic, topic));
+                ddlEditTopic.Items.Add(new ListItem(topic, topic));
                 options.Append("<option value='" + Server.HtmlEncode(topic) + "'></option>");
             }
 
             if (ddlTopic.Items.FindByValue(keep) != null)
-                ddlTopic.SelectedValue = keep;        // choose it again
+                ddlTopic.SelectedValue = keep;
 
             if (ddlAddTopic.Items.FindByValue(keepAdd) != null)
                 ddlAddTopic.SelectedValue = keepAdd;
@@ -174,16 +141,11 @@ namespace WAPP_EduCore.pages.Admin
             litTopicOptions.Text = options.ToString();
         }
 
-
-        // =====================================================
-        //  THE 5 NUMBER BOXES
-        // =====================================================
         private void LoadStats()
         {
             int total = GetNumber("SELECT COUNT(*) FROM public.courses");
             int topics = GetNumber("SELECT COUNT(DISTINCT category) FROM public.courses");
 
-            // A course belongs to a subject when the subject is in its title or in its topic
             int biology = CountSubject("biology");
             int chemistry = CountSubject("chemistry");
             int physics = CountSubject("physics");
@@ -202,7 +164,6 @@ namespace WAPP_EduCore.pages.Admin
             lblPhysicsNote.Text = Percent(physics, total) + " of all courses";
         }
 
-        // How many courses have this subject word in the title or the topic?
         private int CountSubject(string subject)
         {
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
@@ -214,13 +175,8 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-
-        // =====================================================
-        //  THE COURSE TABLE  (search + filters + pages)
-        // =====================================================
         private void LoadCourses()
         {
-            // 1) How many courses match the search?
             int total;
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
             using (NpgsqlCommand cmd = new NpgsqlCommand("SELECT COUNT(*)" + FromAndWhere, conn))
@@ -229,26 +185,16 @@ namespace WAPP_EduCore.pages.Admin
                 total = Convert.ToInt32(cmd.ExecuteScalar());
             }
 
-            // 2) Make sure the page number is not too big
             int lastPage = Math.Max(0, (total - 1) / PageSize);
             if (CurrentPage > lastPage) CurrentPage = lastPage;
             if (CurrentPage < 0) CurrentPage = 0;
 
-            // 3) Get only the 10 courses for this page
-            //    (duration::text = show the duration as plain text, whatever type it is)
-            //    (img = the picture link, but only if it looks like a real link)
-            //    (description = the description text, or empty when there is no such column)
             string descriptionPart = (DescriptionColumn() == null)
                 ? "''"
                 : "COALESCE(c." + DescriptionColumn() + "::text, '')";
 
-            // level = the course_level column (SPM / IGCSE), or empty when there is no such column
             string levelPart = ColumnExists("course_level") ? "COALESCE(c.course_level::text, '')" : "''";
-
-            // status = "draft" or "published" (empty when there is no such column)
             string statusPart = ColumnExists("status") ? "COALESCE(c.status::text, '')" : "''";
-
-            // reference = the list of books, saved as text like  ["Book one", "Book two"]
             string referencePart = ColumnExists("reference") ? "COALESCE(c.\"reference\"::text, '')" : "''";
 
             DataTable table = new DataTable();
@@ -262,7 +208,7 @@ namespace WAPP_EduCore.pages.Admin
                          " + referencePart + @" AS reference"
                 + FromAndWhere +
                 @" ORDER BY c.course_id ASC
-                   LIMIT @size OFFSET @skip";   // ASC = smallest first (1, 2, 3...)
+                    LIMIT @size OFFSET @skip";
 
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
@@ -277,7 +223,6 @@ namespace WAPP_EduCore.pages.Admin
                 }
             }
 
-            // 4) Turn every row into HTML
             StringBuilder rows = new StringBuilder();
             foreach (DataRow r in table.Rows)
             {
@@ -285,20 +230,17 @@ namespace WAPP_EduCore.pages.Admin
             }
             litRows.Text = rows.ToString();
 
-            // 5) Show the table OR the "No results found" box
             pnlTable.Visible = (total > 0);
             pnlEmpty.Visible = (total == 0);
 
-            // 6) "Showing 1-10 of 486" + Previous / Next buttons
             int from = CurrentPage * PageSize + 1;
             int to = CurrentPage * PageSize + table.Rows.Count;
-            lblShowing.Text = "Showing " + from + "–" + to + " of " + total.ToString("N0");
+            lblShowing.Text = "Showing " + (total == 0 ? 0 : from) + "–" + to + " of " + total.ToString("N0");
 
             btnPrev.Enabled = (CurrentPage > 0);
             btnNext.Enabled = (CurrentPage < lastPage);
         }
 
-        // Gives the search words to the database command
         private void AddFilters(NpgsqlCommand cmd)
         {
             string search = txtSearch.Text.Trim();
@@ -308,9 +250,6 @@ namespace WAPP_EduCore.pages.Admin
             cmd.Parameters.AddWithValue("@lessons", ddlLessons.SelectedValue);
         }
 
-        // Makes ONE table row.
-        // The data-... parts hide the course's info inside the row,
-        // so the popup can read it with JavaScript when you click.
         private string BuildRow(DataRow r)
         {
             int id = Convert.ToInt32(r["course_id"]);
@@ -319,16 +258,12 @@ namespace WAPP_EduCore.pages.Admin
             string duration = r["duration"] == DBNull.Value ? "" : r["duration"].ToString();
             string description = r["description"].ToString();
             int lessons = Convert.ToInt32(r["lessons"]);
-
-            // "published" stays published, everything else counts as a draft
             string status = (r["status"].ToString().Trim().ToLower() == "published") ? "published" : "draft";
 
             string img = r["img"].ToString();
-            if (img.StartsWith("~/")) img = ResolveUrl(img);      // ~/images/a.png  ->  /images/a.png
+            if (img.StartsWith("~/")) img = ResolveUrl(img);
 
             StringBuilder sb = new StringBuilder();
-
-            // The row itself (click = open the detail popup)
             sb.Append("<tr class='clickable' id='row" + id + "' onclick='openDetail(" + id + ")'");
             sb.Append(Attr("title", title));
             sb.Append(Attr("topic", topic));
@@ -342,19 +277,16 @@ namespace WAPP_EduCore.pages.Admin
             sb.Append(Attr("img", img));
             sb.Append(">");
 
-            // The cells
             sb.Append("<td class='grey-text'>" + id + "</td>");
             sb.Append("<td>" + Server.HtmlEncode(title) + "</td>");
             sb.Append("<td>" + (topic == "" ? "—" : Server.HtmlEncode(topic)) + "</td>");
             sb.Append("<td>" + (duration == "" ? "—" : Server.HtmlEncode(duration)) + "</td>");
 
-            // 0 lessons gets a yellow badge so it stands out
             if (lessons == 0)
                 sb.Append("<td><span class='badge pending'>No lessons</span></td>");
             else
                 sb.Append("<td>" + lessons + "</td>");
 
-            // Status: green "Published" or red "Draft"
             if (status == "published")
                 sb.Append("<td><span class='badge published'>Published</span></td>");
             else
@@ -362,7 +294,6 @@ namespace WAPP_EduCore.pages.Admin
 
             sb.Append("<td class='grey-text'>" + FormatDate(r["created_at"]) + "</td>");
 
-            // The 3 little icons: view, edit and delete
             sb.Append("<td>");
             sb.Append(IconButton("blue", "View", "openDetail(" + id + ")",
                 "<path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/>"));
@@ -376,12 +307,6 @@ namespace WAPP_EduCore.pages.Admin
             return sb.ToString();
         }
 
-
-        // =====================================================
-        //  BUTTONS
-        // =====================================================
-
-        // Search button / dropdown changed  ->  go back to page 1
         protected void Filter_Changed(object sender, EventArgs e)
         {
             CurrentPage = 0;
@@ -397,14 +322,13 @@ namespace WAPP_EduCore.pages.Admin
             CurrentPage = CurrentPage + 1;
         }
 
-        // ----- Edit popup: Save changes -----
         protected void btnSaveEdit_Click(object sender, EventArgs e)
         {
             int id;
             if (!int.TryParse(hfEditId.Value, out id)) return;
 
             string name = txtEditTitle.Text.Trim();
-            string topic = ddlEditTopic.SelectedValue.Trim();   // picked from the dropdown
+            string topic = ddlEditTopic.SelectedValue.Trim();
             string description = txtEditDescription.Text.Trim();
 
             if (name == "")
@@ -414,11 +338,7 @@ namespace WAPP_EduCore.pages.Admin
                 return;
             }
 
-            // The title is saved as the course name only (like "Cell Physiology & Organization").
-            // The qualification and the topic are saved in their own columns (course_level, category).
             string title = name;
-
-            // The duration is saved like  "4 weeks (3 hrs/week)"
             string duration;
             string durationError;
             if (!TryBuildDuration(ddlEditWeeks.SelectedValue, ddlEditHours.SelectedValue, out duration, out durationError))
@@ -428,14 +348,11 @@ namespace WAPP_EduCore.pages.Admin
                 return;
             }
 
-            // The command is built from small pieces, so the description is only
-            // saved when the table really has a description column.
             string sql = "UPDATE public.courses SET title = @title, category = @category";
             List<NpgsqlParameter> parameters = new List<NpgsqlParameter>();
             parameters.Add(new NpgsqlParameter("@title", title));
             parameters.Add(new NpgsqlParameter("@category", topic == "" ? (object)DBNull.Value : topic));
 
-            // Both duration boxes empty = keep the duration that is already saved
             if (duration != "")
             {
                 sql += ", duration = @duration";
@@ -448,38 +365,43 @@ namespace WAPP_EduCore.pages.Admin
                 parameters.Add(new NpgsqlParameter("@description", description));
             }
 
-            // Save the SPM / IGCSE choice in the course_level column too
             if (ColumnExists("course_level"))
             {
                 sql += ", course_level = @level";
                 parameters.Add(new NpgsqlParameter("@level", ddlEditLevel.SelectedValue == "" ? (object)DBNull.Value : ddlEditLevel.SelectedValue));
             }
 
-            // Save the status: "draft" (unpublished) or "published"
             if (ColumnExists("status"))
             {
                 sql += ", status = @status";
                 parameters.Add(TextParameter("@status", ddlEditStatus.SelectedValue == "published" ? "published" : "draft"));
             }
 
-            // Save the references as a list (one reference per line in the box)
             if (ColumnExists("reference"))
             {
                 sql += ", \"reference\" = @reference";
                 parameters.Add(TextParameter("@reference", ReferencesToJson(txtEditReferences.Text)));
             }
 
-            // Remember WHEN it was changed
             if (ColumnExists("updated_at"))
                 sql += ", updated_at = now()";
 
-            string newImage = "";       // the new picture (if the admin chose one)
-            string oldImage = "";       // the picture the course had before
+            string newImage = "";
+            string oldImage = "";
 
             try
             {
-                // A new picture was chosen: save the file, then store its path
-                newImage = SaveCourseImage(fuEditImage, "course-" + id);
+                if (fuEditImage.HasFile)
+                {
+                    string imgError;
+                    if (!TrySaveCourseImage(fuEditImage, "course-" + id, out newImage, out imgError))
+                    {
+                        ShowMessage(imgError, false);
+                        ReopenPopup("editModal");
+                        return;
+                    }
+                }
+
                 if (newImage != "")
                 {
                     oldImage = Convert.ToString(GetValueOrNull("SELECT course_img::text FROM public.courses WHERE course_id = @id", new NpgsqlParameter("@id", id)));
@@ -492,7 +414,6 @@ namespace WAPP_EduCore.pages.Admin
 
                 RunSql(sql, parameters.ToArray());
 
-                // The old picture file is not needed any more (only files WE saved are deleted)
                 if (newImage != "" && IsOurImage(oldImage))
                     DeleteImageFile(oldImage);
 
@@ -500,22 +421,18 @@ namespace WAPP_EduCore.pages.Admin
             }
             catch (Exception ex)
             {
-                DeleteImageFile(newImage);   // saving failed: remove the new picture file again
-
-                ShowMessage(ex.Message.StartsWith("Please choose") || ex.Message.StartsWith("The picture")
-                    ? ex.Message
-                    : "Could not save: " + ex.Message, false);
+                DeleteImageFile(newImage);
+                ShowMessage("Could not save: " + ex.Message, false);
                 ReopenPopup("editModal");
             }
         }
 
-        // ----- Create course popup -----
         protected void btnAddCourse_Click(object sender, EventArgs e)
         {
             lblAddError.Text = "";
 
             string name = txtAddTitle.Text.Trim();
-            string topic = ddlAddTopic.SelectedValue.Trim();   // picked from the dropdown
+            string topic = ddlAddTopic.SelectedValue.Trim();
             string description = txtAddDescription.Text.Trim();
 
             if (name == "")
@@ -525,11 +442,7 @@ namespace WAPP_EduCore.pages.Admin
                 return;
             }
 
-            // The title is saved as the course name only (like "Cell Physiology & Organization").
-            // The qualification and the topic are saved in their own columns (course_level, category).
             string title = name;
-
-            // The duration is saved like  "4 weeks (3 hrs/week)"
             string duration;
             string durationError;
             if (!TryBuildDuration(ddlAddWeeks.SelectedValue, ddlAddHours.SelectedValue, out duration, out durationError))
@@ -543,10 +456,17 @@ namespace WAPP_EduCore.pages.Admin
 
             try
             {
-                // 1) Save the picture file (if the admin chose one)
-                imagePath = SaveCourseImage(fuAddImage, "course-new");
+                if (fuAddImage.HasFile)
+                {
+                    string imgError;
+                    if (!TrySaveCourseImage(fuAddImage, "course-new", out imagePath, out imgError))
+                    {
+                        lblAddError.Text = imgError;
+                        ReopenPopup("addModal");
+                        return;
+                    }
+                }
 
-                // 2) Make lists of the columns we want to fill, and the values for them
                 List<string> columns = new List<string>();
                 List<string> values = new List<string>();
                 List<NpgsqlParameter> parameters = new List<NpgsqlParameter>();
@@ -559,7 +479,6 @@ namespace WAPP_EduCore.pages.Admin
                 values.Add("@category");
                 parameters.Add(new NpgsqlParameter("@category", topic == "" ? (object)DBNull.Value : topic));
 
-                // (no duration typed = nothing saved)
                 columns.Add("duration");
                 values.Add("@duration");
                 parameters.Add(DurationParameter(duration));
@@ -571,7 +490,6 @@ namespace WAPP_EduCore.pages.Admin
                     parameters.Add(new NpgsqlParameter("@img", imagePath));
                 }
 
-                // SPM / IGCSE also goes in the course_level column
                 if (ddlAddLevel.SelectedValue != "" && ColumnExists("course_level"))
                 {
                     columns.Add("course_level");
@@ -586,7 +504,6 @@ namespace WAPP_EduCore.pages.Admin
                     parameters.Add(new NpgsqlParameter("@description", description));
                 }
 
-                // Status: "draft" (unpublished) or "published"
                 if (ColumnExists("status"))
                 {
                     columns.Add("status");
@@ -594,7 +511,6 @@ namespace WAPP_EduCore.pages.Admin
                     parameters.Add(TextParameter("@status", ddlAddStatus.SelectedValue == "published" ? "published" : "draft"));
                 }
 
-                // References: one per line in the box, saved as a list
                 if (ColumnExists("reference") && ReferencesToJson(txtAddReferences.Text) != "")
                 {
                     columns.Add("\"reference\"");
@@ -602,7 +518,6 @@ namespace WAPP_EduCore.pages.Admin
                     parameters.Add(TextParameter("@reference", ReferencesToJson(txtAddReferences.Text)));
                 }
 
-                // If the table also remembers WHO made the course, save the admin's id
                 if (adminId > 0 && ColumnExists("user_id"))
                 {
                     columns.Add("user_id");
@@ -610,14 +525,12 @@ namespace WAPP_EduCore.pages.Admin
                     parameters.Add(new NpgsqlParameter("@userid", adminId));
                 }
 
-                // 3) Put it in the database
                 string sql = "INSERT INTO public.courses (" + string.Join(", ", columns.ToArray()) + ")" +
                              " VALUES (" + string.Join(", ", values.ToArray()) + ")";
                 RunSql(sql, parameters.ToArray());
 
                 ShowMessage("Created! \"" + title + "\" was added to the catalogue.", true);
 
-                // clear the boxes
                 txtAddTitle.Text = "";
                 txtAddDescription.Text = "";
                 ddlAddTopic.SelectedIndex = 0;
@@ -628,61 +541,41 @@ namespace WAPP_EduCore.pages.Admin
             }
             catch (Exception ex)
             {
-                // something went wrong: remove the picture we just saved, so no extra files stay behind
                 DeleteImageFile(imagePath);
-
-                lblAddError.Text = ex.Message.StartsWith("Please choose") || ex.Message.StartsWith("The picture")
-                    ? ex.Message
-                    : "Could not create the course: " + ex.Message;
+                lblAddError.Text = "Could not create the course: " + ex.Message;
                 ReopenPopup("addModal");
             }
         }
 
-
-        // ----- Delete popup: the admin clicked "Confirm" -----
         protected void btnConfirmDelete_Click(object sender, EventArgs e)
         {
             int id;
             if (!int.TryParse(hfDeleteId.Value, out id)) return;
 
-            // "the lessons of this course" (used in many lines below)
             string lessonsOfCourse = "(SELECT lesson_id FROM public.lesson WHERE course_id = @id)";
-
-            // "the discussion posts of this course" (the course itself, or one of its lessons)
             string postsOfCourse = "(SELECT post_id FROM public.discussion_posts WHERE course_id = @id OR lesson_id IN " + lessonsOfCourse + ")";
 
-            // Everything that belongs to a course, from the INSIDE to the OUTSIDE.
-            // Each line:  { the SQL,  the table.column it needs }   (a line is skipped if the table does not exist)
             string[][] belongsToCourse =
             {
-                // quizzes and lessons can point to each other, so we break those links first
                 new string[] { "UPDATE public.quiz SET question_id = NULL WHERE lesson_id IN " + lessonsOfCourse,
                                "quiz.question_id", "quiz.lesson_id", "lesson.lesson_id", "lesson.course_id" },
                 new string[] { "UPDATE public.lesson SET quiz_id = NULL WHERE course_id = @id",
                                "lesson.quiz_id", "lesson.course_id" },
-
-                // discussions
                 new string[] { "DELETE FROM public.discussion_replies WHERE post_id IN " + postsOfCourse,
                                "discussion_replies.post_id", "discussion_posts.post_id", "discussion_posts.course_id", "discussion_posts.lesson_id", "lesson.lesson_id", "lesson.course_id" },
                 new string[] { "DELETE FROM public.discussion_posts WHERE course_id = @id OR lesson_id IN " + lessonsOfCourse,
                                "discussion_posts.course_id", "discussion_posts.lesson_id", "lesson.lesson_id", "lesson.course_id" },
-
-                // quizzes of the lessons: scores, questions, then the quiz itself
                 new string[] { "DELETE FROM public.quiz_score WHERE quiz_id IN (SELECT quiz_id FROM public.quiz WHERE lesson_id IN " + lessonsOfCourse + ")",
                                "quiz_score.quiz_id", "quiz.quiz_id", "quiz.lesson_id", "lesson.lesson_id", "lesson.course_id" },
                 new string[] { "DELETE FROM public.quiz_questions WHERE quiz_id IN (SELECT quiz_id FROM public.quiz WHERE lesson_id IN " + lessonsOfCourse + ")",
                                "quiz_questions.quiz_id", "quiz.quiz_id", "quiz.lesson_id", "lesson.lesson_id", "lesson.course_id" },
                 new string[] { "DELETE FROM public.quiz WHERE lesson_id IN " + lessonsOfCourse,
                                "quiz.lesson_id", "lesson.lesson_id", "lesson.course_id" },
-
-                // the lessons: progress, then the lessons themselves
                 new string[] { "DELETE FROM public.lesson_progress WHERE lesson_id IN " + lessonsOfCourse,
                                "lesson_progress.lesson_id", "lesson.lesson_id", "lesson.course_id" },
                 new string[] { "DELETE FROM public.lesson WHERE course_id = @id", "lesson.course_id" },
-
-                // the rest that points to the course
-                new string[] { "DELETE FROM public.enrollment WHERE course_id = @id",      "enrollment.course_id" },
-                new string[] { "DELETE FROM public.certificates WHERE course_id = @id",    "certificates.course_id" },
+                new string[] { "DELETE FROM public.enrollment WHERE course_id = @id",   "enrollment.course_id" },
+                new string[] { "DELETE FROM public.certificates WHERE course_id = @id",   "certificates.course_id" },
                 new string[] { "DELETE FROM public.calendar_events WHERE course_id = @id", "calendar_events.course_id" }
             };
 
@@ -691,10 +584,8 @@ namespace WAPP_EduCore.pages.Admin
             try
             {
                 string title;
-
                 using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
                 {
-                    // 1) Is the course still there? (and its title + picture, for later)
                     using (NpgsqlCommand cmd = new NpgsqlCommand("SELECT title, course_img::text FROM public.courses WHERE course_id = @id", conn))
                     {
                         cmd.Parameters.AddWithValue("@id", id);
@@ -710,7 +601,6 @@ namespace WAPP_EduCore.pages.Admin
                         }
                     }
 
-                    // 2) Which of the lines above can we use? (only the tables that exist)
                     List<string> usable = new List<string>();
                     foreach (string[] line in belongsToCourse)
                     {
@@ -723,8 +613,6 @@ namespace WAPP_EduCore.pages.Admin
                         if (allThere) usable.Add(line[0]);
                     }
 
-                    // 3) Delete everything together. All or nothing (a "transaction"):
-                    //    if one step fails, NOTHING is deleted.
                     using (NpgsqlTransaction transaction = conn.BeginTransaction())
                     {
                         foreach (string sql in usable)
@@ -742,20 +630,14 @@ namespace WAPP_EduCore.pages.Admin
                             cmd.ExecuteNonQuery();
                         }
 
-                        transaction.Commit();   // everything worked: save it for real
+                        transaction.Commit();
                     }
                 }
 
-                // 4) The picture file we saved for this course is not needed any more
                 if (IsOurImage(imagePath))
                     DeleteImageFile(imagePath);
 
                 ShowMessage("Deleted! \"" + title + "\" was permanently removed, together with everything linked to it.", true);
-            }
-            catch (PostgresException ex)
-            {
-                ShowMessage("Could not delete: " + ex.Message +
-                            (string.IsNullOrEmpty(ex.TableName) ? "" : " (table: " + ex.TableName + ")"), false);
             }
             catch (Exception ex)
             {
@@ -763,54 +645,78 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // ----- Logout (the "Logout" option in the drop-down menu) -----
         protected void lnkLogout_Click(object sender, EventArgs e)
         {
-            WAPP_EduCore.Data.LoginKeeper.Forget(Context);   // remove the "remember me" cookie
-            Session.Clear();        // forget who was logged in
-            Session.Abandon();      // end the session
-            Response.Redirect("~/auth/login.aspx");   // go to the login page
+            WAPP_EduCore.Data.LoginKeeper.Forget(Context);
+            Session.Clear();
+            Session.Abandon();
+            Response.Redirect("~/auth/login.aspx");
         }
 
-
-        // =====================================================
-        //  PICTURE FILES
-        // =====================================================
-
-        // Saves the chosen picture in the folder  uploads/courses  (same as the tutor page)
-        // and gives back the path to store in the database, like  ~/uploads/courses/course-12-abc123.png
-        // (gives back "" when no picture was chosen)
-        // namePrefix = the start of the file name, like "course-12"
-        private string SaveCourseImage(FileUpload upload, string namePrefix)
+        private bool TrySaveCourseImage(FileUpload upload, string namePrefix, out string savedPath, out string error)
         {
-            if (!upload.HasFile) return "";
+            savedPath = "";
+            error = "";
 
-            string extension = Path.GetExtension(upload.FileName).ToLower();
-            string[] allowed = { ".png", ".jpg", ".jpeg", ".gif", ".webp" };
+            if (!upload.HasFile) return true;
 
-            if (Array.IndexOf(allowed, extension) < 0)
-                throw new Exception("Please choose a picture file (png, jpg, gif or webp).");
+            if (upload.PostedFiles != null && upload.PostedFiles.Count > 1)
+            {
+                error = "Please upload only one image file at a time.";
+                return false;
+            }
 
-            if (upload.PostedFile.ContentLength > 3 * 1024 * 1024)
-                throw new Exception("The picture is too big. Please choose one under 3 MB.");
+            HttpPostedFile file = upload.PostedFile;
+            if (file.ContentLength > MaxImageBytes)
+            {
+                error = "The image must be 3 MB or smaller.";
+                return false;
+            }
 
-            string folder = Server.MapPath(ImageFolder);
-            Directory.CreateDirectory(folder);                       // make the folder if it is not there yet
+            try
+            {
+                var head = new byte[12];
+                int read = file.InputStream.Read(head, 0, head.Length);
+                file.InputStream.Position = 0;
 
-            string fileName = namePrefix + "-" + Guid.NewGuid().ToString("N") + extension;   // a random part, so two files never clash
-            upload.SaveAs(Path.Combine(folder, fileName));
+                string extension = DetectImageExtension(head, read);
+                if (extension == null)
+                {
+                    error = "Please choose a valid JPG, PNG or WEBP image format.";
+                    return false;
+                }
 
-            return ImageFolder + fileName;
+                string folder = Server.MapPath(ImageFolder);
+                Directory.CreateDirectory(folder);
+
+                string fileName = namePrefix + "-" + Guid.NewGuid().ToString("N") + extension;
+                string fullPath = Path.Combine(folder, fileName);
+
+                file.SaveAs(fullPath);
+                savedPath = ImageFolder + fileName;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                error = "The image could not be saved: " + ex.Message;
+                return false;
+            }
         }
 
-        // Is this picture one that WE saved? (the new folder, or the old folder of an older version)
+        private static string DetectImageExtension(byte[] head, int length)
+        {
+            if (length >= 3 && head[0] == 0xFF && head[1] == 0xD8 && head[2] == 0xFF) return ".jpg";
+            if (length >= 8 && head[0] == 0x89 && head[1] == 0x50 && head[2] == 0x4E && head[3] == 0x47 && head[4] == 0x0D && head[5] == 0x0A && head[6] == 0x1A && head[7] == 0x0A) return ".png";
+            if (length >= 12 && head[0] == 'R' && head[1] == 'I' && head[2] == 'F' && head[3] == 'F' && head[8] == 'W' && head[9] == 'E' && head[10] == 'B' && head[11] == 'P') return ".webp";
+            return null;
+        }
+
         private bool IsOurImage(string imagePath)
         {
             return imagePath.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase)
                 || imagePath.StartsWith(OldImageFolder, StringComparison.OrdinalIgnoreCase);
         }
 
-        // Deletes a picture file we saved (used when creating the course failed)
         private void DeleteImageFile(string imagePath)
         {
             if (imagePath == "") return;
@@ -820,18 +726,9 @@ namespace WAPP_EduCore.pages.Admin
                 string fullPath = Server.MapPath(imagePath);
                 if (File.Exists(fullPath)) File.Delete(fullPath);
             }
-            catch
-            {
-                // if it cannot be deleted, it is not a big problem
-            }
+            catch { }
         }
 
-
-        // =====================================================
-        //  FINDING COLUMNS IN THE courses TABLE
-        // =====================================================
-
-        // Does the courses table have a column with this name?
         private bool ColumnExists(string name)
         {
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
@@ -843,7 +740,6 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // Does ANY table have this column? (used by the delete function)
         private bool ColumnExists(NpgsqlConnection conn, string table, string column)
         {
             using (NpgsqlCommand cmd = new NpgsqlCommand(
@@ -855,7 +751,6 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // The name of the description column, or null when there is none
         private string DescriptionColumn()
         {
             if (!descriptionChecked)
@@ -875,14 +770,6 @@ namespace WAPP_EduCore.pages.Admin
             return descriptionColumn;
         }
 
-
-        // =====================================================
-        //  HELPERS  (small tools used again and again)
-        // =====================================================
-
-        // Makes the duration like:  4 weeks (3 hrs/week)
-        // Both boxes empty  -> duration = ""  (nothing)
-        // Gives back false (and an error text) when something is wrong.
         private bool TryBuildDuration(string weeksText, string hoursText, out string duration, out string error)
         {
             duration = "";
@@ -907,15 +794,12 @@ namespace WAPP_EduCore.pages.Admin
             return true;
         }
 
-        // 12.5%
         private string Percent(int part, int whole)
         {
             double p = (whole == 0) ? 0 : part * 100.0 / whole;
             return p.ToString("0.0", CultureInfo.InvariantCulture) + "%";
         }
 
-        // The duration column can be a number or text.
-        // "Unknown" tells the database: "you decide how to read this".
         private NpgsqlParameter DurationParameter(string text)
         {
             NpgsqlParameter p = new NpgsqlParameter("@duration", NpgsqlDbType.Unknown);
@@ -923,8 +807,6 @@ namespace WAPP_EduCore.pages.Admin
             return p;
         }
 
-        // A text value for a column that can be text OR json OR an enum.
-        // "Unknown" tells the database: "you decide how to read this". Empty text = nothing (NULL).
         private NpgsqlParameter TextParameter(string name, string text)
         {
             NpgsqlParameter p = new NpgsqlParameter(name, NpgsqlDbType.Unknown);
@@ -932,10 +814,6 @@ namespace WAPP_EduCore.pages.Admin
             return p;
         }
 
-        // Turns the lines the admin typed into a list the database keeps:
-        //   Book one
-        //   Book two        ->   ["Book one", "Book two"]
-        // Empty lines are skipped. No lines at all -> "" (nothing).
         private string ReferencesToJson(string text)
         {
             string[] lines = text.Replace("\r", "").Split('\n');
@@ -951,7 +829,6 @@ namespace WAPP_EduCore.pages.Admin
             return "[" + string.Join(", ", items.ToArray()) + "]";
         }
 
-        // Puts a backslash before the letters that would break the list:  "  and  \
         private string JsonSafe(string text)
         {
             StringBuilder sb = new StringBuilder();
@@ -959,31 +836,27 @@ namespace WAPP_EduCore.pages.Admin
             {
                 if (ch == '"') sb.Append("\\\"");
                 else if (ch == '\\') sb.Append("\\\\");
-                else if (ch < ' ') sb.Append(' ');          // tabs and other hidden characters become a space
+                else if (ch < ' ') sb.Append(' ');
                 else sb.Append(ch);
             }
             return sb.ToString();
         }
 
-        // Shows a green (ok) or red (error) message at the top
         private void ShowMessage(string text, bool ok)
         {
             litMessage.Text = "<div class='msg " + (ok ? "ok" : "error") + "'>" + Server.HtmlEncode(text) + "</div>";
         }
 
-        // Opens a popup again after a page reload (used when something is wrong)
         private void ReopenPopup(string popupId)
         {
             ClientScript.RegisterStartupScript(GetType(), "reopen", "openModal('" + popupId + "');", true);
         }
 
-        // Writes  data-key='value'  safely
         private string Attr(string key, string value)
         {
             return " data-" + key + "='" + Server.HtmlEncode(value) + "'";
         }
 
-        // Makes one little icon button inside a table row
         private string IconButton(string color, string title, string js, string svgInside)
         {
             return "<button type='button' class='icon-btn " + color + "' title='" + title + "' " +
@@ -992,14 +865,12 @@ namespace WAPP_EduCore.pages.Admin
                    svgInside + "</svg></button>";
         }
 
-        // 12 Sep 2026
         private string FormatDate(object value)
         {
             if (value == null || value == DBNull.Value) return "—";
             return Convert.ToDateTime(value).ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
         }
 
-        // Asks the database for ONE value (gives back null when there is nothing)
         private object GetValueOrNull(string sql, params NpgsqlParameter[] parameters)
         {
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
@@ -1011,7 +882,6 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // Asks the database for ONE number (like a count)
         private int GetNumber(string sql)
         {
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
@@ -1021,7 +891,6 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // Asks the database for a TABLE of rows
         private DataTable GetTable(string sql)
         {
             DataTable table = new DataTable();
@@ -1033,7 +902,6 @@ namespace WAPP_EduCore.pages.Admin
             return table;
         }
 
-        // Runs a command that CHANGES the database (insert / update)
         private void RunSql(string sql, params NpgsqlParameter[] parameters)
         {
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
@@ -1044,19 +912,11 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // =====================================================
-        //  WHO IS LOGGED IN?  (used by every admin page)
-        //  The login page saves the user number in Session["UserID"].
-        //  (Session["user_id"] is also checked, in case an older page saved it.)
-        //  Gives back 0 when nobody is logged in.
-        // =====================================================
         private int CurrentUserId()
         {
             int id;
             if (int.TryParse(Convert.ToString(Session["UserID"]), out id) && id > 0) return id;
             if (int.TryParse(Convert.ToString(Session["user_id"]), out id) && id > 0) return id;
-
-            // The session was forgotten (idle for a long time)? Ask the "remember me" cookie who the admin is.
             return WAPP_EduCore.Data.LoginKeeper.Restore(Context);
         }
     }
