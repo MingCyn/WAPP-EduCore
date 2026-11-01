@@ -15,147 +15,249 @@
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
     <link href="/Content/student-upgrade.css" rel="stylesheet" />
     <style>
-        a.course-card{
+        a.course-card {
             display: flex;
             flex-direction: column; /* Stacks thumb and meta vertically */
-            height: 100%;           /* Forces card to fill the grid row height */
+            height: 100%; /* Forces card to fill the grid row height */
             color: inherit;
             text-decoration: none;
-            background: #fcf6ee;    /* Sets a uniform background color for the whole card */
+            background: #fcf6ee; /* Sets a uniform background color for the whole card */
         }
-        a.course-card:hover{box-shadow:0 8px 22px rgba(16,24,40,0.12)}
-        
+
+            a.course-card:hover {
+                box-shadow: 0 8px 22px rgba(16,24,40,0.12)
+            }
+
         .course-card .meta {
-            flex: 1;                /* Forces meta area to expand and fill remaining space */
+            flex: 1; /* Forces meta area to expand and fill remaining space */
             display: flex;
             flex-direction: column;
-            background: #fcf6ee;    /* Ensures meta background matches */
+            background: #fcf6ee; /* Ensures meta background matches */
         }
 
         .course-card .progress {
-            margin-top: auto;       /* Pushes the progress bar cleanly to the bottom */
+            margin-top: auto; /* Pushes the progress bar cleanly to the bottom */
         }
 
         .courses {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 18px;
-            align-items: stretch;   /* Ensures all cards stretch to match the tallest card in the row */
+            align-items: stretch; /* Ensures all cards stretch to match the tallest card in the row */
         }
-        
+
         @media (max-width: 1300px) {
             .courses {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
 
-        .db-empty{padding:26px 10px;font-size:13px;color:#7b8697}
+        .db-empty {
+            padding: 26px 10px;
+            font-size: 13px;
+            color: #7b8697
+        }
 
         /* ---------- fonts: same serif headings as the other student pages ---------- */
-        .topbar .greeting{font-family:'Merriweather',Georgia,serif;font-size:26px;font-weight:700;color:#111c3d}
-        .hero h2{font-family:'Merriweather',Georgia,serif;font-size:28px;font-weight:700;line-height:1.3}
-        .section-title{font-family:'Merriweather',Georgia,serif;font-size:19px;font-weight:700;color:#111c3d}
-        .section-title a{font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:13px;font-weight:500}
-        .course-card h4{font-family:'Merriweather',Georgia,serif;font-size:16px;font-weight:700;line-height:1.3;color:#111c3d}
-        .right-col .card h4{font-family:'Merriweather',Georgia,serif;font-size:17px;font-weight:700;color:#111c3d}
-        .stat .num{font-family:'Merriweather',Georgia,serif;font-size:24px;font-weight:700;color:#243f86}
-        .deadline-item strong,.achievements strong{font-weight:600;color:#111c3d}
+        .topbar .greeting {
+            font-family: 'Merriweather',Georgia,serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: #111c3d
+        }
+
+        .hero h2 {
+            font-family: 'Merriweather',Georgia,serif;
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.3
+        }
+
+        .section-title {
+            font-family: 'Merriweather',Georgia,serif;
+            font-size: 19px;
+            font-weight: 700;
+            color: #111c3d
+        }
+
+            .section-title a {
+                font-family: 'Inter','Segoe UI',Arial,sans-serif;
+                font-size: 13px;
+                font-weight: 500
+            }
+
+        .course-card h4 {
+            font-family: 'Merriweather',Georgia,serif;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.3;
+            color: #111c3d
+        }
+
+        .right-col .card h4 {
+            font-family: 'Merriweather',Georgia,serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: #111c3d
+        }
+
+        .stat .num {
+            font-family: 'Merriweather',Georgia,serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #243f86
+        }
+
+        .deadline-item strong, .achievements strong {
+            font-weight: 600;
+            color: #111c3d
+        }
 
         /* ---------- Today's Thought quote card ---------- */
-        .hero .thought{
-            position:relative;
-            overflow:hidden;
-            flex:0 1 400px;
-            min-width:280px;
-            padding:22px 26px 18px;
-            background:linear-gradient(145deg,#fcf3e7 0%,#f4e0c8 100%);
-            border:1px solid #ecd5b8;
-            border-radius:16px;
-            color:#1f2a44;
-            box-shadow:0 12px 32px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.7);
+        .hero .thought {
+            position: relative;
+            overflow: hidden;
+            flex: 0 1 400px;
+            min-width: 280px;
+            padding: 22px 26px 18px;
+            background: linear-gradient(145deg,#fcf3e7 0%,#f4e0c8 100%);
+            border: 1px solid #ecd5b8;
+            border-radius: 16px;
+            color: #1f2a44;
+            box-shadow: 0 12px 32px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.7);
         }
-        .qt-mark{
-            position:absolute;
-            top:-14px;
-            right:16px;
-            font-family:'Merriweather',Georgia,serif;
-            font-size:120px;
-            line-height:1;
-            color:#e0a85a;
-            opacity:.35;
-            pointer-events:none;
-            user-select:none;
-        }
-        .qt-label{
-            display:flex;
-            align-items:center;
-            gap:8px;
-            font-family:'Inter','Segoe UI',Arial,sans-serif;
-            font-size:11px;
-            font-weight:700;
-            letter-spacing:1.4px;
-            text-transform:uppercase;
-            color:#a0662a;
-        }
-        .qt-label::before{
-            content:"";
-            width:8px;height:8px;
-            border-radius:50%;
-            background:#e0a85a;
-            box-shadow:0 0 0 3px rgba(224,168,90,.25);
-        }
-        .qt-body{
-            transition:opacity .22s ease, transform .22s ease;
-        }
-        .qt-body.is-fading{opacity:0;transform:translateY(5px)}
-        .qt-text{
-            margin:14px 0 18px;
-            font-family:'Merriweather',Georgia,serif;
-            font-style:italic;
-            font-size:16px;
-            line-height:1.65;
-            color:#1f2a44;
-        }
-        .qt-foot{
-            display:flex;
-            align-items:center;
-            gap:10px;
-        }
-        .qt-line{width:24px;height:2px;border-radius:2px;background:#e0a85a;flex-shrink:0}
-        .qt-author{
-            flex:1;
-            min-width:0;
-            font-family:'Inter','Segoe UI',Arial,sans-serif;
-            font-size:13px;
-            font-weight:600;
-            color:#5b4a35;
-        }
-        .qt-btn{
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            flex-shrink:0;
-            width:34px;height:34px;
-            padding:0;
-            border:1px solid #e3c9a6;
-            border-radius:50%;
-            background:rgba(255,255,255,.65);
-            color:#8a5a22;
-            cursor:pointer;
-            transition:background .2s ease, transform .2s ease, border-color .2s ease;
-        }
-        .qt-btn:hover{background:#fff;border-color:#d9a867}
-        .qt-btn:focus-visible{outline:2px solid #243f86;outline-offset:2px}
-        .qt-btn svg{width:16px;height:16px;transition:transform .45s ease}
-        .qt-btn:hover svg{transform:rotate(180deg)}
-        .qt-btn:active{transform:scale(.92)}
 
-        @media (prefers-reduced-motion: reduce){
-            .qt-body,.qt-btn,.qt-btn svg{transition:none}
+        .qt-mark {
+            position: absolute;
+            top: -14px;
+            right: 16px;
+            font-family: 'Merriweather',Georgia,serif;
+            font-size: 120px;
+            line-height: 1;
+            color: #e0a85a;
+            opacity: .35;
+            pointer-events: none;
+            user-select: none;
         }
-        @media (max-width: 900px){
-            .hero{flex-direction:column;align-items:stretch}
-            .hero .thought{flex:1 1 auto;max-width:none}
+
+        .qt-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Inter','Segoe UI',Arial,sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: #a0662a;
+        }
+
+            .qt-label::before {
+                content: "";
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #e0a85a;
+                box-shadow: 0 0 0 3px rgba(224,168,90,.25);
+            }
+
+        .qt-body {
+            transition: opacity .22s ease, transform .22s ease;
+        }
+
+            .qt-body.is-fading {
+                opacity: 0;
+                transform: translateY(5px)
+            }
+
+        .qt-text {
+            margin: 14px 0 18px;
+            font-family: 'Merriweather',Georgia,serif;
+            font-style: italic;
+            font-size: 16px;
+            line-height: 1.65;
+            color: #1f2a44;
+        }
+
+        .qt-foot {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qt-line {
+            width: 24px;
+            height: 2px;
+            border-radius: 2px;
+            background: #e0a85a;
+            flex-shrink: 0
+        }
+
+        .qt-author {
+            flex: 1;
+            min-width: 0;
+            font-family: 'Inter','Segoe UI',Arial,sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: #5b4a35;
+        }
+
+        .qt-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border: 1px solid #e3c9a6;
+            border-radius: 50%;
+            background: rgba(255,255,255,.65);
+            color: #8a5a22;
+            cursor: pointer;
+            transition: background .2s ease, transform .2s ease, border-color .2s ease;
+        }
+
+            .qt-btn:hover {
+                background: #fff;
+                border-color: #d9a867
+            }
+
+            .qt-btn:focus-visible {
+                outline: 2px solid #243f86;
+                outline-offset: 2px
+            }
+
+            .qt-btn svg {
+                width: 16px;
+                height: 16px;
+                transition: transform .45s ease
+            }
+
+            .qt-btn:hover svg {
+                transform: rotate(180deg)
+            }
+
+            .qt-btn:active {
+                transform: scale(.92)
+            }
+
+        @media (prefers-reduced-motion: reduce) {
+            .qt-body, .qt-btn, .qt-btn svg {
+                transition: none
+            }
+        }
+
+        @media (max-width: 900px) {
+            .hero {
+                flex-direction: column;
+                align-items: stretch
+            }
+
+                .hero .thought {
+                    flex: 1 1 auto;
+                    max-width: none
+                }
         }
     </style>
 </head>
@@ -166,14 +268,16 @@
             <main class="main">
                 <div class="topbar">
                     <div class="greeting">
-                        <asp:Literal ID="litGreeting" runat="server" Mode="Encode"></asp:Literal></div>
+                        <asp:Literal ID="litGreeting" runat="server" Mode="Encode"></asp:Literal>
+                    </div>
                 </div>
 
                 <div class="hero">
                     <div style="flex: 1">
                         <h2>Learn your way, on your schedule.</h2>
                         <p>
-                            <asp:Literal ID="litHeroText" runat="server" Mode="Encode"></asp:Literal></p>
+                            <asp:Literal ID="litHeroText" runat="server" Mode="Encode"></asp:Literal>
+                        </p>
                         <asp:HyperLink ID="lnkContinue" runat="server" CssClass="btn"
                             Style="display: inline-block; text-decoration: none" NavigateUrl="~/pages/Student/myCourses.aspx">Continue Learning</asp:HyperLink>
                     </div>
@@ -183,8 +287,10 @@
                         <span class="qt-mark" aria-hidden="true">&ldquo;</span>
                         <div class="qt-label">Today&rsquo;s Thought</div>
                         <div class="qt-body" id="quoteBody" aria-live="polite">
-                            <div class="qt-text" id="quoteText">&ldquo;The beautiful thing about learning is that
-                                no one can take it away from you.&rdquo;</div>
+                            <div class="qt-text" id="quoteText">
+                                &ldquo;The beautiful thing about learning is that
+                                no one can take it away from you.&rdquo;
+                            </div>
                             <div class="qt-foot">
                                 <span class="qt-line" aria-hidden="true"></span>
                                 <span class="qt-author" id="quoteAuthor">B.B. King</span>
@@ -222,7 +328,8 @@
                                             <div class="meta">
                                                 <h4><%#: Eval("Title") %></h4>
                                                 <small>Tutor: <%#: Eval("Tutor") %></small>
-                                                <div class="progress"><span style='<%# "width: " + Eval("Percent") + "%;" %>'></span>
+                                                <div class="progress">
+                                                    <span style='<%# "width: " + Eval("Percent") + "%;" %>'></span>
                                                 </div>
                                                 <small><%# Eval("Percent") %>% complete</small>
                                             </div>
@@ -236,21 +343,24 @@
                             <div class="stat">
                                 <small>Lessons This Week</small>
                                 <div class="num">
-                                    <asp:Literal ID="litWeek" runat="server"></asp:Literal></div>
+                                    <asp:Literal ID="litWeek" runat="server"></asp:Literal>
+                                </div>
                                 <small style="color: #9aa6b8">
                                     <asp:Literal ID="litWeekNote" runat="server" Mode="Encode"></asp:Literal></small>
                             </div>
                             <div class="stat">
                                 <small>Current Streak</small>
                                 <div class="num">
-                                    <asp:Literal ID="litStreak" runat="server"></asp:Literal></div>
+                                    <asp:Literal ID="litStreak" runat="server"></asp:Literal>
+                                </div>
                                 <small style="color: #9aa6b8">
                                     <asp:Literal ID="litStreakNote" runat="server" Mode="Encode"></asp:Literal></small>
                             </div>
                             <div class="stat">
                                 <small>Active Courses</small>
                                 <div class="num">
-                                    <asp:Literal ID="litActive" runat="server"></asp:Literal></div>
+                                    <asp:Literal ID="litActive" runat="server"></asp:Literal>
+                                </div>
                                 <small style="color: #9aa6b8">
                                     <asp:Literal ID="litActiveNote" runat="server" Mode="Encode"></asp:Literal></small>
                             </div>

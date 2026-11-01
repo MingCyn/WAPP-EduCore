@@ -1,4 +1,6 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="courseOverview.aspx.cs" Inherits="WAPP_EduCore.pages.Student.courseOverview" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="courseOverview.aspx.cs"
+    Inherits="WAPP_EduCore.pages.Student.courseOverview" %>
+
 <%@ Register Src="~/pages/Shared/Sidebar.ascx" TagName="Sidebar" TagPrefix="uc" %>
 
 <!DOCTYPE html>
@@ -7,7 +9,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Course Overview</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap"
+        rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
     <link href="/Content/student-upgrade.css" rel="stylesheet" />
@@ -19,58 +22,65 @@
             <uc:Sidebar ID="Sidebar1" runat="server" />
             <main class="main">
                 <div class="topbar">
-                    <div class="title"><asp:Literal ID="litTopTitle" runat="server" Mode="Encode"></asp:Literal></div>
+                    <div class="title">
+                        <asp:Literal ID="litTopTitle" runat="server" Mode="Encode"></asp:Literal></div>
                 </div>
 
                 <asp:Label ID="lblMessage" runat="server" Visible="false"
-                    Style="display:block;margin:0 0 16px;color:#2563eb"></asp:Label>
+                    Style="display: block; margin: 0 0 16px; color: #2563eb"></asp:Label>
 
                 <div class="course-hero" id="heroBox" runat="server">
                     <div>
                         <div class="chips">
-                            <span class="chip"><asp:Literal ID="litLevel" runat="server" Mode="Encode"></asp:Literal></span>
+                            <span class="chip">
+                                <asp:Literal ID="litLevel" runat="server" Mode="Encode"></asp:Literal></span>
                         </div>
-                        <h2><asp:Literal ID="litTitle" runat="server" Mode="Encode"></asp:Literal></h2>
+                        <h2>
+                            <asp:Literal ID="litTitle" runat="server" Mode="Encode"></asp:Literal></h2>
                         <div class="hero-meta">
-                            <span class="hero-avatar"><asp:Literal ID="litInitial" runat="server" Mode="Encode"></asp:Literal></span>
-                            <span>Instructed by <asp:Literal ID="litInstructor" runat="server" Mode="Encode"></asp:Literal></span>
+                            <span class="hero-avatar">
+                                <asp:Literal ID="litInitial" runat="server" Mode="Encode"></asp:Literal></span>
+                            <span>Instructed by
+                                <asp:Literal ID="litInstructor" runat="server" Mode="Encode"></asp:Literal></span>
                             <span class="hero-dot">&bull;</span>
-                            <span><asp:Literal ID="litStudents" runat="server" Mode="Encode"></asp:Literal> Enrolled Students</span>
+                            <span>
+                                <asp:Literal ID="litStudents" runat="server" Mode="Encode"></asp:Literal>
+                                Enrolled Students</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="detail-layout">
                     <div>
-                <asp:Panel ID="pnlLearn" runat="server" CssClass="panel">
-                    <h3>What You'll Learn</h3>
-                    <ul class="learn-list">
-                        <asp:Repeater ID="rptLearn" runat="server">
-                            <ItemTemplate>
-                                <li><span><%#: Container.DataItem %></span></li>
-                            </ItemTemplate>
-                        </asp:Repeater>
-                    </ul>
-                </asp:Panel>
+                        <asp:Panel ID="pnlLearn" runat="server" CssClass="panel">
+                            <h3>What You'll Learn</h3>
+                            <ul class="learn-list">
+                                <asp:Repeater ID="rptLearn" runat="server">
+                                    <ItemTemplate>
+                                        <li><span><%#: Container.DataItem %></span></li>
+                                    </ItemTemplate>
+                                </asp:Repeater>
+                            </ul>
+                        </asp:Panel>
 
-                <%-- Added: Course References Panel --%>
-                <asp:Panel ID="pnlReferences" runat="server" CssClass="panel" Visible="false">
-                    <h3>Course References & Textbooks</h3>
-                    <ul class="learn-list" style="list-style-type: disc; padding-left: 20px;">
-                        <asp:Repeater ID="rptReferences" runat="server">
-                            <ItemTemplate>
-                                <li style="margin-bottom: 8px; font-size: 14px; color: #4a5468; line-height: 1.5;">
-                                    <span><%#: Container.DataItem %></span>
-                                </li>
-                            </ItemTemplate>
-                        </asp:Repeater>
-                    </ul>
-                </asp:Panel>
+                        <%-- Added: Course References Panel --%>
+                        <asp:Panel ID="pnlReferences" runat="server" CssClass="panel" Visible="false">
+                            <h3>Course References & Textbooks</h3>
+                            <ul class="learn-list" style="list-style-type: disc; padding-left: 20px;">
+                                <asp:Repeater ID="rptReferences" runat="server">
+                                    <ItemTemplate>
+                                        <li style="margin-bottom: 8px; font-size: 14px; color: #4a5468; line-height: 1.5;">
+                                            <span><%#: Container.DataItem %></span>
+                                        </li>
+                                    </ItemTemplate>
+                                </asp:Repeater>
+                            </ul>
+                        </asp:Panel>
 
                         <h3 class="syllabus-title" id="syllabus">Course Syllabus</h3>
 
                         <asp:Panel ID="pnlNoLessons" runat="server" Visible="false" CssClass="panel"
-                            Style="color:#7b8697">
+                            Style="color: #7b8697">
                             No lessons have been added to this course yet.
                         </asp:Panel>
 
@@ -91,14 +101,16 @@
                     <div>
                         <div class="access-card">
                             <div class="access-label">Your Access Status</div>
-                            <div class="access-title"><asp:Literal ID="litStatus" runat="server"></asp:Literal></div>
+                            <div class="access-title">
+                                <asp:Literal ID="litStatus" runat="server"></asp:Literal></div>
 
                             <asp:PlaceHolder ID="phEnrolled" runat="server">
                                 <asp:HyperLink ID="lnkStart" runat="server" CssClass="btn-start" NavigateUrl="#syllabus">Start Learning</asp:HyperLink>
-    
+
                                 <asp:PlaceHolder ID="phGuest" runat="server" Visible="false">
                                     <div style="text-align: center; margin-top: 14px; font-size: 13px; color: #6b7385;">
-                                        Already have an account? <a href="../../Auth/login.aspx" style="color: #243f86; font-weight: 600; text-decoration: underline;">Log in to enroll</a>
+                                        Already have an account? <a href="../../Auth/login.aspx" style="color: #243f86; font-weight: 600;
+                                            text-decoration: underline;">Log in to enroll</a>
                                     </div>
                                 </asp:PlaceHolder>
                             </asp:PlaceHolder>
@@ -108,8 +120,10 @@
                             </asp:PlaceHolder>
 
                             <ul class="access-facts">
-                                <li>Duration: <asp:Literal ID="litDuration" runat="server" Mode="Encode"></asp:Literal></li>
-                                <li>Lessons: <asp:Literal ID="litLessonCount" runat="server"></asp:Literal></li>
+                                <li>Duration:
+                                    <asp:Literal ID="litDuration" runat="server" Mode="Encode"></asp:Literal></li>
+                                <li>Lessons:
+                                    <asp:Literal ID="litLessonCount" runat="server"></asp:Literal></li>
                                 <li>Verified Certificate Included</li>
                             </ul>
                         </div>

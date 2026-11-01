@@ -1,4 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="messages.aspx.cs" Inherits="WAPP_EduCore.pages.Student.messages" %>
+
 <%@ Register Src="~/pages/Shared/Sidebar.ascx" TagName="Sidebar" TagPrefix="uc" %>
 
 <!DOCTYPE html>
@@ -7,7 +8,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Discussion Forum</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap"
+        rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
     <%-- The forum styles that used to be inline here now live in the shared messages.css (also used by Tutor/messages.aspx) --%>
@@ -33,7 +35,8 @@
 
                 <asp:Panel ID="pnlNoCourses" runat="server" Visible="false" CssClass="fm-empty-box">
                     You are not enrolled in any course yet, so there are no discussions to show.
-                    <br /><a href="myCourses.aspx">Browse courses</a>
+                    <br />
+                    <a href="myCourses.aspx">Browse courses</a>
                 </asp:Panel>
 
                 <asp:Panel ID="pnlForum" runat="server">
@@ -106,33 +109,40 @@
         <div class="modal-back" id="loginPromptModal">
             <div class="modal-box" style="text-align: center; padding: 32px; max-width: 440px;">
                 <div style="font-size: 40px; margin-bottom: 12px;">🔒</div>
-                <h3 style="font-family: 'Merriweather', Georgia, serif; font-size: 20px; color: #111c3d; margin-bottom: 8px;">Not logged in?</h3>
+                <h3 style="font-family: 'Merriweather', Georgia, serif; font-size: 20px; color: #111c3d;
+                    margin-bottom: 8px;">Not logged in?</h3>
                 <p style="font-size: 14px; color: #4a5468; margin-bottom: 24px; line-height: 1.5;">
-                    Login or create an account to unlock all functions, post discussions, track your progress, and manage your schedule!
+                    Login or create an account to unlock all functions, post discussions, track your
+                    progress, and manage your schedule!
                 </p>
                 <div style="display: flex; gap: 12px; justify-content: center;">
-                    <a href="<%= ResolveUrl("~/auth/login.aspx") %>" class="cl-btn-solid" style="text-decoration: none; padding: 10px 24px; display: inline-flex; align-items: center; justify-content: center;">Log In</a>
-                    <a href="<%= ResolveUrl("~/auth/signup.aspx") %>" class="cl-btn-ghost" style="text-decoration: none; padding: 10px 24px; display: inline-flex; align-items: center; justify-content: center;">Sign Up</a>
-                    <button type="button" class="cl-btn-ghost" onclick="closeLoginPrompt()" style="padding: 10px 16px;">Cancel</button>
+                    <a href="<%= ResolveUrl("~/auth/login.aspx") %>" class="cl-btn-solid" style="text-decoration: none;
+                        padding: 10px 24px; display: inline-flex; align-items: center; justify-content: center;">
+                        Log In</a>
+                    <a href="<%= ResolveUrl("~/auth/signup.aspx") %>" class="cl-btn-ghost" style="text-decoration: none;
+                        padding: 10px 24px; display: inline-flex; align-items: center; justify-content: center;">
+                        Sign Up</a>
+                    <button type="button" class="cl-btn-ghost" onclick="closeLoginPrompt()" style="padding: 10px 16px;">
+                        Cancel</button>
                 </div>
             </div>
         </div>
 
         <script>
-        if (typeof openLoginPrompt !== 'function') {
-            window.openLoginPrompt = function () {
-                var modal = document.getElementById('loginPromptModal');
-                if (modal) modal.classList.add('open');
-            };
-        }
+if (typeof openLoginPrompt !== 'function') {
+    window.openLoginPrompt = function () {
+        var modal = document.getElementById('loginPromptModal');
+        if (modal) modal.classList.add('open');
+    };
+}
 
-        if (typeof closeLoginPrompt !== 'function') {
-            window.closeLoginPrompt = function () {
-                var modal = document.getElementById('loginPromptModal');
-                if (modal) modal.classList.remove('open');
-            };
-        }
-        </script>
+if (typeof closeLoginPrompt !== 'function') {
+    window.closeLoginPrompt = function () {
+        var modal = document.getElementById('loginPromptModal');
+        if (modal) modal.classList.remove('open');
+    };
+}
+</script>
 
     </form>
 </body>
