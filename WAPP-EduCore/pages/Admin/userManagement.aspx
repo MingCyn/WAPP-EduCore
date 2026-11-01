@@ -1,9 +1,9 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="userManagement.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.WebForm2" %>
 
 <%--
-    MAP OF THIS PAGE   (use Ctrl+F and search the name in capital letters)
+    MAP OF THIS PAGE
 
-    <head>   HEAD 1 FONT  |  HEAD 2 SHARED STYLES  |  HEAD 3 PAGE STYLES  |  HEAD 4 JAVASCRIPT
+    <head>   HEAD 1 PAGE STYLES  |  HEAD 2 JAVASCRIPT
     <body>   PART 1 SIDEBAR
              PART 2 THE RIGHT SIDE
                      TOP BAR
@@ -22,18 +22,13 @@
 
 <head runat="server">
     <title>EduCore - User Management</title>
-
-    <!-- HEAD 1 of 4 : FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-    <!-- HEAD 2 of 4 : SHARED STYLES  (sidebar, cards, tables, popups ... all live in admin.css) -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
 
-    <!-- HEAD 3 of 4 : PAGE STYLES  -  Small styles that live in this page (so they work even if admin.css was not updated) -->
+    <!-- HEAD 2 : PAGE STYLES  -  Small styles that live in this page (so they work even if admin.css was not updated) -->
     <style type="text/css">
 
-        /* ALL dropdowns: move the little arrow away from the right edge.
-           Want it even more to the left? Make the 20px bigger, for example 28px. */
+        /* ALL dropdowns: move the little arrow away from the right edge. */
         select.input {
             appearance: none;                 /* hide the browser's own arrow */
             -webkit-appearance: none;
@@ -187,10 +182,7 @@
         }
     </style>
 
-    <!-- ==================================================
-         HEAD 4 of 4 : JAVASCRIPT : controls the popups
-         (no server needed, the browser does this by itself)
-         ================================================== -->
+    <!-- HEAD 2 : JAVASCRIPT : controls the popups -->
     <script type="text/javascript">
 
         var currentId = 0;   // the user we clicked on
@@ -248,8 +240,6 @@
         });
 
         // ----- DATE OF BIRTH  (always written as day/month/year, like 30/05/2012) -----
-
-        // 2012-05-30  ->  30/05/2012
         function toDisplayDate(iso) {
             if (!iso) {
                 return '';
@@ -317,15 +307,11 @@
     <form id="form1" runat="server">
 
 
-        <!-- ==================================================
-             PART 1 : THE SIDEBAR  (the dark menu on the left)
-             It lives in its own file: adminNav.aspx
-             ================================================== -->
+        <!-- PART 1 : THE SIDEBAR  (the dark menu on the left)
+             It lives in its own file: adminNav.aspx -->
         <% Server.Execute("adminNav.aspx", false); %>
 
-        <!-- ==================================================
-             PART 2 : EVERYTHING ON THE RIGHT SIDE
-             ================================================== -->
+        <!-- PART 2 : EVERYTHING ON THE RIGHT SIDE -->
         <div class="main">
 
             <!-- ---------- Top bar ---------- -->
@@ -353,9 +339,7 @@
                 <asp:Literal ID="litMessage" runat="server"></asp:Literal>
 
 
-                <!-- ==============================================
-                     5 NUMBER BOXES
-                     ============================================== -->
+                <!-- 5 NUMBER BOXES -->
                 <div class="stat-row five">
 
                     <div class="card">
@@ -406,9 +390,7 @@
                 </div>
 
 
-                <!-- ==============================================
-                     USER TABLE CARD
-                     ============================================== -->
+                <!-- USER TABLE CARD -->
                 <div class="card flush">
 
                     <!-- Search + filter + Add User button.
@@ -428,7 +410,7 @@
 
                         <div class="spacer"></div>
 
-                        <!-- type="button" = just opens the popup, no server needed -->
+                        <!-- type="button" = just opens the popup -->
                         <button type="button" class="btn btn-primary" onclick="openModal('addModal')">+ Add User</button>
 
                     </asp:Panel>
@@ -484,9 +466,7 @@
         </div> <!-- end of PART 2 : the right side -->
 
 
-        <!-- ==================================================
-             POPUP 1 : USER DETAIL  (opens when you click a row)
-             ================================================== -->
+        <!-- POPUP 1 : USER DETAIL  (opens when you click a row) -->
         <div class="modal-back" id="detailModal">
             <div class="modal-box">
 
@@ -592,9 +572,7 @@
         </div>
 
 
-        <!-- ==================================================
-             POPUP 3 : ADD USER
-             ================================================== -->
+        <!-- POPUP 3 : ADD USER -->
         <div class="modal-back" id="addModal">
             <div class="modal-box">
 
@@ -675,9 +653,7 @@
         </div>
 
 
-        <!-- ==================================================
-             POPUP 4 : DELETE USER (asks "are you sure?")
-             ================================================== -->
+        <!-- POPUP 4 : DELETE USER (asks "are you sure?") -->
         <div class="modal-back" id="deleteModal">
             <div class="modal-box danger">
 
@@ -700,10 +676,8 @@
 
     </form>
 
-    <!-- ==================================================
-         BOTTOM OF THE PAGE : JAVASCRIPT : the password eye
-         (the date of birth helpers are in the <head> above)
-         ================================================== -->
+    <!-- BOTTOM OF THE PAGE : JAVASCRIPT : the password eye
+         (the date of birth helpers are in the <head> above) -->
     <script type="text/javascript">
 
         // Eye button: show or hide the password the admin is typing

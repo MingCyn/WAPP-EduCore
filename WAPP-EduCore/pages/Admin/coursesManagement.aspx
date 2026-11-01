@@ -1,9 +1,9 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="coursesManagement.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.WebForm4" %>
 
 <%--
-    MAP OF THIS PAGE   (use Ctrl+F and search the name in capital letters)
+    MAP OF THIS PAGE
 
-    <head>   HEAD 1 FONT  |  HEAD 2 SHARED STYLES  |  HEAD 3 PAGE STYLES  |  HEAD 4 JAVASCRIPT
+    <head>   HEAD 1 PAGE STYLES  |  HEAD 2 JAVASCRIPT
     <body>   PART 1 SIDEBAR
              PART 2 THE RIGHT SIDE
                      TOP BAR
@@ -22,14 +22,10 @@
 
 <head runat="server">
     <title>EduCore - Course Management</title>
-
-    <!-- HEAD 1 of 4 : FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-    <!-- HEAD 2 of 4 : SHARED STYLES  (sidebar, cards, tables, popups ... all live in admin.css) -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
 
-    <!-- HEAD 3 of 4 : PAGE STYLES  -  Small extra styles only this page needs (so admin.css does not change) -->
+    <!-- HEAD 1 : PAGE STYLES  -  Small extra styles only this page needs (so admin.css does not change) -->
     <style type="text/css">
 
         /* ---------- The little arrow of every dropdown, moved a bit to the left ---------- */
@@ -237,9 +233,7 @@
         }
     </style>
 
-    <!-- ==================================================
-         HEAD 4 of 4 : JAVASCRIPT : controls the popups
-         ================================================== -->
+    <!-- HEAD 2 : JAVASCRIPT : controls the popups -->
     <script type="text/javascript">
 
         var currentId = 0;   // the course we clicked on
@@ -462,9 +456,7 @@
              ================================================== -->
         <% Server.Execute("adminNav.aspx", false); %>
 
-        <!-- ==================================================
-             PART 2 : EVERYTHING ON THE RIGHT SIDE
-             ================================================== -->
+        <!-- PART 2 : EVERYTHING ON THE RIGHT SIDE -->
         <div class="main">
 
             <!-- ---------- Top bar ---------- -->
@@ -492,9 +484,7 @@
                 <asp:Literal ID="litMessage" runat="server"></asp:Literal>
 
 
-                <!-- ==============================================
-                     5 NUMBER BOXES
-                     ============================================== -->
+                <!-- 5 NUMBER BOXES -->
                 <div class="stat-row five">
 
                     <div class="card">
@@ -545,9 +535,7 @@
                 </div>
 
 
-                <!-- ==============================================
-                     COURSE TABLE CARD
-                     ============================================== -->
+                <!-- COURSE TABLE CARD -->
                 <div class="card flush">
 
                     <!-- Search + filters + Create Course button.
@@ -632,10 +620,7 @@
         </datalist>
 
 
-        <!-- ==================================================
-             POPUP 1 : COURSE DETAIL  (opens when you click a row)
-             Same look as the Figma "course preview" card.
-             ================================================== -->
+        <!-- POPUP 1 : COURSE DETAIL  (opens when admin click a row) -->
         <div class="modal-back" id="detailModal">
             <div class="modal-box">
 
@@ -697,8 +682,7 @@
 
         <!-- ==================================================
              POPUP 2 : EDIT COURSE
-             ClientIDMode="Static" = the ID stays the same,
-             so JavaScript can find it easily.
+             ClientIDMode="Static" = the ID stays the same, so JavaScript can find it easily.
              ================================================== -->
         <div class="modal-back" id="editModal">
             <div class="modal-box">
@@ -831,11 +815,7 @@
         </div>
 
 
-        <!-- ==================================================
-             POPUP 3 : CREATE COURSE
-             Same look as the Figma "course preview" card:
-             picture on top, then title, description and buttons.
-             ================================================== -->
+        <!-- POPUP 3 : CREATE COURSE -->
         <div class="modal-back" id="addModal">
             <div class="modal-box">
 
@@ -973,9 +953,7 @@
         </div>
 
 
-        <!-- ==================================================
-             POPUP 4 : DELETE COURSE (asks "are you sure?")
-             ================================================== -->
+        <!-- POPUP 4 : DELETE COURSE (asks "are you sure?") -->
         <div class="modal-back" id="deleteModal">
             <div class="modal-box danger">
 

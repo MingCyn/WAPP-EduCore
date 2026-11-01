@@ -1,9 +1,9 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="adminDashboard.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.WebForm1" %>
 
 <%--
-    MAP OF THIS PAGE   (use Ctrl+F and search the name in capital letters)
+    MAP OF THIS PAGE
 
-    <head>   HEAD 1 FONT  |  HEAD 2 SHARED STYLES  |  HEAD 3 PAGE STYLES  |  HEAD 4 JAVASCRIPT
+    <head>   HEAD 1 PAGE STYLES  |  HEAD 2 JAVASCRIPT
     <body>   PART 1 SIDEBAR
              PART 2 THE RIGHT SIDE
                      TOP BAR
@@ -17,16 +17,12 @@
 
 <head runat="server">
     <title>EduCore - Admin Dashboard</title>
-
-    <!-- HEAD 1 of 4 : FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-    <!-- HEAD 2 of 4 : SHARED STYLES  (sidebar, cards, tables, popups ... all live in admin.css) -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
 
     <!-- ==================================================
-         HEAD 3 of 4 : STYLES ONLY THE DASHBOARD NEEDS
-         They are here, so you do NOT have to change admin.css.
+         HEAD 1 : STYLES ONLY THE DASHBOARD NEEDS
+         They are here, so do NOT have to change admin.css.
          ================================================== -->
     <style type="text/css">
 
@@ -426,9 +422,7 @@
         }
     </style>
 
-    <!-- ==================================================
-         HEAD 4 of 4 : JAVASCRIPT : opens / closes the drop-down menu
-         ================================================== -->
+    <!-- HEAD 2 : JAVASCRIPT : opens / closes the drop-down menu -->
     <script type="text/javascript">
 
         // Click the avatar = show the menu (click again = hide it)
@@ -452,6 +446,7 @@
              It lives in its own file: adminNav.aspx
              ================================================== -->
         <% Server.Execute("adminNav.aspx", false); %>
+
         <!-- ==================================================
              PART 2 : EVERYTHING ON THE RIGHT SIDE
              ================================================== -->
@@ -479,9 +474,7 @@
             <div class="content">
 
 
-                <!-- ==============================================
-                     ROW 1 : SIX NUMBER BOXES
-                     ============================================== -->
+                <!-- ROW 1 : SIX NUMBER BOXES -->
                 <div class="stat-row six">
 
                     <div class="card">
@@ -541,9 +534,7 @@
                 </div>
 
 
-                <!-- ==============================================
-                     ROW 2 : TWO CHARTS SIDE BY SIDE
-                     ============================================== -->
+                <!-- ROW 2 : TWO CHARTS SIDE BY SIDE -->
                 <div class="two-cols">
 
                     <!-- Chart 1 : donut (Users by Role) -->
@@ -580,9 +571,7 @@
                 </div>
 
 
-                <!-- ==============================================
-                     ROW 3 : RECENT ACTIVITY (left)  +  2 BOXES (right)
-                     ============================================== -->
+                <!-- ROW 3 : RECENT ACTIVITY (left)  +  2 BOXES (right) -->
                 <div class="dash-bottom">
 
                     <!-- ----- Recent Activity ----- -->

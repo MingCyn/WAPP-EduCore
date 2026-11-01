@@ -1,7 +1,5 @@
 ﻿// ==========================================================
-//  quizManagement.aspx.cs
-//
-//  SECTIONS IN THIS FILE  (use Ctrl+F and search the words "SECTION 3")
+//  SECTIONS IN THIS FILE
 //  ----------------------------------------------------------
 //    1.  SETTINGS  (the variables this page uses)
 //    2.  STEP 1: Page opens  ->  find out who the admin is
@@ -31,12 +29,9 @@ using WAPP_EduCore.Data;
 
 namespace WAPP_EduCore.pages.Admin
 {
-    // NOTE: the class name is quizManagement because the .aspx first line says Inherits="...quizManagement"
     public partial class quizManagement : System.Web.UI.Page
     {
-        // =====================================================
         //  SECTION 1 :  SETTINGS  (the variables this page uses)
-        // =====================================================
         // These are shown in the sidebar and the top-right circle
         protected string AdminName = "Administrator";
         protected string AdminInitials = "AD";
@@ -75,9 +70,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 2 :  STEP 1: Page opens  ->  find out who the admin is
-        // =====================================================
         protected void Page_Load(object sender, EventArgs e)
         {
             // Not logged in, or the session ran out (for example after resting for a while)?
@@ -97,8 +90,7 @@ namespace WAPP_EduCore.pages.Admin
 
         // =====================================================
         //  SECTION 3 :  STEP 2: PreRender runs AFTER every button click and
-        //  just BEFORE the page is drawn. So everything on the
-        //  page is always fresh.
+        //  just BEFORE the page is drawn. So everything on the page is always fresh.
         // =====================================================
         protected void Page_PreRender(object sender, EventArgs e)
         {
@@ -110,9 +102,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 4 :  ADMIN NAME (sidebar + top-right circle)
-        // =====================================================
         private void LoadAdminInfo()
         {
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
@@ -148,9 +138,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 5 :  THE DROPDOWNS
-        // =====================================================
         private void FillDropdowns()
         {
             // 1) the course filter above the table
@@ -199,9 +187,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 6 :  THE 5 NUMBER BOXES
-        // =====================================================
         private void LoadStats()
         {
             int total = GetNumber("SELECT COUNT(*) FROM public.quiz");
@@ -228,9 +214,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 7 :  THE QUIZ TABLE  (search + filters + pages)
-        // =====================================================
         private void LoadQuizzes()
         {
             string from = FromAndWhere();
@@ -457,9 +441,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 8 :  BUTTONS
-        // =====================================================
 
         // Search button / dropdown changed  ->  go back to page 1
         protected void Filter_Changed(object sender, EventArgs e)
@@ -823,9 +805,8 @@ namespace WAPP_EduCore.pages.Admin
             ReopenScript(BackTo(hfQDeleteFrom.Value, quizId));
         }
 
-        // =====================================================
+
         //  SECTION 9 :  LOGOUT  (the "Logout" option in the drop-down menu)
-        // =====================================================
         protected void lnkLogout_Click(object sender, EventArgs e)
         {
             WAPP_EduCore.Data.LoginKeeper.Forget(Context);   // remove the "remember me" cookie
@@ -835,9 +816,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 10 :  HELPERS  (small tools used again and again)
-        // =====================================================
 
         // Shows a green (ok) or red (error) message at the top
         private void ShowMessage(string text, bool ok)
@@ -958,12 +937,11 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // =====================================================
+
         //  SECTION 11 :  WHO IS LOGGED IN?  (used by every admin page)
         //  The login page saves the user number in Session["UserID"].
         //  (Session["user_id"] is also checked, in case an older page saved it.)
         //  Gives back 0 when nobody is logged in.
-        // =====================================================
         private int CurrentUserId()
         {
             int id;

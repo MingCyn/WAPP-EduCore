@@ -1,9 +1,9 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="lessonManagement.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.lessonManagement" %>
 
 <%--
-    MAP OF THIS PAGE   (use Ctrl+F and search the name in capital letters)
+    MAP OF THIS PAGE
 
-    <head>   HEAD 1 FONT  |  HEAD 2 SHARED STYLES  |  HEAD 3 PAGE STYLES  |  HEAD 4 JAVASCRIPT
+    <head>   HEAD 1 PAGE STYLES  |  HEAD 2 JAVASCRIPT
     <body>   PART 1 SIDEBAR
              PART 2 THE RIGHT SIDE
                      TOP BAR
@@ -21,14 +21,10 @@
 
 <head runat="server">
     <title>EduCore - Lesson Management</title>
-
-    <!-- HEAD 1 of 4 : FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-    <!-- HEAD 2 of 4 : SHARED STYLES  (sidebar, cards, tables, popups ... all live in admin.css) -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
 
-    <!-- HEAD 3 of 4 : PAGE STYLES  -  Small extra styles only this page needs (so admin.css does not change) -->
+    <!-- HEAD 2 : PAGE STYLES  -  Small extra styles only this page needs (so admin.css does not change) -->
     <style type="text/css">
 
         /* ---------- The little arrow of every dropdown ---------- */
@@ -214,7 +210,7 @@
     </style>
 
     <!-- ==================================================
-         HEAD 4 of 4 : JAVASCRIPT : controls the popups
+         HEAD 2 : JAVASCRIPT : controls the popups
          ================================================== -->
     <script type="text/javascript">
 
@@ -330,9 +326,7 @@
              ================================================== -->
         <% Server.Execute("adminNav.aspx", false); %>
 
-        <!-- ==================================================
-             PART 2 : EVERYTHING ON THE RIGHT SIDE
-             ================================================== -->
+        <!-- PART 2 : EVERYTHING ON THE RIGHT SIDE -->
         <div class="main">
 
             <!-- ---------- Top bar ---------- -->
@@ -359,9 +353,7 @@
                 <asp:Literal ID="litMessage" runat="server"></asp:Literal>
 
 
-                <!-- ==============================================
-                     5 NUMBER BOXES
-                     ============================================== -->
+                <!-- 5 NUMBER BOXES -->
                 <div class="stat-row five">
 
                     <div class="card">
@@ -412,9 +404,7 @@
                 </div>
 
 
-                <!-- ==============================================
-                     LESSON TABLE CARD
-                     ============================================== -->
+                <!-- LESSON TABLE CARD -->
                 <div class="card flush">
 
                     <!-- Search + filters + Create Lesson button.
@@ -491,9 +481,7 @@
         </div> <!-- end of PART 2 : the right side -->
 
 
-        <!-- ==================================================
-             POPUP 1 : LESSON DETAIL  (opens when you click a row)
-             ================================================== -->
+        <!-- POPUP 1 : LESSON DETAIL  (opens when admin click a row) -->
         <div class="modal-back" id="detailModal">
             <div class="modal-box">
 
@@ -535,9 +523,7 @@
         </div>
 
 
-        <!-- ==================================================
-             POPUP 2 : EDIT LESSON
-             ================================================== -->
+        <!-- POPUP 2 : EDIT LESSON -->
         <div class="modal-back" id="editModal">
             <div class="modal-box">
 
@@ -581,9 +567,7 @@
         </div>
 
 
-        <!-- ==================================================
-             POPUP 3 : CREATE LESSON
-             ================================================== -->
+        <!-- POPUP 3 : CREATE LESSON -->
         <div class="modal-back" id="addModal">
             <div class="modal-box">
 
@@ -630,9 +614,7 @@
         </div>
 
 
-        <!-- ==================================================
-             POPUP 4 : DELETE LESSON (asks "are you sure?")
-             ================================================== -->
+        <!-- POPUP 4 : DELETE LESSON (asks "are you sure?") -->
         <div class="modal-back" id="deleteModal">
             <div class="modal-box danger">
 

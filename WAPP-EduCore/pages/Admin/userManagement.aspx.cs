@@ -1,7 +1,5 @@
 ﻿// ==========================================================
-//  userManagement.aspx.cs
-//
-//  SECTIONS IN THIS FILE  (use Ctrl+F and search the words "SECTION 3")
+//  SECTIONS IN THIS FILE
 //  ----------------------------------------------------------
 //    1.  SETTINGS  (the variables this page uses)
 //    2.  STEP 1: Page opens  ->  find out who the admin is
@@ -27,12 +25,9 @@ using WAPP_EduCore.Data;
 
 namespace WAPP_EduCore.pages.Admin
 {
-    // NOTE: the class name is WebForm2 because your .aspx first line says Inherits="...WebForm2"
     public partial class WebForm2 : System.Web.UI.Page
     {
-        // =====================================================
         //  SECTION 1 :  SETTINGS  (the variables this page uses)
-        // =====================================================
         // These are shown in the sidebar and the top-right circle
         protected string AdminName = "Administrator";
         protected string AdminInitials = "AD";
@@ -53,13 +48,11 @@ namespace WAPP_EduCore.pages.Admin
                  AND (@role = '' OR role = @role) ";
 
 
-        // =====================================================
         //  SECTION 2 :  STEP 1: Page opens  ->  find out who the admin is
-        // =====================================================
         protected void Page_Load(object sender, EventArgs e)
         {
             // Not logged in, or the session ran out (for example after resting for a while)?
-            // Then go to the login page. We do NOT guess an admin any more.
+            // Then go to the login page.
             int signedInAdmin = CurrentUserId();
             if (signedInAdmin == 0)
             {
@@ -73,11 +66,8 @@ namespace WAPP_EduCore.pages.Admin
             LoadAdminInfo();
         }
 
-        // =====================================================
         //  SECTION 3 :  STEP 2: PreRender runs AFTER every button click and
-        //  just BEFORE the page is drawn. So the numbers and the
-        //  table are always fresh.
-        // =====================================================
+        //  just BEFORE the page is drawn. So the numbers and the table are always fresh.
         protected void Page_PreRender(object sender, EventArgs e)
         {
             LoadStats();
@@ -85,9 +75,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 4 :  ADMIN NAME (sidebar + top-right circle)
-        // =====================================================
         private void LoadAdminInfo()
         {
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
@@ -124,9 +112,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 5 :  THE 5 NUMBER BOXES
-        // =====================================================
         private void LoadStats()
         {
             int total = GetNumber("SELECT COUNT(*) FROM public.users");
@@ -149,9 +135,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 6 :  THE USER TABLE  (search + filter + pages)
-        // =====================================================
         private void LoadUsers()
         {
             // 1) How many users match the search?
@@ -221,7 +205,7 @@ namespace WAPP_EduCore.pages.Admin
 
         // Makes ONE table row.
         // The data-... parts hide the user's info inside the row,
-        // so the popup can read it with JavaScript when you click.
+        // so the popup can read it with JavaScript when admin click.
         private string BuildRow(DataRow r)
         {
             int id = Convert.ToInt32(r["user_id"]);
@@ -270,9 +254,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 7 :  BUTTONS
-        // =====================================================
 
         // Search button / dropdown changed  ->  go back to page 1
         protected void Filter_Changed(object sender, EventArgs e)
@@ -521,9 +503,8 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // =====================================================
+
         //  SECTION 8 :  LOGOUT  (the "Logout" option in the drop-down menu)
-        // =====================================================
         protected void lnkLogout_Click(object sender, EventArgs e)
         {
             WAPP_EduCore.Data.LoginKeeper.Forget(Context);   // remove the "remember me" cookie
@@ -533,9 +514,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 9 :  HELPERS  (small tools used again and again)
-        // =====================================================
 
         // Shows a green (ok) or red (error) message at the top
         private void ShowMessage(string text, bool ok)
@@ -643,12 +622,10 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // =====================================================
         //  SECTION 10 :  WHO IS LOGGED IN?  (used by every admin page)
         //  The login page saves the user number in Session["UserID"].
         //  (Session["user_id"] is also checked, in case an older page saved it.)
         //  Gives back 0 when nobody is logged in.
-        // =====================================================
         private int CurrentUserId()
         {
             int id;

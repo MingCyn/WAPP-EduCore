@@ -1,7 +1,5 @@
 ﻿// ==========================================================
-//  lessonManagement.aspx.cs
-//
-//  SECTIONS IN THIS FILE  (use Ctrl+F and search the words "SECTION 3")
+//  SECTIONS IN THIS FILE
 //  ----------------------------------------------------------
 //    1.  SETTINGS  (the variables this page uses)
 //    2.  STEP 1: Page opens  ->  find out who the admin is
@@ -30,12 +28,9 @@ using WAPP_EduCore.Data;
 
 namespace WAPP_EduCore.pages.Admin
 {
-    // NOTE: the class name is lessonManagement because the .aspx first line says Inherits="...lessonManagement"
     public partial class lessonManagement : System.Web.UI.Page
     {
-        // =====================================================
         //  SECTION 1 :  SETTINGS  (the variables this page uses)
-        // =====================================================
         // These are shown in the sidebar and the top-right circle
         protected string AdminName = "Administrator";
         protected string AdminInitials = "AD";
@@ -65,13 +60,11 @@ namespace WAPP_EduCore.pages.Admin
                       OR (@quiz = 'without' AND l.qid IS NULL)) ";
 
 
-        // =====================================================
         //  SECTION 2 :  STEP 1: Page opens  ->  find out who the admin is
-        // =====================================================
         protected void Page_Load(object sender, EventArgs e)
         {
             // Not logged in, or the session ran out (for example after resting for a while)?
-            // Then go to the login page. We do NOT guess an admin any more.
+            // Then go to the login page.
             int signedInAdmin = CurrentUserId();
             if (signedInAdmin == 0)
             {
@@ -85,11 +78,8 @@ namespace WAPP_EduCore.pages.Admin
             LoadAdminInfo();
         }
 
-        // =====================================================
         //  SECTION 3 :  STEP 2: PreRender runs AFTER every button click and
-        //  just BEFORE the page is drawn. So everything on the
-        //  page is always fresh.
-        // =====================================================
+        //  just BEFORE the page is drawn. So everything on the page is always fresh.
         protected void Page_PreRender(object sender, EventArgs e)
         {
             // Each part is tried on its own. If one part has a problem, a red box at the
@@ -100,9 +90,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 4 :  ADMIN NAME (sidebar + top-right circle)
-        // =====================================================
         private void LoadAdminInfo()
         {
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
@@ -138,9 +126,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 5 :  THE COURSE DROPDOWNS (filter + Create popup + Edit popup)
-        // =====================================================
         private void FillCourseLists()
         {
             DataTable courses = GetTable("SELECT course_id, title FROM public.courses ORDER BY title");
@@ -167,9 +153,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 6 :  THE 5 NUMBER BOXES
-        // =====================================================
         private void LoadStats()
         {
             // "has a video" = the lesson content has a video block (the link is saved inside lesson_content)
@@ -198,9 +182,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 7 :  THE LESSON TABLE  (search + filters + pages)
-        // =====================================================
         private void LoadLessons()
         {
             // 1) How many lessons match the search?
@@ -346,9 +328,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 8 :  BUTTONS
-        // =====================================================
 
         // Search button / dropdown changed  ->  go back to page 1
         protected void Filter_Changed(object sender, EventArgs e)
@@ -647,9 +627,8 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // =====================================================
+
         //  SECTION 9 :  LOGOUT  (the "Logout" option in the drop-down menu)
-        // =====================================================
         protected void lnkLogout_Click(object sender, EventArgs e)
         {
             WAPP_EduCore.Data.LoginKeeper.Forget(Context);   // remove the "remember me" cookie
@@ -659,12 +638,10 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 10 :  THE LESSON CONTENT  (the jsonb column)
         //  It is a list of blocks, for example:
         //  [ {"type":"video","url":"https://..."},  {"type":"paragraph","content":"Some text"} ]
-        //  We only touch the "video" and "paragraph" blocks. Other blocks (tables, labs...) stay as they are.
-        // =====================================================
+        //  Only touch the "video" and "paragraph" blocks. Other blocks (tables, labs...) stay as they are.
 
         // Reads ONE value from a block. Example: ReadBlock(json, "video", "url")
         private string ReadBlock(string json, string type, string key)
@@ -748,9 +725,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 11 :  HELPERS  (small tools used again and again)
-        // =====================================================
 
         // Shows a green (ok) or red (error) message at the top
         private void ShowMessage(string text, bool ok)
@@ -868,12 +843,11 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // =====================================================
+
         //  SECTION 12 :  WHO IS LOGGED IN?  (used by every admin page)
         //  The login page saves the user number in Session["UserID"].
         //  (Session["user_id"] is also checked, in case an older page saved it.)
         //  Gives back 0 when nobody is logged in.
-        // =====================================================
         private int CurrentUserId()
         {
             int id;

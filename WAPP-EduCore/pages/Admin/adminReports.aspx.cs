@@ -1,7 +1,5 @@
 ﻿// ==========================================================
-//  adminReports.aspx.cs
-//
-//  SECTIONS IN THIS FILE  (use Ctrl+F and search the words "SECTION 3")
+//  SECTIONS IN THIS FILE
 //  ----------------------------------------------------------
 //    1.  SETTINGS  (the variables this page uses)
 //    2.  STEP 1: When the page opens, fill every tab with data
@@ -32,9 +30,7 @@ namespace WAPP_EduCore.pages.Admin
 {
     public partial class adminReports : Page
     {
-        // =====================================================
         //  SECTION 1 :  SETTINGS  (the variables this page uses)
-        // =====================================================
         // These two are shown in the sidebar and the top-right circle.
         // The .aspx page reads them with <%= AdminName %> and <%= AdminInitials %>
         protected string AdminName = "Administrator";
@@ -49,9 +45,8 @@ namespace WAPP_EduCore.pages.Admin
         // The id of the admin who is looking at this page right now
         private int adminId = 0;
 
-        // =====================================================
+
         //  SECTION 2 :  STEP 1: When the page opens, fill every tab with data
-        // =====================================================
         protected void Page_Load(object sender, EventArgs e)
         {
             // Not logged in, or the session ran out (for example after resting for a while)?
@@ -78,11 +73,10 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // =====================================================
+
         //  SECTION 3 :  Get the admin's name from the database
         //  - If the login page saved Session["user_id"], use that user.
         //  - If not, use the first user whose role is 'Admin'.
-        // =====================================================
         private void LoadAdminInfo()
         {
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
@@ -125,9 +119,8 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-        // =====================================================
+
         //  SECTION 4 :  LOGOUT  (the "Logout" option in the drop-down menu)
-        // =====================================================
         protected void lnkLogout_Click(object sender, EventArgs e)
         {
             WAPP_EduCore.Data.LoginKeeper.Forget(Context);   // remove the "remember me" cookie
@@ -136,9 +129,8 @@ namespace WAPP_EduCore.pages.Admin
             Response.Redirect("~/auth/login.aspx");   // go to the login page
         }
 
-        // =====================================================
+
         //  SECTION 5 :  STEP 2: Clicking a tab shows ONE panel, hides the others
-        // =====================================================
         protected void Tab_Click(object sender, EventArgs e)
         {
             LinkButton clicked = (LinkButton)sender;
@@ -157,9 +149,8 @@ namespace WAPP_EduCore.pages.Admin
             lnkLearning.CssClass = (tab == "learning") ? "active" : "";
         }
 
-        // =====================================================
+
         //  SECTION 6 :  TAB 1 : USERS  (users table + the "who was active" tables)
-        // =====================================================
         private void LoadUsersTab()
         {
             int total = GetNumber("SELECT COUNT(*) FROM public.users");
@@ -259,9 +250,8 @@ namespace WAPP_EduCore.pages.Admin
             return growth.ToString("+0.0;-0.0;0.0", Inv) + "% growth";
         }
 
-        // =====================================================
+
         //  SECTION 7 :  TAB 2 : COURSES  (courses + lesson + enrollment + users tables)
-        // =====================================================
         private void LoadCoursesTab()
         {
             // ----- The 4 number boxes -----
@@ -430,11 +420,10 @@ namespace WAPP_EduCore.pages.Admin
             return Server.HtmlEncode(value.ToString());
         }
 
-        // =====================================================
+
         //  SECTION 8 :  TAB 3 : LEARNING PERFORMANCE
         //  (enrollment + quiz_score + quiz + lesson + courses tables)
         //  "Reporting cohort" = the PUBLISHED courses that have enrolments.
-        // =====================================================
         private void LoadLearningTab()
         {
             // An enrolment counts as "complete" when ONE of these is true:
@@ -585,12 +574,10 @@ namespace WAPP_EduCore.pages.Admin
             litPerfTable.Text = table.ToString();
         }
 
-        // =====================================================
+
         //  SECTION 9 :  "WHO WAS ACTIVE?"
         //  A user is ACTIVE when they did something in the last 30 days.
-        //  Every table below is checked, and a table is skipped if it
-        //  (or its date column) is not in the database.
-        // =====================================================
+        //  Every table below is checked, and a table is skipped if it (or its date column) is not in the database.
         private string RecentActivitySql()
         {
             if (recentActivitySql != null) return recentActivitySql;
@@ -657,9 +644,8 @@ namespace WAPP_EduCore.pages.Admin
                    type == "real" || type == "double precision";
         }
 
-        // =====================================================
+
         //  SECTION 10 :  HELPERS  (small tools used again and again)
-        // =====================================================
 
         // 7 out of 10  ->  "70.0%"   (0 when there is nothing to divide by)
         private string Percent(int part, int whole)
@@ -716,9 +702,8 @@ namespace WAPP_EduCore.pages.Admin
                    "<span>0</span><span>" + (max / 2).ToString("N0") + "</span><span>" + max.ToString("N0") + "</span></div>";
         }
 
-        // =====================================================
+
         //  SECTION 11 :  CHART DRAWING  (pictures made from SVG text: bars, columns, line)
-        // =====================================================
         // Draws a column chart for the "courses per topic" table.
         // The first column (the topic with the MOST courses) is the darkest blue.
         private string BuildColumnChart(DataTable topics)
@@ -806,8 +791,7 @@ namespace WAPP_EduCore.pages.Admin
             return svg.ToString();
         }
 
-        // Draws a simple line chart using SVG (a picture made from text)
-        // with grey lines and numbers on the left, like the Figma design
+        // Draws a simple line chart using SVG (a picture made from text) with grey lines and numbers on the left
         private string BuildLineChart(DataTable months)
         {
             if (months.Rows.Count == 0)
@@ -858,9 +842,8 @@ namespace WAPP_EduCore.pages.Admin
                    "</svg>";
         }
 
-        // =====================================================
+
         //  SECTION 12 :  DATABASE HELPERS  (ask the database for a number or a table)
-        // =====================================================
         // Asks the database for ONE number (like a count)
         private int GetNumber(string sql)
         {
@@ -884,12 +867,11 @@ namespace WAPP_EduCore.pages.Admin
             return table;
         }
 
-        // =====================================================
+
         //  SECTION 13 :  WHO IS LOGGED IN?  (used by every admin page)
         //  The login page saves the user number in Session["UserID"].
         //  (Session["user_id"] is also checked, in case an older page saved it.)
         //  Gives back 0 when nobody is logged in.
-        // =====================================================
         private int CurrentUserId()
         {
             int id;

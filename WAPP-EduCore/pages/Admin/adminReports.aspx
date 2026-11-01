@@ -1,9 +1,8 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="adminReports.aspx.cs" Inherits="WAPP_EduCore.pages.Admin.adminReports" %>
 
 <%--
-    MAP OF THIS PAGE   (use Ctrl+F and search the name in capital letters)
-
-    <head>   HEAD 1 FONT  |  HEAD 2 SHARED STYLES  |  HEAD 3 PAGE STYLES  |  HEAD 4 JAVASCRIPT
+    MAP OF THIS PAGE
+    <head>   HEAD 1 PAGE STYLES  |  HEAD 2 JAVASCRIPT
     <body>   PART 1 SIDEBAR
              PART 2 THE RIGHT SIDE
                      TOP BAR
@@ -18,14 +17,10 @@
 
 <head runat="server">
     <title>EduCore - Reports</title>
-
-    <!-- HEAD 1 of 4 : FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-    <!-- HEAD 2 of 4 : SHARED STYLES  (sidebar, cards, tables, popups ... all live in admin.css) -->
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
 
-    <!-- HEAD 3 of 4 : PAGE STYLES  -  Small extra styles only this page needs (so admin.css does not change) -->
+    <!-- HEAD 1 : PAGE STYLES  -  Small extra styles only this page needs (so admin.css does not change) -->
     <style type="text/css">
 
         /* ---------- The label on the left and a little icon on the right (top of every number box) ---------- */
@@ -168,7 +163,7 @@
     </style>
 
     <!-- ==================================================
-         HEAD 4 of 4 : JAVASCRIPT : opens / closes the drop-down menu
+         HEAD 2 : JAVASCRIPT : opens / closes the drop-down menu
          ================================================== -->
     <script type="text/javascript">
         // ----- The drop-down menu at the top right -----
@@ -192,9 +187,7 @@
              ================================================== -->
         <% Server.Execute("adminNav.aspx", false); %>
 
-        <!-- ==================================================
-             PART 2 : EVERYTHING ON THE RIGHT SIDE
-             ================================================== -->
+        <!-- PART 2 : EVERYTHING ON THE RIGHT SIDE -->
         <div class="main">
 
             <!-- ---------- Top bar ---------- -->
@@ -226,9 +219,7 @@
                 </div>
 
 
-                <!-- ==============================================
-                     TAB 1 : USERS
-                     ============================================== -->
+                <!-- TAB 1 : USERS -->
                 <asp:Panel ID="pnlUsers" runat="server">
 
                     <!-- Title -->
@@ -324,9 +315,7 @@
                 </asp:Panel>
 
 
-                <!-- ==============================================
-                     TAB 2 : COURSES
-                     ============================================== -->
+                <!-- TAB 2 : COURSES -->
                 <asp:Panel ID="pnlCourses" runat="server">
 
                     <!-- Title -->
@@ -463,9 +452,7 @@
                 </asp:Panel>
 
 
-                <!-- ==============================================
-                     TAB 3 : LEARNING PERFORMANCE
-                     ============================================== -->
+                <!-- TAB 3 : LEARNING PERFORMANCE -->
                 <asp:Panel ID="pnlLearning" runat="server">
 
                     <!-- Title -->

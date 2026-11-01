@@ -1,7 +1,5 @@
 ﻿// ==========================================================
-//  adminDashboard.aspx.cs
-//
-//  SECTIONS IN THIS FILE  (use Ctrl+F and search the words "SECTION 3")
+//  SECTIONS IN THIS FILE
 //  ----------------------------------------------------------
 //    1.  SETTINGS  (the variables this page uses)
 //    2.  STEP 1: Page opens  ->  fill every box with data
@@ -26,27 +24,22 @@ using WAPP_EduCore.Data;
 
 namespace WAPP_EduCore.pages.Admin
 {
-    // NOTE: the class name is WebForm1 because your .aspx first line says Inherits="...WebForm1"
     public partial class WebForm1 : System.Web.UI.Page
     {
-        // =====================================================
         //  SECTION 1 :  SETTINGS  (the variables this page uses)
-        // =====================================================
         // These are shown in the sidebar and the top-right circle
         protected string AdminName = "Administrator";
         protected string AdminInitials = "AD";
 
-        // Colors used by the charts (same blues as the Figma design)
+        // Colors used by the charts
         private string[] chartColors = { "#4F67CC", "#8E9EE0", "#E0A85A", "#C7D0F0", "#4F67CC", "#8E9EE0" };
 
 
-        // =====================================================
         //  SECTION 2 :  STEP 1: Page opens  ->  fill every box with data
-        // =====================================================
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Not logged in, or the session ran out (for example after resting for a while)?
-            // Then go to the login page. We do NOT guess an admin any more.
+            // Not logged in, or the session ran out
+            // Then go to the login page.
             int signedInAdmin = CurrentUserId();
             if (signedInAdmin == 0)
             {
@@ -65,10 +58,7 @@ namespace WAPP_EduCore.pages.Admin
             LoadNeedsAttention();   // the yellow box
         }
 
-
-        // =====================================================
         //  SECTION 3 :  ADMIN NAME (sidebar + top-right circle)
-        // =====================================================
         private void LoadAdminInfo()
         {
             using (NpgsqlConnection conn = DatabaseHelper.GetConnection())
@@ -103,10 +93,7 @@ namespace WAPP_EduCore.pages.Admin
             }
         }
 
-
-        // =====================================================
         //  SECTION 4 :  ROW 1 : THE 6 NUMBER BOXES
-        // =====================================================
         private void LoadTopNumbers()
         {
             int totalUsers = GetNumber("SELECT COUNT(*) FROM public.users");
@@ -128,9 +115,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 5 :  ROW 2 - CHART 1 : DONUT  (Users by Role)
-        // =====================================================
         private void LoadRoleDonut()
         {
             int total = GetNumber("SELECT COUNT(*) FROM public.users");
@@ -143,7 +128,6 @@ namespace WAPP_EduCore.pages.Admin
             string[] colors = { "#4F67CC", "#8E9EE0", "#C7D0F0" };
 
             // ----- The ring -----
-            // A circle line has a length (circumference).
             // Each role gets a piece of that line: its share of the users.
             double radius = 80;
             double circle = 2 * Math.PI * radius;
@@ -189,10 +173,8 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 6 :  ROW 2 - CHART 2 : COLUMNS  (Courses by Topic)
-        //  The 5 topics that have the most courses.
-        // =====================================================
+        //  The topics that have the most courses.
         private void LoadTopicChart()
         {
             int totalCourses = GetNumber("SELECT COUNT(*) FROM public.courses");
@@ -245,10 +227,8 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 7 :  ROW 3 - RECENT ACTIVITY
         //  The 5 newest things: new accounts and new courses.
-        // =====================================================
         private void LoadRecentActivity()
         {
             DataTable events = GetTable(
@@ -305,9 +285,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 8 :  ROW 3 - NEEDS ATTENTION (yellow box, only courses without lessons)
-        // =====================================================
         private void LoadNeedsAttention()
         {
             // Courses that have no lessons at all
@@ -319,9 +297,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 9 :  LOGOUT  (the "Logout" option in the drop-down menu)
-        // =====================================================
         protected void lnkLogout_Click(object sender, EventArgs e)
         {
             WAPP_EduCore.Data.LoginKeeper.Forget(Context);   // remove the "remember me" cookie
@@ -331,9 +307,7 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        // =====================================================
         //  SECTION 10 :  HELPERS  (small tools used again and again)
-        // =====================================================
 
         // Turns a decimal number into text the browser understands (always with a dot)
         private string Num(double value)
@@ -363,12 +337,11 @@ namespace WAPP_EduCore.pages.Admin
             return table;
         }
 
-        // =====================================================
+
         //  SECTION 11 :  WHO IS LOGGED IN?  (used by every admin page)
         //  The login page saves the user number in Session["UserID"].
         //  (Session["user_id"] is also checked, in case an older page saved it.)
         //  Gives back 0 when nobody is logged in.
-        // =====================================================
         private int CurrentUserId()
         {
             int id;
