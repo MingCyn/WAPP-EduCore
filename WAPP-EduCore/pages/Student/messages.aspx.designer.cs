@@ -51,6 +51,15 @@ namespace WAPP_EduCore.pages.Student
         protected global::System.Web.UI.WebControls.Literal litTopic;
 
         /// <summary>
+        /// pnlGuestNotice control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlGuestNotice;
+
+        /// <summary>
         /// pnlNoCourses control.
         /// </summary>
         /// <remarks>

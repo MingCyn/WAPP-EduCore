@@ -34,8 +34,24 @@ namespace WAPP_EduCore.pages.Student
         private long _lessonCourseId, _lessonNo;
         private string _lessonTitle = "";
 
-        private bool IsGuest { get { return Session["UserID"] == null; } }
-        private long UserId { get { return Convert.ToInt64(Session["UserID"]); } }
+        private bool IsGuest
+        {
+            get
+            {
+                object id = Session["UserID"];
+                if (id == null) return true;
+
+                long parsed;
+                if (!long.TryParse(Convert.ToString(id), out parsed) || parsed <= 0) return true;
+
+                string role = Convert.ToString(Session["Role"]) ?? Convert.ToString(Session["UserRole"]);
+                if (string.Equals(role, "guest", StringComparison.OrdinalIgnoreCase)) return true;
+
+                return false;
+            }
+        }
+
+        private long UserId { get { return IsGuest ? 0 : Convert.ToInt64(Session["UserID"]); } }
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -45,6 +61,16 @@ namespace WAPP_EduCore.pages.Student
             if (IsGuest)
             {
                 _enrolled = new DataTable();
+
+                // Configure guest UI constraints safely from code-behind
+                pnlGuestNotice.Visible = true;
+                txtTitle.Attributes["onclick"] = "openLoginPrompt(); return false;";
+                txtContent.Attributes["onclick"] = "openLoginPrompt(); return false;";
+                btnPost.OnClientClick = "openLoginPrompt(); return false;";
+
+                txtReply.Attributes["onclick"] = "openLoginPrompt(); return false;";
+                txtReply.Attributes["placeholder"] = "Log in to write a reply...";
+                btnReply.OnClientClick = "openLoginPrompt(); return false;";
             }
             else
             {
@@ -218,12 +244,14 @@ namespace WAPP_EduCore.pages.Student
                 else if (_tab == "announcements") where.Append(" AND p.post_type = 'Announcement'");
             }
 
+            string limitClause = IsGuest ? " LIMIT 3" : " LIMIT 30";
+
             DataTable t = Db.Query(
                 "SELECT p.post_id, p.title, p.content, p.post_type, p.created_at, " +
                 "  u.user_id AS author_id, u.full_name, u.role, " +
                 "  (SELECT COUNT(*) FROM discussion_replies r WHERE r.post_id = p.post_id) AS reply_count " +
                 "FROM discussion_posts p JOIN users u ON u.user_id = p.user_id " +
-                "WHERE " + where + " ORDER BY p.created_at DESC LIMIT 30", prm);
+                "WHERE " + where + " ORDER BY p.created_at DESC" + limitClause, prm);
 
             var list = new List<Post>();
             foreach (DataRow r in t.Rows)

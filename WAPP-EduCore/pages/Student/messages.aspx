@@ -1,10 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="messages.aspx.cs" Inherits="WAPP_EduCore.pages.Student.messages" %>
-
-<%@ Register Src="~/pages/Shared/Sidebar.ascx" TagName="Sidebar" TagPrefix="uc" %>
-
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head runat="server">
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="messages.aspx.cs" Inherits="WAPP_EduCore.pages.Student.messages" %><%@ Register Src="~/pages/Shared/Sidebar.ascx" TagName="Sidebar" TagPrefix="uc" %><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head runat="server">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Discussion Forum</title>
@@ -12,12 +6,9 @@
         rel="stylesheet" />
     <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
     <link href="../../Content/student.css" rel="stylesheet" type="text/css" />
-    <%-- The forum styles that used to be inline here now live in the shared messages.css (also used by Tutor/messages.aspx) --%>
     <link href="../../Content/messages.css" rel="stylesheet" type="text/css" />
     <link href="/Content/student-upgrade.css" rel="stylesheet" />
-    <script src="/Content/fx.js"></script>
-</head>
-<body>
+    <script src="/Content/fx.js"></script></head><body>
     <form id="form1" runat="server">
         <div class="app">
             <uc:Sidebar ID="Sidebar1" runat="server" />
@@ -32,6 +23,11 @@
                         <asp:Literal ID="litTopic" runat="server" Mode="PassThrough"></asp:Literal>
                     </div>
                 </div>
+
+                <!-- Guest Preview Banner -->
+                <asp:Panel ID="pnlGuestNotice" runat="server" Visible="false" CssClass="fm-empty-box" Style="margin-bottom: 15px; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;">
+                    Showing a preview of the 3 newest community discussions. <a href="~/auth/signup.aspx" runat="server">Sign up or log in</a> to view all discussions and participate.
+                </asp:Panel>
 
                 <asp:Panel ID="pnlNoCourses" runat="server" Visible="false" CssClass="fm-empty-box">
                     You are not enrolled in any course yet, so there are no discussions to show.
@@ -129,21 +125,17 @@
         </div>
 
         <script>
-if (typeof openLoginPrompt !== 'function') {
-    window.openLoginPrompt = function () {
-        var modal = document.getElementById('loginPromptModal');
-        if (modal) modal.classList.add('open');
-    };
-}
-
-if (typeof closeLoginPrompt !== 'function') {
-    window.closeLoginPrompt = function () {
-        var modal = document.getElementById('loginPromptModal');
-        if (modal) modal.classList.remove('open');
-    };
-}
-</script>
-
-    </form>
-</body>
-</html>
+            if (typeof openLoginPrompt !== 'function') {
+                window.openLoginPrompt = function () {
+                    var modal = document.getElementById('loginPromptModal');
+                    if (modal) modal.classList.add('open');
+                };
+            }
+            if (typeof closeLoginPrompt !== 'function') {
+                window.closeLoginPrompt = function () {
+                    var modal = document.getElementById('loginPromptModal');
+                    if (modal) modal.classList.remove('open');
+                };
+            }
+        </script>
+    </form></body></html>
