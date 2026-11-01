@@ -142,7 +142,7 @@
         <h3 id="suTitle">Sign up to enroll</h3>
         <p>You need an account to enroll in this course. Create one for free, or log in if you already have one.</p>
         <div class="su-actions">
-            <a class="su-btn su-primary" href="../../Auth/register.aspx">Sign Up</a>
+            <a class="su-btn su-primary" href="../../Auth/signup.aspx">Sign Up</a>
             <a class="su-btn" href="../../Auth/login.aspx">Log In</a>
         </div>
         <button type="button" class="su-close" onclick="closeSignupModal()">Maybe later</button>
