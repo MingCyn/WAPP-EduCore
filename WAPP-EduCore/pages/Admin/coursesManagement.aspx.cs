@@ -10,40 +10,41 @@
 //    7.  THE COURSE TABLE  (search + filters + pages)
 //    8.  BUTTONS
 //    9.  LOGOUT  (the "Logout" option in the drop-down menu)
-//   10.  PICTURE FILES  (image upload - exact TrySaveImage implementation)
+//   10.  PICTURE FILES  (local storage upload, TrySaveCourseImage, and cleanup)
 //   11.  FINDING COLUMNS IN THE courses TABLE
 //   12.  HELPERS  (small tools used again and again)
 //   13.  WHO IS LOGGED IN?  (used by every admin page)
 // ==========================================================
 
+using Npgsql;
+using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.IO;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
-using System.Web;                       // needed for HttpPostedFile
+using System.Web;               // needed for HttpPostedFile
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Npgsql;
-using NpgsqlTypes;
 using WAPP_EduCore.Data;
 
 namespace WAPP_EduCore.pages.Admin
 {
-    public partial class WebForm4 : System.Web.UI.Page
+    public partial class coursesManagement : System.Web.UI.Page
     {
         //  SECTION 1 :  SETTINGS  (the variables this page uses)
         protected string AdminName = "Administrator";
         protected string AdminInitials = "AD";
 
-        private int adminId = 0;            // the id of the admin who is logged in
+        private int adminId = 0;              // the id of the admin who is logged in
 
         private const string ImageFolder = "~/uploads/courses/";
         private const string OldImageFolder = "~/images/courses/";
 
-        // 4 MB limit as requested
-        private const int MaxImageBytes = 4 * 1024 * 1024;
+        // 2 MB limit as requested
+        private const int MaxImageBytes = 2 * 1024 * 1024;
 
         // Configuration toggle for detailed error messages during IO/Unauthorized exceptions
         private bool ShowDatabaseErrors = true;
@@ -58,8 +59,8 @@ namespace WAPP_EduCore.pages.Admin
 
         private const string FromAndWhere =
             @" FROM public.courses c
-               LEFT JOIN (SELECT course_id, COUNT(*) AS n FROM public.lesson GROUP BY course_id) l
-                      ON l.course_id = c.course_id
+                LEFT JOIN (SELECT course_id, COUNT(*) AS n FROM public.lesson GROUP BY course_id) l
+                    ON l.course_id = c.course_id
                WHERE (@search = '' OR c.title ILIKE @like OR c.category ILIKE @like)
                  AND (@topic = '' OR c.category = @topic)
                  AND (@lessons = ''
@@ -298,7 +299,7 @@ namespace WAPP_EduCore.pages.Admin
             string status = (r["status"].ToString().Trim().ToLower() == "published") ? "published" : "draft";
 
             string img = r["img"].ToString();
-            if (img.StartsWith("~/")) img = ResolveUrl(img);
+            string renderedImg = BuildThumb(img);
 
             StringBuilder sb = new StringBuilder();
             sb.Append("<tr class='clickable' id='row" + id + "' onclick='openDetail(" + id + ")'");
@@ -342,6 +343,20 @@ namespace WAPP_EduCore.pages.Admin
 
             sb.Append("</tr>");
             return sb.ToString();
+        }
+
+        private string BuildThumb(string imagePath)
+        {
+            if (!string.IsNullOrEmpty(imagePath) && imagePath.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase))
+            {
+                return "<img src='" + ResolveUrl(imagePath) + "' alt='Course Image' class='course-thumb' />";
+            }
+            return IconImagePlaceholder();
+        }
+
+        private string IconImagePlaceholder()
+        {
+            return "<div class='img-placeholder'><svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg></div>";
         }
 
 
@@ -430,10 +445,22 @@ namespace WAPP_EduCore.pages.Admin
 
             try
             {
+                // Check if user requested removal
+                bool removeRequested = false;
+                // Note: If you use a hidden field for removal state like HfRemoveImage, check it here:
+                // if (Request.Form["__EVENTTARGET"] != null && Request.Form["__EVENTTARGET"].Contains("RemoveImg")) removeRequested = true;
+
                 if (fuEditImage.HasFile)
                 {
+                    if (fuEditImage.PostedFiles.Count > 1)
+                    {
+                        ShowMessage("Please upload only a single image file at a time.", false);
+                        ReopenPopup("editModal");
+                        return;
+                    }
+
                     string imgError;
-                    if (!TrySaveImage(fuEditImage.PostedFile, ImageFolder, "course-" + id, MaxImageBytes, out newImage, out imgError))
+                    if (!TrySaveCourseImage(fuEditImage.PostedFile, ImageFolder, id.ToString(), MaxImageBytes, out newImage, out imgError))
                     {
                         ShowMessage(imgError, false);
                         ReopenPopup("editModal");
@@ -447,20 +474,27 @@ namespace WAPP_EduCore.pages.Admin
                     sql += ", course_img = @img";
                     parameters.Add(new NpgsqlParameter("@img", newImage));
                 }
+                else if (removeRequested)
+                {
+                    oldImage = Convert.ToString(GetValueOrNull("SELECT course_img::text FROM public.courses WHERE course_id = @id", new NpgsqlParameter("@id", id)));
+                    sql += ", course_img = NULL";
+                }
 
                 sql += " WHERE course_id = @id";
                 parameters.Add(new NpgsqlParameter("@id", id));
 
                 RunSql(sql, parameters.ToArray());
 
-                if (newImage != "" && IsOurImage(oldImage))
-                    DeleteImageFile(oldImage);
+                if ((newImage != "" || removeRequested) && IsOurImage(oldImage))
+                {
+                    DeleteStoredImage(oldImage);
+                }
 
                 ShowMessage("Saved! \"" + title + "\" was updated.", true);
             }
             catch (Exception ex)
             {
-                DeleteImageFile(newImage);
+                DeleteStoredImage(newImage);
                 ShowMessage("Could not save: " + ex.Message, false);
                 ReopenPopup("editModal");
             }
@@ -497,8 +531,16 @@ namespace WAPP_EduCore.pages.Admin
             {
                 if (fuAddImage.HasFile)
                 {
+                    if (fuAddImage.PostedFiles.Count > 1)
+                    {
+                        lblAddError.Text = "Please upload only a single image file at a time.";
+                        ReopenPopup("addModal");
+                        return;
+                    }
+
                     string imgError;
-                    if (!TrySaveImage(fuAddImage.PostedFile, ImageFolder, "course-new", MaxImageBytes, out imagePath, out imgError))
+                    // Using "new" as temporary prefix, or we can use a generated identifier
+                    if (!TrySaveCourseImage(fuAddImage.PostedFile, ImageFolder, "new", MaxImageBytes, out imagePath, out imgError))
                     {
                         lblAddError.Text = imgError;
                         ReopenPopup("addModal");
@@ -580,7 +622,7 @@ namespace WAPP_EduCore.pages.Admin
             }
             catch (Exception ex)
             {
-                DeleteImageFile(imagePath);
+                DeleteStoredImage(imagePath);
                 lblAddError.Text = "Could not create the course: " + ex.Message;
                 ReopenPopup("addModal");
             }
@@ -674,7 +716,7 @@ namespace WAPP_EduCore.pages.Admin
                 }
 
                 if (IsOurImage(imagePath))
-                    DeleteImageFile(imagePath);
+                    DeleteStoredImage(imagePath);
 
                 ShowMessage("Deleted! \"" + title + "\" was permanently removed, together with everything linked to it.", true);
             }
@@ -700,9 +742,9 @@ namespace WAPP_EduCore.pages.Admin
         }
 
 
-        //  SECTION 10 :  PICTURE FILES  (Exact custom implementation of TrySaveImage & Header validation)
-        private bool TrySaveImage(HttpPostedFile file, string folderVirtualPath, string namePrefix, int maxBytes,
-                                  out string savedUrl, out string errorMessage)
+        //  SECTION 10 :  PICTURE FILES  (Local server upload, magic numbers check, unique filename, & cleanup)
+        private bool TrySaveCourseImage(HttpPostedFile file, string folderVirtualPath, string namePrefix, int maxBytes,
+                                        out string savedUrl, out string errorMessage)
         {
             savedUrl = "";
             errorMessage = "";
@@ -734,7 +776,7 @@ namespace WAPP_EduCore.pages.Admin
             file.InputStream.Position = 0;
             if (read < header.Length || !HeaderMatches(extension, header))
             {
-                errorMessage = "That file isn't a valid " + extension.TrimStart('.').ToUpperInvariant() + " image.";
+                errorMessage = "That file isn't a valid " + extension.TrimStart('.').ToUpperInvariant() + " image format.";
                 return false;
             }
 
@@ -778,13 +820,14 @@ namespace WAPP_EduCore.pages.Admin
 
         private bool IsOurImage(string imagePath)
         {
-            return imagePath.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase)
-                || imagePath.StartsWith(OldImageFolder, StringComparison.OrdinalIgnoreCase);
+            return !string.IsNullOrEmpty(imagePath) &&
+                   (imagePath.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase) ||
+                    imagePath.StartsWith(OldImageFolder, StringComparison.OrdinalIgnoreCase));
         }
 
-        private void DeleteImageFile(string imagePath)
+        private void DeleteStoredImage(string imagePath)
         {
-            if (imagePath == "") return;
+            if (string.IsNullOrEmpty(imagePath)) return;
 
             try
             {

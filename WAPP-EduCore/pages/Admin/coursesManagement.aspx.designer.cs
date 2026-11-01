@@ -11,7 +11,7 @@ namespace WAPP_EduCore.pages.Admin
 {
 
 
-    public partial class WebForm4
+    public partial class coursesManagement
     {
 
         /// <summary>
