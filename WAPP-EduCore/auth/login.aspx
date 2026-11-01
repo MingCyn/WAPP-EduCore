@@ -92,6 +92,9 @@
                         Sign in with Google
                     </button>
 
+                    <!-- Continue as Guest Button -->
+                    <asp:Button ID="btnGuest" runat="server" Text="Continue as Guest" CssClass="btn-primary" OnClick="btnGuest_Click" CausesValidation="false" Style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; margin-top: 12px; box-shadow: none;" />
+
                     <!-- Error/Status Message -->
                     <div class="error-container">
                         <asp:Label ID="lblErrorMessage" runat="server" CssClass="error-message" Text=""></asp:Label>
@@ -125,7 +128,6 @@
             var clientId = "828548947210-evje5v1phtlnamtftjh5rld14vdhfhnk.apps.googleusercontent.com"; 
             var redirectUri = "https://localhost:44383/auth/google-callback.aspx";
             
-            // Includes the requested Google Calendar events write scope
             var scope = encodeURIComponent("email profile https://www.googleapis.com/auth/calendar.events");
             
             var authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;

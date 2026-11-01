@@ -28,7 +28,6 @@ namespace WAPP_EduCore.auth
                     conn.Open();
 
                     // 1. Get total number of active/registered students
-                    // (Assuming role column distinguishes users, e.g., 'Student')
                     using (var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM users WHERE LOWER(role) = 'student'", conn))
                     {
                         object studentCount = cmd.ExecuteScalar();
@@ -51,7 +50,6 @@ namespace WAPP_EduCore.auth
             }
             catch (Exception ex)
             {
-                // Graceful fallback if database stats fail to load
                 System.Diagnostics.Debug.WriteLine("Failed to load statistics: " + ex.Message);
                 LitActiveStudents.Text = "12,480+";
                 LitCoveredTopics.Text = "50+";
@@ -101,8 +99,7 @@ namespace WAPP_EduCore.auth
                                     Session["UserFullName"] = fullName;
                                     Session["UserRole"] = role;
 
-                                    // Role-based Redirection with correct path tracking out of /auth/
-                                    // 4. Role-based Redirection with correct folder paths
+                                    // Role-based Redirection
                                     if (role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
                                     {
                                         Response.Redirect("../pages/Admin/adminDashboard.aspx", false);
@@ -117,7 +114,6 @@ namespace WAPP_EduCore.auth
                                     }
                                     else
                                     {
-                                        // Default fallback
                                         Response.Redirect("../pages/Student/studentDashboard.aspx", false);
                                     }
 
@@ -143,6 +139,19 @@ namespace WAPP_EduCore.auth
                 lblErrorMessage.ForeColor = System.Drawing.Color.FromArgb(239, 68, 68);
                 lblErrorMessage.Text = "Login error: " + ex.Message;
             }
+        }
+
+        protected void btnGuest_Click(object sender, EventArgs e)
+        {
+            // Initialize Guest Session values using the Student role path
+            Session["UserID"] = 0;
+            Session["UserEmail"] = "guest@educore.local";
+            Session["UserFullName"] = "Guest User";
+            Session["UserRole"] = "Student";
+
+            // Redirect directly to the student dashboard page
+            Response.Redirect("../pages/Student/studentDashboard.aspx", false);
+            Context.ApplicationInstance.CompleteRequest();
         }
     }
 }
