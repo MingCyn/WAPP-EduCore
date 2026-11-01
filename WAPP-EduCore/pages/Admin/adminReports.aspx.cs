@@ -878,8 +878,9 @@ namespace WAPP_EduCore.pages.Admin
             if (int.TryParse(Convert.ToString(Session["UserID"]), out id) && id > 0) return id;
             if (int.TryParse(Convert.ToString(Session["user_id"]), out id) && id > 0) return id;
 
-            // The session was forgotten (idle for a long time)? Ask the "remember me" cookie who the admin is.
-            return WAPP_EduCore.Data.LoginKeeper.Restore(Context);
+            // No login in this session? Then nobody is logged in (we do NOT use the "remember me" cookie any more),
+            // so the page sends the visitor to Default.aspx first.
+            return 0;
         }
     }
 }

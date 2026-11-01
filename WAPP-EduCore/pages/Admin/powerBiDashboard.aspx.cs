@@ -98,7 +98,7 @@ namespace WAPP_EduCore.pages.Admin
             if (int.TryParse(Convert.ToString(Session["user_id"]), out id) && id > 0) return id;
 
             // The session was forgotten? Ask the "remember me" cookie.
-            return WAPP_EduCore.Data.LoginKeeper.Restore(Context);
+            return 0;
         }
     }
 }

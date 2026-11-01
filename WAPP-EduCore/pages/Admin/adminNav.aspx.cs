@@ -75,7 +75,7 @@ namespace WAPP_EduCore.pages.Admin
             if (int.TryParse(Convert.ToString(Session["UserID"]), out id) && id > 0) return id;
             if (int.TryParse(Convert.ToString(Session["user_id"]), out id) && id > 0) return id;
 
-            return WAPP_EduCore.Data.LoginKeeper.Restore(Context);
+            return 0;
         }
     }
 }
