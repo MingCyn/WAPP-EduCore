@@ -78,7 +78,7 @@ namespace WAPP_EduCore.pages.Admin
             // Step 1: Check whether the user is logged in
             if (signedInAdmin <= 0)
             {
-                Response.Redirect("~/auth/login.aspx", false);
+                Response.Redirect("~/Default.aspx", false);
                 Context.ApplicationInstance.CompleteRequest();
                 return;
             }
@@ -105,7 +105,7 @@ namespace WAPP_EduCore.pages.Admin
                 Session.Clear();
                 Session.Abandon();
 
-                Response.Redirect("~/auth/login.aspx", false);
+                Response.Redirect("~/Default.aspx", false);
                 Context.ApplicationInstance.CompleteRequest();
                 return;
             }
@@ -1575,8 +1575,8 @@ namespace WAPP_EduCore.pages.Admin
             if (int.TryParse(Convert.ToString(Session["user_id"]), out id) && id > 0)
                 return id;
 
-            // Restore the user from the Remember Me cookie
-            id = WAPP_EduCore.Data.LoginKeeper.Restore(Context);
+            // (the "Remember Me" cookie is NOT used any more: a new run must start at Default.aspx)
+            id = 0;
 
             if (id > 0)
                 return id;

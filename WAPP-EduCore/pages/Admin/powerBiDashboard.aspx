@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <!-- Our own styles (colors, cards, tables...) -->
-    <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
+    <link href="../../Content/admin.css?v=1" rel="stylesheet" type="text/css" />
 
     <!-- Small extra styles only this page needs -->
     <style type="text/css">

@@ -23,7 +23,7 @@
 <head runat="server">
     <title>EduCore - Course Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link href="../../Content/admin.css" rel="stylesheet" type="text/css" />
+    <link href="../../Content/admin.css?v=1" rel="stylesheet" type="text/css" />
 
     <!-- HEAD 1 : PAGE STYLES  -  Small extra styles only this page needs (so admin.css does not change) -->
     <style type="text/css">
@@ -107,11 +107,44 @@
             resize: vertical;
         }
 
-        /* ---------- "Choose file" button ---------- */
+        /* ---------- "Choose file" box (same look as the other buttons) ---------- */
         .file-input {
             width: 100%;
             margin-bottom: 14px;
-            font-size: 12px;
+            padding: 6px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--grey);                 /* the "No file chosen" text */
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        /* The real "Choose File" button inside the box (looks like .btn) */
+        .file-input::file-selector-button {
+            height: 32px;
+            margin-right: 12px;
+            padding: 0 16px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--blue);
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        /* Mouse over the button: light blue, like .btn:hover */
+        .file-input:hover::file-selector-button {
+            background: #F8FAFF;
+            border-color: var(--light-blue);
+        }
+
+        /* Blue border when you click inside, like .input:focus */
+        .file-input:focus {
+            outline: none;
+            border-color: var(--blue);
         }
 
         /* ---------- Number boxes with a little icon ---------- */
