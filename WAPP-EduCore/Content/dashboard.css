@@ -1,4 +1,293 @@
-﻿/* ==========================================
+﻿/* ==========================================================
+   EduCore tutor navbar - SAME STYLE AS STUDENT SIDEBAR
+   (gradient dark bar, orange active pill, animated SVG icons,
+   initials avatar, red-tint logout). Keep at the END of the file.
+   ========================================================== */
+
+.navbar {
+    background: radial-gradient(360px 200px at 100% 0%, rgba(255, 112, 0, .25), transparent 70%), radial-gradient(360px 200px at 0% 100%, rgba(15, 25, 57, .2), transparent 70%), linear-gradient(90deg, #101a3d, #0a1128);
+    border-bottom: 1px solid rgba(255, 255, 255, .06);
+    box-shadow: 0 10px 40px -20px rgba(10, 17, 40, .6);
+}
+
+    /* One font for everything in the navbar (same as the student sidebar) */
+    .navbar,
+    .navbar * {
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        font-style: normal;
+        -webkit-font-smoothing: antialiased;
+    }
+
+.nav-links {
+    gap: 8px;
+}
+
+/* Links */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: none;
+    border-radius: 12px;
+    color: #b6c2e2;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+    transition: background .25s, color .25s, transform .25s cubic-bezier(.22, 1, .36, 1);
+}
+
+    .nav-link:hover {
+        background: rgba(255, 255, 255, .07);
+        color: #fff;
+        border-bottom: none;
+        transform: translateY(-2px);
+    }
+
+    .nav-link.active,
+    .nav-link.active:hover {
+        color: #fff;
+        background: linear-gradient(135deg, #FF7000, #ff8e3c);
+        border-bottom: none;
+        box-shadow: 0 10px 24px -10px rgba(255, 112, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .2);
+    }
+
+/* Icons (inline SVG drawn with the text color) */
+.navbar .menu-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
+    opacity: .75;
+    transition: opacity .2s ease, color .2s ease, transform .25s ease;
+}
+
+.nav-link:hover .menu-icon,
+.nav-link.active .menu-icon {
+    opacity: 1;
+    color: #FFB703;
+}
+
+.nav-link:hover .menu-icon {
+    transform: scale(1.12);
+}
+
+.nav-link.active .menu-icon {
+    animation: icEnter .6s ease;
+}
+
+/* Profile area: initials avatar + name + logout */
+.nav-profile {
+    gap: 12px;
+}
+
+.nav-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF7000, #ff8e3c);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, .12);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.profile-name {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.nav-logout {
+    margin-left: 4px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .1);
+    border: 1px solid rgba(255, 255, 255, .12);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all .25s;
+}
+
+    .nav-logout:hover {
+        background: rgba(244, 63, 94, .18);
+        border-color: rgba(244, 63, 94, .4);
+    }
+
+/* Smaller screens: keep the bar from overflowing */
+@media (max-width: 1100px) {
+    .nav-links {
+        gap: 2px;
+    }
+
+    .nav-link {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .profile-name {
+        display: none;
+    }
+}
+
+/* ---------- Icon hover animations (same as student) ---------- */
+@keyframes icEnter {
+    0% {
+        transform: scale(.6);
+    }
+
+    60% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes icPop {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(.5);
+    }
+
+    70% {
+        transform: scale(1.2);
+    }
+}
+
+@keyframes icBookL {
+    0%, 100% {
+        transform: rotate(0);
+    }
+
+    45% {
+        transform: rotate(-12deg);
+    }
+}
+
+@keyframes icBookR {
+    0%, 100% {
+        transform: rotate(0);
+    }
+
+    45% {
+        transform: rotate(12deg);
+    }
+}
+
+@keyframes icHop {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    35% {
+        transform: translateY(-3px);
+    }
+
+    60% {
+        transform: translateY(0);
+    }
+
+    80% {
+        transform: translateY(-1px);
+    }
+}
+
+@keyframes icFlap {
+    0%, 100% {
+        transform: scaleY(1);
+    }
+
+    40% {
+        transform: scaleY(.55);
+    }
+}
+
+@keyframes icSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.ic-dash rect {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.ic-book-l, .ic-book-r {
+    transform-origin: 12px 20px;
+}
+
+.ic-mail-flap {
+    transform-origin: 12px 7px;
+}
+
+.ic-gear-body {
+    transform-origin: 12px 12px;
+}
+
+.nav-link:hover .ic-dash rect {
+    animation: icPop .6s ease;
+}
+
+    .nav-link:hover .ic-dash rect:nth-child(2) {
+        animation-delay: .08s;
+    }
+
+    .nav-link:hover .ic-dash rect:nth-child(3) {
+        animation-delay: .16s;
+    }
+
+    .nav-link:hover .ic-dash rect:nth-child(4) {
+        animation-delay: .24s;
+    }
+
+.nav-link:hover .ic-book-l {
+    animation: icBookL .7s ease;
+}
+
+.nav-link:hover .ic-book-r {
+    animation: icBookR .7s ease;
+}
+
+.nav-link:hover .ic-hop {
+    animation: icHop .7s ease;
+}
+
+.nav-link:hover .ic-mail-body {
+    animation: icHop .7s ease;
+}
+
+.nav-link:hover .ic-mail-flap {
+    animation: icFlap .7s ease;
+}
+
+.nav-link:hover .ic-gear-body {
+    animation: icSpin 2.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-link *,
+    .navbar .menu-icon {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+/* ==========================================
    EduCore - Dashboard Global & Tutor Theme
    Colors tuned to match the design mock
    ========================================== */
