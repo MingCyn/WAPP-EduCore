@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
+using System.Web.Security;
 using Npgsql;
 
 namespace WAPP_EduCore.Data
@@ -17,14 +18,36 @@ namespace WAPP_EduCore.Data
     //  It holds the admin's number + a secret signature (so nobody can fake it).
     //  If the session is forgotten, the cookie tells us which admin it is, and we fill the session again.
     //  Only the admin pages use this file. Logout removes the cookie.
+    //
+    //  LOGOUT: the sidebar "Log out" link is  href="?logout=1".
+    //  Every admin page calls Remember() or Restore(), and both start with HandleLogout(),
+    //  so the logout works on every admin page without extra code in the pages.
     // =====================================================
     public static class LoginKeeper
     {
         private const string CookieName = "EduCoreAdminLogin";
 
+        // Logout: if the address has ?logout=1 then remove the cookie, clear the session
+        // and go to the home page. Must run BEFORE anything else, otherwise the cookie
+        // would log the admin in again.
+        private static void HandleLogout(HttpContext context)
+        {
+            if (context.Request.QueryString["logout"] != "1") return;
+
+            Forget(context);                 // delete the remember-me cookie
+            context.Session.Clear();         // forget who is logged in
+            context.Session.Abandon();
+            FormsAuthentication.SignOut();
+
+            // "true" stops the rest of the page from running
+            context.Response.Redirect("~/default.aspx", true);
+        }
+
         // Saves the cookie. The admin pages call it when an admin is logged in.
         public static void Remember(HttpContext context, int userId)
         {
+            HandleLogout(context);
+
             if (userId <= 0) return;
 
             string value = userId + "|" + Sign(userId.ToString());
@@ -46,6 +69,8 @@ namespace WAPP_EduCore.Data
         // Gives back the admin's number (and fills the session again), or 0 when we do not know.
         public static int Restore(HttpContext context)
         {
+            HandleLogout(context);
+
             HttpCookie cookie = context.Request.Cookies[CookieName];
             if (cookie == null || string.IsNullOrEmpty(cookie.Value)) return 0;
 

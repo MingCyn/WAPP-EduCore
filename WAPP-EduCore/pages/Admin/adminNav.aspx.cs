@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Web;
+using System.Web.Security;
 using System.Web.UI;
 using Npgsql;
 using WAPP_EduCore.Data;
@@ -14,12 +15,31 @@ namespace WAPP_EduCore.pages.Admin
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            // Logout must be checked FIRST, otherwise LoginKeeper.Restore()
+            // would read the cookie and log the admin straight back in.
+            if (Request.QueryString["logout"] == "1")
+            {
+                DoLogout();
+                return;
+            }
+
             // Verify if the admin session is active
             int signedInAdmin = CurrentUserId();
             if (signedInAdmin > 0)
             {
                 LoadAdminInfo(signedInAdmin);
             }
+        }
+
+        // Logout: remove the remember-me cookie, clear the session, go to the home page
+        private void DoLogout()
+        {
+            LoginKeeper.Forget(Context);   // deletes the EduCoreAdminLogin cookie
+            Session.Clear();
+            Session.Abandon();
+            FormsAuthentication.SignOut();
+
+            Response.Redirect("~/default.aspx");
         }
 
         // Retrieves the administrator's full name and builds initials
@@ -39,7 +59,10 @@ namespace WAPP_EduCore.pages.Admin
                     string[] words = fullName.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     if (words.Length > 0)
                     {
-                        AdminInitials = words[0].Substring(0, 1).ToUpper();
+                        string initials = words[0].Substring(0, 1);
+                        if (words.Length > 1)
+                            initials += words[words.Length - 1].Substring(0, 1);
+                        AdminInitials = initials.ToUpper();
                     }
                 }
             }
