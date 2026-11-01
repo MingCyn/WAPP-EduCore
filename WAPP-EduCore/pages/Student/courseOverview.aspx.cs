@@ -127,10 +127,10 @@ namespace WAPP_EduCore.pages.Student
             if (IsGuest)
             {
                 litStatus.Text = "Guest Preview";
-                phEnrolled.Visible = false;
-                phNotEnrolled.Visible = false;    // Hide the standard student enroll panel for guests
-                phGuest.Visible = true;           // Show only the guest prompt/button container
-                btnEnroll.OnClientClick = "openSignupModal(); return false;";
+                phEnrolled.Visible = false;       // no Start Learning for guests
+                phNotEnrolled.Visible = true;     // the one Enroll button is shown to guests too
+                phGuest.Visible = true;           // plus the "Already have an account? Log in" line
+                btnEnroll.OnClientClick = "openSignupModal(); return false;";   // the button opens the sign-up popup
             }
             else
             {

@@ -23,7 +23,8 @@
             <main class="main">
                 <div class="topbar">
                     <div class="title">
-                        <asp:Literal ID="litTopTitle" runat="server" Mode="Encode"></asp:Literal></div>
+                        <asp:Literal ID="litTopTitle" runat="server" Mode="Encode"></asp:Literal>
+                    </div>
                 </div>
 
                 <asp:Label ID="lblMessage" runat="server" Visible="false"
@@ -104,25 +105,25 @@
                             <div class="access-title">
                                 <asp:Literal ID="litStatus" runat="server"></asp:Literal>
                             </div>
+
+                            <%-- Enrolled students only --%>
                             <asp:PlaceHolder ID="phEnrolled" runat="server">
                                 <asp:HyperLink ID="lnkStart" runat="server" CssClass="btn-start" NavigateUrl="#syllabus">Start Learning</asp:HyperLink>
                             </asp:PlaceHolder>
 
-                            <%-- Shown to guests AND signed-in students who are not enrolled --%>
-                            <asp:PlaceHolder ID="PlaceHolder1" runat="server">
-                                <asp:Button ID="Button1" runat="server" CssClass="btn-start"
-                                    Text="Enroll Now" OnClick="btnEnroll_Click" />
-                            </asp:PlaceHolder>
-
-                            <asp:PlaceHolder ID="phGuest" runat="server" Visible="false">
-                                <div style="text-align: center; margin-top: 14px; font-size: 13px; color: #6b7385;">
-                                    Already have an account?
-                                    <a href="../../Auth/login.aspx" style="color: #243f86; font-weight: 600; text-decoration: underline;">Log in</a>
-                                </div>
-                            </asp:PlaceHolder>
+                            <%-- ONE Enroll button: guests and signed-in students who are not enrolled yet --%>
                             <asp:PlaceHolder ID="phNotEnrolled" runat="server">
                                 <asp:Button ID="btnEnroll" runat="server" CssClass="btn-start"
                                     Text="Enroll Now" OnClick="btnEnroll_Click" />
+                            </asp:PlaceHolder>
+
+                            <%-- Guests only: the sign-up popup opens from the Enroll button above --%>
+                            <asp:PlaceHolder ID="phGuest" runat="server" Visible="false">
+                                <div style="text-align: center; margin-top: 14px; font-size: 13px; color: #6b7385;">
+                                    Already have an account?
+                                    <a href="../../Auth/login.aspx" style="color: #243f86; font-weight: 600; text-decoration: underline;">
+                                        Log in</a>
+                                </div>
                             </asp:PlaceHolder>
 
                             <ul class="access-facts">
@@ -137,19 +138,23 @@
                 </div>
             </main>
         </div>
-        <div id="signupModal" class="su-overlay" style="display:none" onclick="if(event.target===this)closeSignupModal()">
-    <div class="su-box" role="dialog" aria-modal="true" aria-labelledby="suTitle">
-        <h3 id="suTitle">Sign up to enroll</h3>
-        <p>You need an account to enroll in this course. Create one for free, or log in if you already have one.</p>
-        <div class="su-actions">
-            <a class="su-btn su-primary" href="../../Auth/signup.aspx">Sign Up</a>
-            <a class="su-btn" href="../../Auth/login.aspx">Log In</a>
+        <div id="signupModal" class="su-overlay" style="display: none" onclick="if(event.target===this)closeSignupModal()">
+            <div class="su-box" role="dialog" aria-modal="true" aria-labelledby="suTitle">
+                <h3 id="suTitle">Sign up to enroll</h3>
+                <p>You need an account to enroll in this course. Create one for free, or log in if you
+                    already have one.</p>
+                <div class="su-actions">
+                    <a class="su-btn su-primary" href="../../Auth/signup.aspx">Sign Up</a>
+                    <a class="su-btn" href="../../Auth/login.aspx">Log In</a>
+                </div>
+                <button type="button" class="su-close" onclick="closeSignupModal()">Maybe later</button>
+            </div>
         </div>
-        <button type="button" class="su-close" onclick="closeSignupModal()">Maybe later</button>
-    </div>
-</div>
 
-<style>
+        <style>
+    /* space between buttons that sit one under the other in the access card */
+    .access-card .btn-start + .btn-start { margin-top: 12px; }
+
     .su-overlay { position: fixed; inset: 0; background: rgba(15,26,70,.55); z-index: 9999;
                   align-items: center; justify-content: center; }
     .su-overlay.open { display: flex !important; }
@@ -164,7 +169,7 @@
     .su-close { margin-top: 14px; background: none; border: 0; color: #7b8697; cursor: pointer; font-size: 13px; }
 </style>
 
-<script>
+        <script>
 function openSignupModal() { document.getElementById('signupModal').classList.add('open'); }
 function closeSignupModal() { document.getElementById('signupModal').classList.remove('open'); }
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSignupModal(); });
