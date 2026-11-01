@@ -314,7 +314,7 @@ body {
     .course .body, .course .footer {
         position: relative;
         z-index: 2;
-        background: #fff;
+        background: transparent;
     }
 
     .course .footer {
