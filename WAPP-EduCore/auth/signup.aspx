@@ -1,13 +1,7 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="signup.aspx.cs" Inherits="WAPP_EduCore.auth.signup" %>
-
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head runat="server">
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="signup.aspx.cs" Inherits="WAPP_EduCore.auth.signup" %><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head runat="server">
     <title>EduCore - Create Account</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
-    <link href="../Content/auth.css?v=1.0" rel="stylesheet" type="text/css" />
-</head>
-<body>
+    <link href="../Content/auth.css?v=1.0" rel="stylesheet" type="text/css" /></head><body>
     <form id="form1" runat="server">
         <div class="signup-container">
             
@@ -119,6 +113,9 @@
                     <!-- Submit Button -->
                     <asp:Button ID="btnSignUp" runat="server" Text="Create Account" CssClass="btn-primary" OnClick="btnSignUp_Click" Style="margin-top: 15px;" />
 
+                    <!-- Continue as Guest Button -->
+                    <asp:Button ID="btnGuest" runat="server" Text="Continue as Guest" CssClass="btn-primary" OnClick="btnGuest_Click" CausesValidation="false" Style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; margin-top: 10px; box-shadow: none;" />
+
                     <!-- Error/Status Message -->
                     <div class="error-container">
                         <asp:Label ID="lblErrorMessage" runat="server" CssClass="error-message" Text=""></asp:Label>
@@ -148,17 +145,15 @@
                 btnStudent.classList.remove('active');
             }
         }
+        function redirectToGoogle() {
+            var clientId = "828548947210-evje5v1phtlnamtftjh5rld14vdhfhnk.apps.googleusercontent.com";
+            var redirectUri = "https://localhost:44383/auth/google-callback.aspx";
+            var scope = "email profile";
+            var responseType = "code";
 
-function redirectToGoogle() {
-    var clientId = "828548947210-evje5v1phtlnamtftjh5rld14vdhfhnk.apps.googleusercontent.com";
-    var redirectUri = "https://localhost:44383/auth/google-callback.aspx"; // Updated port
-    var scope = "email profile";
-    var responseType = "code";
-
-    var url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}`;
-    window.location.href = url;
-}
+            var url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}`;
+            window.location.href = url;
+        }
     </script>
-
 </body>
 </html>

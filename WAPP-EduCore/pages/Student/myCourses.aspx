@@ -86,7 +86,7 @@
                                     </div>
                                     <h4><%#: Eval("title") %></h4>
                                     <small><%#: Eval("instructor") %></small>
-                                    <asp:PlaceHolder runat="server" Visible='<%# Convert.ToBoolean(Eval("is_enrolled")) %>'>
+                                    <asp:PlaceHolder runat="server" Visible='<%# !IsGuest && Convert.ToBoolean(Eval("is_enrolled")) %>'>
                                         <div class="progress">
                                             <div class="progress-bar" style='width: <%# Percent(Eval("total_lessons"), Eval("done_lessons")) %>%'>
                                             </div>
@@ -98,9 +98,9 @@
                                 <div class="footer">
                                     <span class="students"><%#: Eval("student_count") %> students</span>
                                     <asp:Button runat="server" CssClass="btn"
-                                        CommandName='<%# (IsGuest || Convert.ToBoolean(Eval("is_enrolled"))) ? "view" : "enroll" %>'
+                                        CommandName='<%# GetCommand(Eval("is_enrolled")) %>'
                                         CommandArgument='<%# Eval("course_id") %>'
-                                        Text='<%# (IsGuest || Convert.ToBoolean(Eval("is_enrolled"))) ? "View Course" : "Enroll" %>' />
+                                        Text='<%# GetButtonText(Eval("is_enrolled")) %>' />
                                 </div>
                             </div>
                         </ItemTemplate>

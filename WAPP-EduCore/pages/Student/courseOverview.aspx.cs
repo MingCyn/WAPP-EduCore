@@ -11,7 +11,20 @@ namespace WAPP_EduCore.pages.Student
     {
         private bool IsGuest
         {
-            get { return Session["UserID"] == null; }
+            get
+            {
+                object id = Session["UserID"];
+                if (id == null) return true;
+
+                long parsed;
+                if (!long.TryParse(Convert.ToString(id), out parsed) || parsed <= 0) return true;
+
+                // If you store a role in session, treat "guest" as guest too
+                string role = Convert.ToString(Session["Role"]);
+                if (string.Equals(role, "guest", StringComparison.OrdinalIgnoreCase)) return true;
+
+                return false;
+            }
         }
 
         private long UserId
@@ -114,9 +127,10 @@ namespace WAPP_EduCore.pages.Student
             if (IsGuest)
             {
                 litStatus.Text = "Guest Preview";
-                phEnrolled.Visible = true;
-                phNotEnrolled.Visible = false;
-                phGuest.Visible = true;
+                phEnrolled.Visible = false;
+                phNotEnrolled.Visible = false;    // Hide the standard student enroll panel for guests
+                phGuest.Visible = true;           // Show only the guest prompt/button container
+                btnEnroll.OnClientClick = "openSignupModal(); return false;";
             }
             else
             {
@@ -147,7 +161,7 @@ namespace WAPP_EduCore.pages.Student
         {
             if (IsGuest)
             {
-                Response.Redirect("~/auth/login.aspx");
+                ClientScript.RegisterStartupScript(GetType(), "signup", "openSignupModal();", true);
                 return;
             }
             long courseId;
