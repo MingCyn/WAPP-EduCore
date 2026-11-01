@@ -711,3 +711,23 @@ body {
     .btn-grade:hover {
         background-color: var(--btn-hover);
     }
+
+/* Tutor navbar: active link without orange, and proper spacing */
+.navbar .nav-link {
+    padding: 10px 16px;
+    border-bottom: none;
+    font-weight: 600;
+}
+
+    .navbar .nav-link.active,
+    .navbar .nav-link.active:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, .1);
+        box-shadow: none;
+        border-bottom: none;
+    }
+
+        .navbar .nav-link.active .menu-icon {
+            color: #fff;
+            opacity: 1;
+        }
