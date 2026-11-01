@@ -371,6 +371,50 @@
             gap: 12px
         }
 
+        /* ===== Notice popup (replaces the browser alert) ===== */
+        .cl-notice {
+            text-align: center;
+            padding: 32px 28px 26px
+        }
+
+        .cl-notice-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            font-size: 30px;
+            font-weight: 700;
+            background: rgba(16, 185, 129, .12);
+            color: #10b981
+        }
+
+        .cl-notice.warn .cl-notice-icon {
+            background: rgba(255, 112, 0, .12);
+            color: #FF7000
+        }
+
+        .cl-notice.error .cl-notice-icon {
+            background: rgba(214, 69, 69, .12);
+            color: #d64545
+        }
+
+        .cl-notice h3 {
+            margin: 0 0 8px;
+            font-family: 'Merriweather',Georgia,serif;
+            font-size: 20px;
+            color: #111c3d
+        }
+
+        .cl-notice p {
+            margin: 0 0 22px;
+            font-size: 14px;
+            line-height: 1.55;
+            color: #4a5468
+        }
+
         @media(max-width:1000px) {
             .cl-wrap {
                 grid-template-columns: 1fr
@@ -385,7 +429,23 @@
     <script>
 function openAdd() { document.getElementById('addModal').classList.add('open'); }
 function closeAdd() { document.getElementById('addModal').classList.remove('open'); }
-    </script>
+
+// Styled replacement for alert(). kind = 'success' | 'warn' | 'error'
+function showNotice(kind, title, message) {
+    var box = document.getElementById('noticeBox');
+    var icons = { success: '\u2713', warn: '!', error: '\u2715' };
+    box.className = 'modal-box cl-notice ' + kind;
+    document.getElementById('noticeIcon').textContent = icons[kind] || icons.success;
+    document.getElementById('noticeTitle').textContent = title;
+    document.getElementById('noticeMsg').textContent = message;
+    document.getElementById('noticeModal').classList.add('open');
+}
+function closeNotice() { document.getElementById('noticeModal').classList.remove('open'); }
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { closeNotice(); closeAdd(); }
+});
+</script>
 </head>
 <body>
     <form id="form1" runat="server">
@@ -414,6 +474,7 @@ function closeAdd() { document.getElementById('addModal').classList.remove('open
                             <h3>Upcoming Events</h3>
                             <asp:Panel ID="pnlNoUpcoming" runat="server" Visible="false" CssClass="cl-empty">
                                 No upcoming events yet. Use Add Event to plan something.
+                           
                             </asp:Panel>
 
                             <!-- Repeater controls its items correctly -->
@@ -500,6 +561,17 @@ function closeAdd() { document.getElementById('addModal').classList.remove('open
             </div>
         </div>
 
+        <!-- Notice popup (success / warning / error) -->
+        <div class="modal-back" id="noticeModal" onclick="if (event.target === this) closeNotice();">
+            <div class="modal-box cl-notice" id="noticeBox">
+                <div class="cl-notice-icon" id="noticeIcon">&#10003;</div>
+                <h3 id="noticeTitle"></h3>
+                <p id="noticeMsg"></p>
+                <button type="button" class="cl-btn-solid" onclick="closeNotice()" style="padding: 10px 36px;">
+                    OK</button>
+            </div>
+        </div>
+
         <!-- Not Logged In Modal Popup -->
         <div class="modal-back" id="loginPromptModal">
             <div class="modal-box" style="text-align: center; padding: 30px 24px;">
@@ -509,6 +581,7 @@ function closeAdd() { document.getElementById('addModal').classList.remove('open
                 <p style="font-size: 14px; color: #4a5468; margin-bottom: 24px; line-height: 1.5;">
                     Login or create an account to unlock all functions, post discussions, track your
                     progress, and manage your schedule!
+               
                 </p>
                 <div style="display: flex; gap: 12px; justify-content: center;">
                     <a href="<%= ResolveUrl("~/auth/login.aspx") %>" class="cl-btn-solid" style="text-decoration: none;
@@ -528,7 +601,7 @@ function openLoginPrompt() {
 function closeLoginPrompt() {
     document.getElementById('loginPromptModal').classList.remove('open');
 }
-        </script>
+</script>
 
     </form>
 </body>

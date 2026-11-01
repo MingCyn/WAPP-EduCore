@@ -423,15 +423,13 @@ namespace WAPP_EduCore.pages.Student
                         { "@e", endLocal.ToString("yyyy-MM-dd HH:mm:ss", Inv) }
                     });
 
-                // Automatically push event to user's real-time Google Calendar via API
-                // Automatically push event to user's real-time Google Calendar via API
+                // Automatically push event to the user's Google Calendar via API
                 try
                 {
                     PushEventToGoogleCalendar(UserId, title, startLocal, endLocal);
                 }
                 catch (Exception ex)
                 {
-                    // CHANGE THIS TO SHOW THE ERROR:
                     FormError("Saved locally, but Google API failed: " + ex.Message);
                     return;
                 }
@@ -446,20 +444,21 @@ namespace WAPP_EduCore.pages.Student
                                      "&date=" + startLocal.ToString("yyyy-MM-dd", Inv)));
         }
 
-        // Real-time synchronization helper method to push event to Google Calendar API
-        private void PushEventToGoogleCalendar(long userId, string title, DateTime startLocal, DateTime endLocal)
+        // Pushes one event to Google Calendar.
+        // Returns true if it was sent, false if the user has no Google token (nothing was sent).
+        // Throws if the Google API call itself fails.
+        private bool PushEventToGoogleCalendar(long userId, string title, DateTime startLocal, DateTime endLocal)
         {
             DataTable dt = Db.Query("SELECT google_access_token FROM public.users WHERE user_id = @uid",
                                     new Dictionary<string, object> { { "@uid", userId } });
 
             if (dt.Rows.Count == 0 || dt.Rows[0]["google_access_token"] == DBNull.Value)
             {
-                return; // User did not log in via Google or didn't grant token permissions
+                return false; // User did not log in via Google or didn't grant token permissions
             }
 
             string accessToken = Convert.ToString(dt.Rows[0]["google_access_token"]);
 
-            // Change "primary" to your specific Google email address, or keep "primary" 
             string calendarId = "primary"; // or "joslyn.cyn05@gmail.com"
             string url = $"https://www.googleapis.com/calendar/v3/calendars/{calendarId}/events";
 
@@ -469,11 +468,11 @@ namespace WAPP_EduCore.pages.Student
             request.Headers.Add("Authorization", "Bearer " + accessToken);
 
             var eventData = new Dictionary<string, object>
-    {
-        { "summary", title },
-        { "start", new Dictionary<string, string> { { "dateTime", startLocal.ToString("yyyy-MM-dd'T'HH:mm:ss") }, { "timeZone", Tz } } },
-        { "end", new Dictionary<string, string> { { "dateTime", endLocal.ToString("yyyy-MM-dd'T'HH:mm:ss") }, { "timeZone", Tz } } }
-    };
+            {
+                { "summary", title },
+                { "start", new Dictionary<string, string> { { "dateTime", startLocal.ToString("yyyy-MM-dd'T'HH:mm:ss", Inv) }, { "timeZone", Tz } } },
+                { "end", new Dictionary<string, string> { { "dateTime", endLocal.ToString("yyyy-MM-dd'T'HH:mm:ss", Inv) }, { "timeZone", Tz } } }
+            };
 
             string jsonPayload = new JavaScriptSerializer().Serialize(eventData);
 
@@ -486,6 +485,7 @@ namespace WAPP_EduCore.pages.Student
             {
                 // Event successfully written to Google Calendar
             }
+            return true;
         }
 
         protected void btnExportIcs_Click(object sender, EventArgs e)
@@ -496,32 +496,69 @@ namespace WAPP_EduCore.pages.Student
                 return;
             }
 
-            // Fetch all user events from the database
+            // Fetch all user events. AT TIME ZONE gives Malaysia wall-clock time,
+            // which is what Google expects together with the timeZone field.
             DataTable t = Db.Query(
-                "SELECT event_title, start_time, end_time FROM calendar_events WHERE user_id = @uid",
+                "SELECT event_title, " +
+                "  (start_time AT TIME ZONE '" + Tz + "') AS start_local, " +
+                "  (end_time AT TIME ZONE '" + Tz + "') AS end_local " +
+                "FROM calendar_events WHERE user_id = @uid",
                 new Dictionary<string, object> { { "@uid", UserId } });
 
-            int successCount = 0;
+            if (t.Rows.Count == 0)
+            {
+                ShowNotice("warn", "Nothing to sync", "You don't have any events yet. Add an event first, then export.");
+                return;
+            }
+
+            int synced = 0, failed = 0, noToken = 0;
             foreach (DataRow r in t.Rows)
             {
                 string title = Convert.ToString(r["event_title"]);
-                DateTime start = Convert.ToDateTime(r["start_time"]);
-                DateTime end = Convert.ToDateTime(r["end_time"]);
+                DateTime start = Convert.ToDateTime(r["start_local"]);
+                DateTime end = Convert.ToDateTime(r["end_local"]);
 
                 try
                 {
-                    // Push each event directly to the user's Google Calendar via API
-                    PushEventToGoogleCalendar(UserId, title, start, end);
-                    successCount++;
+                    if (PushEventToGoogleCalendar(UserId, title, start, end)) synced++;
+                    else noToken++;
                 }
                 catch (Exception)
                 {
-                    // Skip failed ones without breaking the loop
+                    failed++; // keep going so one bad event doesn't stop the rest
                 }
             }
 
-            // Refresh the page with a message or alert indicating successful sync
-            ScriptManager.RegisterStartupScript(this, GetType(), "syncAlert", $"alert('Successfully synced {successCount} events to your Google Calendar!');", true);
+            if (noToken > 0 && synced == 0 && failed == 0)
+            {
+                ShowNotice("warn", "Google account not connected",
+                    "No events were synced because your account isn't linked to Google Calendar. Please sign in with Google and allow calendar access.");
+            }
+            else if (failed == 0)
+            {
+                ShowNotice("success", "Sync complete",
+                    "Successfully synced " + synced + (synced == 1 ? " event" : " events") + " to your Google Calendar.");
+            }
+            else if (synced == 0)
+            {
+                ShowNotice("error", "Sync failed",
+                    "Google Calendar rejected all " + failed + " events. Your Google session may have expired, so please sign in with Google again.");
+            }
+            else
+            {
+                ShowNotice("warn", "Partly synced",
+                    synced + " synced, " + failed + " failed. Please try again for the failed ones.");
+            }
+        }
+
+        // Shows the styled popup defined in calendar.aspx (replaces alert()).
+        // kind: "success" | "warn" | "error"
+        private void ShowNotice(string kind, string title, string message)
+        {
+            string js = "showNotice('" + HttpUtility.JavaScriptStringEncode(kind) + "','" +
+                        HttpUtility.JavaScriptStringEncode(title) + "','" +
+                        HttpUtility.JavaScriptStringEncode(message) + "');";
+            ClientScript.RegisterStartupScript(GetType(), "notice", js, true);
         }
 
         private void FormError(string text)
@@ -551,7 +588,7 @@ namespace WAPP_EduCore.pages.Student
         private string Href(string view, DateTime date)
         {
             return HttpUtility.HtmlAttributeEncode(ResolveUrl(
-                "~/pages/Student/calendar.aspx?view=" + view + "&date=" + date.ToString("yyyy-MM-dd", Inv)));
+                "~/pages/Student/calendar.aspx?view=" + view + "&date=" + date.ToString("yyyy-MM-dd")));
         }
 
         private static string TypeCss(string type)

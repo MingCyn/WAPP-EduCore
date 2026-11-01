@@ -24,6 +24,15 @@ namespace WAPP_EduCore.pages.Student
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
+        /// ScriptManager1 control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.ScriptManager ScriptManager1;
+
+        /// <summary>
         /// Sidebar1 control.
         /// </summary>
         /// <remarks>
@@ -31,6 +40,15 @@ namespace WAPP_EduCore.pages.Student
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::WAPP_EduCore.pages.Shared.Sidebar Sidebar1;
+
+        /// <summary>
+        /// upQuiz control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.UpdatePanel upQuiz;
 
         /// <summary>
         /// litQuizTitle control.
