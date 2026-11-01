@@ -135,5 +135,18 @@ namespace WAPP_EduCore.auth
                 }
             }
         }
+
+        protected void btnGuest_Click(object sender, EventArgs e)
+        {
+            // Initialize Guest Session values using the Student role path
+            Session["UserID"] = 0;
+            Session["UserEmail"] = "guest@educore.local";
+            Session["UserFullName"] = "Guest User";
+            Session["UserRole"] = "Student";
+
+            // Redirect directly to the student dashboard page
+            Response.Redirect("../pages/Student/studentDashboard.aspx", false);
+            Context.ApplicationInstance.CompleteRequest();
+        }
     }
 }

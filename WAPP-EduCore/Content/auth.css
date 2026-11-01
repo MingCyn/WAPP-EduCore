@@ -549,11 +549,10 @@ button.toggle-password {
     text-align: center;
     font-size: 13px;
     color: #64748B;
-    margin-top: 20px;
-    padding-top: 20px;
+    margin-top: 12px; 
+    padding-top: 12px; 
     border-top: 1px solid #F1F5F9;
 }
-
 .login-link {
     position: relative;
     color: #2563EB;

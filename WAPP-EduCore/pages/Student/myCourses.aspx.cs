@@ -1,27 +1,33 @@
-﻿using System;
+﻿using Npgsql;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using WAPP_EduCore.Data;
 
 namespace WAPP_EduCore.pages.Student
 {
     public partial class WebForm1 : System.Web.UI.Page
     {
-        private long UserId
+        protected bool IsGuest  // <-- Change from private to protected
         {
             get
             {
-                if (Session["UserId"] != null)
-                    return Convert.ToInt64(Session["UserId"]);
-                return 0; // Guest user ID fallback
+                object id = Session["UserID"];
+                if (id == null) return true;
+                long parsed;
+                if (!long.TryParse(Convert.ToString(id), out parsed) || parsed <= 0) return true;
+                string role = Convert.ToString(Session["Role"]);
+                if (string.Equals(role, "guest", StringComparison.OrdinalIgnoreCase)) return true;
+                return false;
             }
         }
 
-        protected bool IsGuest
+        private long UserId
         {
-            get { return Session["UserId"] == null; }
+            get { return IsGuest ? 0 : Convert.ToInt64(Session["UserID"]); }
         }
 
         private string SelectedLevel
@@ -32,7 +38,27 @@ namespace WAPP_EduCore.pages.Student
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Guests can browse courses, but "enrolled" status means nothing to them
+            // Stale session validation check for logged-in users
+            if (!IsGuest)
+            {
+                int userCount = 0;
+                // Use your project's standard database querying method
+                using (var conn = DatabaseHelper.GetConnection())
+                using (var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM users WHERE user_id = @uid", conn))
+                {
+                    cmd.Parameters.AddWithValue("@uid", UserId);
+                    userCount = Convert.ToInt32(cmd.ExecuteScalar());
+                }
+
+                if (userCount <= 0)
+                {
+                    Session.Clear();             // stale session, force re-login
+                    Response.Redirect("~/auth/login.aspx", false);
+                    Context.ApplicationInstance.CompleteRequest();
+                    return;
+                }
+            }
+
             ddlEnroll.Visible = !IsGuest;
 
             if (!IsPostBack)
@@ -79,7 +105,6 @@ namespace WAPP_EduCore.pages.Student
                 default: orderBy = "student_count DESC, c.title ASC"; break;
             }
 
-            // Guests are never enrolled, so ignore the status filter for them
             string enrollFilter = IsGuest ? "" : (ddlEnroll.SelectedValue ?? "");
 
             string sql =
@@ -95,7 +120,6 @@ namespace WAPP_EduCore.pages.Student
                 "WHERE lower(c.status) = 'published' AND (@level = '' OR c.course_level = @level) " +
                 "  AND (@cat = '' OR c.category = @cat) " +
                 "  AND (@q = '' OR c.title ILIKE '%' || @q || '%' OR c.category ILIKE '%' || @q || '%') " +
-                // NEW: enrolment status filter
                 "  AND (@enr = '' " +
                 "       OR (@enr = 'enrolled'  AND EXISTS (SELECT 1 FROM enrollment x WHERE x.course_id = c.course_id AND x.user_id = @uid)) " +
                 "       OR (@enr = 'available' AND NOT EXISTS (SELECT 1 FROM enrollment y WHERE y.course_id = c.course_id AND y.user_id = @uid))) " +
@@ -117,7 +141,6 @@ namespace WAPP_EduCore.pages.Student
             HighlightActiveFilters();
         }
 
-        // Adds the "is-active" style to dropdowns that are not on their default value
         private void HighlightActiveFilters()
         {
             ddlCategory.CssClass = "filter-select" + (string.IsNullOrEmpty(ddlCategory.SelectedValue) ? "" : " is-active");
@@ -146,29 +169,63 @@ namespace WAPP_EduCore.pages.Student
             LoadCourses();
         }
 
+        // ONLY ONE copy of this handler
+        // ---------- button state (guest-safe) ----------
+
+        private bool IsEnrolled(object isEnrolled)
+        {
+            // Guests can never be enrolled, regardless of what the query returns
+            if (IsGuest || isEnrolled == null || isEnrolled == DBNull.Value) return false;
+            return Convert.ToBoolean(isEnrolled);
+        }
+
+        protected string GetCommand(object isEnrolled)
+        {
+            // Guests and enrolled students -> view; other students -> enroll
+            return (IsGuest || IsEnrolled(isEnrolled)) ? "view" : "enroll";
+        }
+
+        protected string GetButtonText(object isEnrolled)
+        {
+            if (IsGuest) return "View Course";
+            return IsEnrolled(isEnrolled) ? "Continue" : "Enroll";
+        }
+
+        private void GoTo(string url)
+        {
+            // Avoids the ThreadAbortException that Response.Redirect(url) throws
+            Response.Redirect(url, false);
+            Context.ApplicationInstance.CompleteRequest();
+        }
+
         protected void rptCourses_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
-            long courseId = Convert.ToInt64(e.CommandArgument);
+            long courseId;
+            if (!long.TryParse(Convert.ToString(e.CommandArgument), out courseId))
+                return;
 
             if (e.CommandName == "view")
             {
-                // guests and students can both view
-                Response.Redirect("~/pages/Student/courseOverview.aspx?id=" + courseId);
+                // Guests and students both go to the overview, no enrollment check
+                GoTo("~/pages/Student/courseOverview.aspx?id=" + courseId);
             }
             else if (e.CommandName == "enroll")
             {
-                // enrolling needs an account, nothing is saved for guests
+                // Guests should never reach here, but guard anyway
                 if (IsGuest)
                 {
-                    Response.Redirect("~/Auth/login.aspx");
+                    GoTo("~/Auth/login.aspx?returnUrl=" +
+                         Server.UrlEncode("~/pages/Student/courseOverview.aspx?id=" + courseId));
                     return;
                 }
 
                 Db.Execute(
-                    "INSERT INTO enrollment (user_id, course_id) " +
-                    "SELECT @uid, c.course_id FROM courses c WHERE c.course_id = @cid AND lower(c.status) = 'published' " +
-                    "ON CONFLICT (user_id, course_id) DO NOTHING",
-                    new Dictionary<string, object> { { "@uid", UserId }, { "@cid", courseId } });
+    "INSERT INTO enrollment (user_id, course_id) " +
+    "SELECT u.user_id, c.course_id FROM courses c " +
+    "JOIN users u ON u.user_id = @uid " +
+    "WHERE c.course_id = @cid AND lower(c.status) = 'published' " +
+    "ON CONFLICT (user_id, course_id) DO NOTHING",
+    new Dictionary<string, object> { { "@uid", UserId }, { "@cid", courseId } });
 
                 lblMessage.Text = "You are now enrolled.";
                 lblMessage.Visible = true;
@@ -188,7 +245,7 @@ namespace WAPP_EduCore.pages.Student
             long t = Convert.ToInt64(total);
             long d = Convert.ToInt64(done);
             if (t <= 0) return 0;
-            return (int)Math.Min(100, d * 100 / t);
+            return (int)Math.Min(100, (d * 100) / t);
         }
 
         protected string MediaStyle(object img)
