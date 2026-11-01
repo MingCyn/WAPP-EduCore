@@ -356,6 +356,28 @@
             cursor: pointer
         }
 
+        /* NEW: red button of the Remove popup */
+        .cl-btn-danger {
+            padding: 10px 28px;
+            border: 0;
+            border-radius: 8px;
+            background: #d64545;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s ease, transform .2s ease
+        }
+
+            .cl-btn-danger:hover {
+                background: #b83a3a;
+                transform: translateY(-1px)
+            }
+
+            .cl-btn-danger:active {
+                transform: scale(.97)
+            }
+
         .cl-close {
             border: 0;
             background: none;
@@ -442,10 +464,57 @@ function showNotice(kind, title, message) {
 }
 function closeNotice() { document.getElementById('noticeModal').classList.remove('open'); }
 
+// NEW: styled replacement for confirm() on the Remove links of Upcoming Events
+/** @type {HTMLAnchorElement | null} */
+var calPendingRemove = null;
+
+/** Opens the "Remove this event?" popup. The page only posts back after the student confirms.
+ * @param {HTMLAnchorElement} link the Remove link that was clicked
+ * @returns {boolean} always false, so the browser does not follow the link yet */
+function calAskRemove(link) {
+    calPendingRemove = link;
+
+    var item = link.closest('.cl-item');
+    var titleEl = item ? item.querySelector('.cl-itemtitle') : null;
+    var name = titleEl && titleEl.textContent ? titleEl.textContent.trim() : '';
+
+    var msg = document.getElementById('confirmMsg');
+    if (msg) {
+        msg.textContent = name
+            ? '\u201C' + name + '\u201D will be removed from your EduCore calendar. A copy already sent to Google Calendar stays there.'
+            : 'This event will be removed from your EduCore calendar. A copy already sent to Google Calendar stays there.';
+    }
+
+    var modal = document.getElementById('confirmModal');
+    if (modal) modal.classList.add('open');
+
+    var cancel = document.getElementById('confirmCancel');
+    if (cancel) cancel.focus();
+
+    return false;
+}
+
+function calCloseConfirm() {
+    var modal = document.getElementById('confirmModal');
+    if (modal) modal.classList.remove('open');
+    calPendingRemove = null;
+}
+
+/** The student pressed Remove: run the same postback the link would have run. */
+function calConfirmRemove() {
+    var link = calPendingRemove;
+    calCloseConfirm();
+    if (!link) return;
+
+    var match = /__doPostBack\('([^']+)'/.exec(link.getAttribute('href') || '');
+    var post = /** @type {any} */ (window).__doPostBack;
+    if (match && typeof post === 'function') post(match[1], '');
+}
+
 document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { closeNotice(); closeAdd(); }
+    if (e.key === 'Escape') { closeNotice(); closeAdd(); calCloseConfirm(); }
 });
-</script>
+    </script>
 </head>
 <body>
     <form id="form1" runat="server">
@@ -481,9 +550,10 @@ document.addEventListener('keydown', function (e) {
                             <asp:Repeater ID="rptUpcoming" runat="server" OnItemCommand="rptUpcoming_ItemCommand">
                                 <ItemTemplate>
                                     <div class="cl-item">
+                                        <%-- NEW: the Remove link opens the styled popup (calAskRemove) instead of the browser confirm box --%>
                                         <asp:LinkButton runat="server" CssClass="cl-del" CommandName="delete"
                                             CommandArgument='<%# Eval("Id") %>'
-                                            OnClientClick="return confirm('Remove this event?');">Remove</asp:LinkButton>
+                                            OnClientClick="return calAskRemove(this);">Remove</asp:LinkButton>
                                         <span class='<%# "cl-tag " + Eval("Css") %>'><%#: Eval("Type") %></span>
                                         <div class="cl-itemtitle"><%#: Eval("Title") %></div>
                                         <div class="cl-itemdate"><%#: Eval("When") %></div>
@@ -569,6 +639,30 @@ document.addEventListener('keydown', function (e) {
                 <p id="noticeMsg"></p>
                 <button type="button" class="cl-btn-solid" onclick="closeNotice()" style="padding: 10px 36px;">
                     OK</button>
+            </div>
+        </div>
+
+        <!-- NEW: Remove event popup (replaces the browser confirm box) -->
+        <div class="modal-back" id="confirmModal" onclick="if (event.target === this) calCloseConfirm();">
+            <div class="modal-box cl-notice error" id="confirmBox">
+                <div class="cl-notice-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
+                </div>
+                <h3>Remove this event?</h3>
+                <p id="confirmMsg"></p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button type="button" id="confirmCancel" class="cl-btn-ghost" onclick="calCloseConfirm()"
+                        style="padding: 10px 28px;">
+                        Cancel</button>
+                    <button type="button" class="cl-btn-danger" onclick="calConfirmRemove()">Remove</button>
+                </div>
             </div>
         </div>
 
