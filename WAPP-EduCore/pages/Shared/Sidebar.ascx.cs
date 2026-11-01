@@ -19,6 +19,24 @@ namespace WAPP_EduCore.pages.Shared
         protected Panel pnlGuest;
         protected LinkButton btnLogout;
 
+        // Unified guest check matching your login/signup/dashboard session rules
+        private bool IsGuest
+        {
+            get
+            {
+                object id = Session["UserID"];
+                if (id == null) return true;
+
+                long parsed;
+                if (!long.TryParse(Convert.ToString(id), out parsed) || parsed <= 0) return true;
+
+                string role = Convert.ToString(Session["Role"]) ?? Convert.ToString(Session["UserRole"]);
+                if (string.Equals(role, "guest", StringComparison.OrdinalIgnoreCase)) return true;
+
+                return false;
+            }
+        }
+
         protected void Page_Load(object sender, EventArgs e)
         {
             MarkActivePage();
@@ -68,7 +86,7 @@ namespace WAPP_EduCore.pages.Shared
 
         private void CheckLoginState()
         {
-            if (Session["UserID"] == null)
+            if (IsGuest)
             {
                 // Guest mode
                 if (pnlLoggedIn != null) pnlLoggedIn.Visible = false;
