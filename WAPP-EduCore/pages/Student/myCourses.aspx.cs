@@ -227,8 +227,6 @@ namespace WAPP_EduCore.pages.Student
     "ON CONFLICT (user_id, course_id) DO NOTHING",
     new Dictionary<string, object> { { "@uid", UserId }, { "@cid", courseId } });
 
-                lblMessage.Text = "You are now enrolled.";
-                lblMessage.Visible = true;
                 LoadCourses();
             }
         }

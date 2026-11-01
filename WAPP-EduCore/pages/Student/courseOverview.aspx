@@ -141,8 +141,11 @@
         <div id="signupModal" class="su-overlay" style="display: none" onclick="if(event.target===this)closeSignupModal()">
             <div class="su-box" role="dialog" aria-modal="true" aria-labelledby="suTitle">
                 <h3 id="suTitle">Sign up to enroll</h3>
-                <p>You need an account to enroll in this course. Create one for free, or log in if you
-                    already have one.</p>
+                <p>
+                    You need an account to enroll in this course. Create one for free, or log in if
+                    you
+                    already have one.
+                </p>
                 <div class="su-actions">
                     <a class="su-btn su-primary" href="../../Auth/signup.aspx">Sign Up</a>
                     <a class="su-btn" href="../../Auth/login.aspx">Log In</a>
@@ -152,22 +155,76 @@
         </div>
 
         <style>
-    /* space between buttons that sit one under the other in the access card */
-    .access-card .btn-start + .btn-start { margin-top: 12px; }
+            /* space between buttons that sit one under the other in the access card */
+            .access-card .btn-start + .btn-start {
+                margin-top: 12px;
+            }
 
-    .su-overlay { position: fixed; inset: 0; background: rgba(15,26,70,.55); z-index: 9999;
-                  align-items: center; justify-content: center; }
-    .su-overlay.open { display: flex !important; }
-    .su-box { background: #fff; border-radius: 14px; padding: 28px; max-width: 400px; width: 90%;
-              text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
-    .su-box h3 { margin: 0 0 8px; color: #1a2550; }
-    .su-box p { margin: 0 0 20px; color: #6b7385; font-size: 14px; line-height: 1.5; }
-    .su-actions { display: flex; gap: 10px; justify-content: center; }
-    .su-btn { padding: 10px 22px; border-radius: 8px; border: 1px solid #243f86; color: #243f86;
-              font-weight: 600; text-decoration: none; font-size: 14px; }
-    .su-primary { background: #243f86; color: #fff; }
-    .su-close { margin-top: 14px; background: none; border: 0; color: #7b8697; cursor: pointer; font-size: 13px; }
-</style>
+            .su-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(15,26,70,.55);
+                z-index: 9999;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .su-overlay.open {
+                    display: flex !important;
+                }
+
+            .su-box {
+                background: #fff;
+                border-radius: 14px;
+                padding: 28px;
+                max-width: 400px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 20px 50px rgba(0,0,0,.25);
+            }
+
+                .su-box h3 {
+                    margin: 0 0 8px;
+                    color: #1a2550;
+                }
+
+                .su-box p {
+                    margin: 0 0 20px;
+                    color: #6b7385;
+                    font-size: 14px;
+                    line-height: 1.5;
+                }
+
+            .su-actions {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+            }
+
+            .su-btn {
+                padding: 10px 22px;
+                border-radius: 8px;
+                border: 1px solid #243f86;
+                color: #243f86;
+                font-weight: 600;
+                text-decoration: none;
+                font-size: 14px;
+            }
+
+            .su-primary {
+                background: #243f86;
+                color: #fff;
+            }
+
+            .su-close {
+                margin-top: 14px;
+                background: none;
+                border: 0;
+                color: #7b8697;
+                cursor: pointer;
+                font-size: 13px;
+            }
+        </style>
 
         <script>
 function openSignupModal() { document.getElementById('signupModal').classList.add('open'); }

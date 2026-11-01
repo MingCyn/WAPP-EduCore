@@ -66,9 +66,6 @@
                     </div>
                 </div>
 
-                <asp:Label ID="lblMessage" runat="server" Visible="false"
-                    Style="display: block; margin: 10px 0; color: #2563eb"></asp:Label>
-
                 <asp:Panel ID="pnlEmpty" runat="server" Visible="false"
                     Style="padding: 40px; text-align: center; color: #7b8697">
                     No courses match your filters.
