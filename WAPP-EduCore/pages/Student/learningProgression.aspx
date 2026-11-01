@@ -176,20 +176,23 @@
         <script>
             let savedSelectedText = "";
             const currentCourseId = "<%= _courseId %>";
-const currentLessonId = "<%= _lessonId %>";
+            const currentLessonId = "<%= _lessonId %>";
 
-// Listen for text highlights on the page
-document.addEventListener("mouseup", function (e) {
-    const selection = window.getSelection();
-    const text = selection.toString().trim();
-    const popup = document.getElementById("aiPopupBtn");
-    const modal = document.getElementById("aiModal");
-    const sidebarBtn = document.getElementById("sidebarCreateNoteBtn");
+            // Listen for text highlights on the page
+            document.addEventListener("mouseup", function (e) {
+                const selection = window.getSelection();
+                if (!selection) return;
+                
+                const text = selection.toString().trim();
+                const popup = document.getElementById("aiPopupBtn");
+                const modal = document.getElementById("aiModal");
+                const sidebarBtn = document.getElementById("sidebarCreateNoteBtn");
 
-    if (modal.style.display === "flex") return;
+                if (!popup || !modal || !sidebarBtn) return;
+                if (modal.style.display === "flex") return;
 
-    const contentPanel = document.getElementById("<%= pnlContent.ClientID %>");
-                if (text.length > 3 && contentPanel && contentPanel.contains(selection.anchorNode)) {
+                const contentPanel = document.getElementById("<%= pnlContent.ClientID %>");
+                if (text.length > 3 && contentPanel && selection.anchorNode && contentPanel.contains(selection.anchorNode)) {
                     savedSelectedText = text;
 
                     // Enable sidebar button since text is highlighted
@@ -202,56 +205,81 @@ document.addEventListener("mouseup", function (e) {
                     popup.style.top = (e.pageY + 10) + "px";
                     popup.style.left = (e.pageX + 10) + "px";
                 } else {
-                    if (!popup.contains(e.target) && !sidebarBtn.contains(e.target)) {
+                    const targetNode = e.target;
+                    if (targetNode instanceof Node && !popup.contains(targetNode) && !sidebarBtn.contains(targetNode)) {
                         popup.style.display = "none";
                     }
                 }
             });
 
-function openNoteModal() {
-    if (!savedSelectedText) return;
-    document.getElementById("aiSelectedSnippet").innerText = "\"" + savedSelectedText + "\"";
-    document.getElementById("aiModal").style.display = "flex";
-    document.getElementById("aiPopupBtn").style.display = "none";
-}
+            function openNoteModal() {
+                if (!savedSelectedText) return;
+                const snippetEl = document.getElementById("aiSelectedSnippet");
+                const modalEl = document.getElementById("aiModal");
+                const popupEl = document.getElementById("aiPopupBtn");
 
-document.getElementById("aiPopupBtn").addEventListener("click", openNoteModal);
-document.getElementById("sidebarCreateNoteBtn").addEventListener("click", openNoteModal);
-
-document.getElementById("aiCloseModal").addEventListener("click", function () {
-    document.getElementById("aiModal").style.display = "none";
-    document.getElementById("aiResponseArea").style.display = "none";
-    document.getElementById("aiUserQuery").value = "";
-});
-
-document.getElementById("aiSubmitQuery").addEventListener("click", function () {
-    const query = document.getElementById("aiUserQuery").value || "Summarize and explain this section.";
-    const respArea = document.getElementById("aiResponseArea");
-    respArea.style.display = "block";
-    respArea.innerHTML = "Generating note and saving to course notebook...";
-
-    fetch('/pages/Student/AskAI.ashx', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            highlightedText: savedSelectedText,
-            courseId: currentCourseId,
-            lessonId: currentLessonId,
-            userQuery: query
-        })
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                respArea.innerHTML = "<strong style='color:green;'>✓ Note successfully saved to course notebook!</strong><br/><br/>" + data.answer.replace(/\n/g, '<br/>');
-            } else {
-                respArea.innerHTML = "<strong style='color:red;'>" + data.answer + "</strong>";
+                if (snippetEl) snippetEl.innerText = "\"" + savedSelectedText + "\"";
+                if (modalEl) modalEl.style.display = "flex";
+                if (popupEl) popupEl.style.display = "none";
             }
-        })
-        .catch(err => {
-            respArea.innerHTML = "Error connecting to AI service.";
-        });
-});
+
+            const popupBtnEl = document.getElementById("aiPopupBtn");
+            if (popupBtnEl) popupBtnEl.addEventListener("click", openNoteModal);
+
+            const sidebarCreateBtnEl = document.getElementById("sidebarCreateNoteBtn");
+            if (sidebarCreateBtnEl) sidebarCreateBtnEl.addEventListener("click", openNoteModal);
+
+            const closeModalEl = document.getElementById("aiCloseModal");
+            if (closeModalEl) {
+                closeModalEl.addEventListener("click", function () {
+                    const modalEl = document.getElementById("aiModal");
+                    const respAreaEl = document.getElementById("aiResponseArea");
+                    const userQueryEl = document.getElementById("aiUserQuery");
+
+                    if (modalEl) modalEl.style.display = "none";
+                    if (respAreaEl) respAreaEl.style.display = "none";
+                    if (userQueryEl) userQueryEl.value = "n";
+                });
+            }
+
+            const submitQueryEl = document.getElementById("aiSubmitQuery");
+            if (submitQueryEl) {
+                submitQueryEl.addEventListener("click", function () {
+                    const userQueryEl = document.getElementById("aiUserQuery");
+                    const respArea = document.getElementById("aiResponseArea");
+                    
+                    const query = (userQueryEl ? userQueryEl.value : "") || "Summarize and explain this section.";
+                    if (respArea) {
+                        respArea.style.display = "block";
+                        respArea.innerHTML = "Generating note and saving to course notebook...";
+                    }
+
+                    fetch('/pages/Student/AskAI.ashx', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            highlightedText: savedSelectedText,
+                            courseId: currentCourseId,
+                            lessonId: currentLessonId,
+                            userQuery: query
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!respArea) return;
+                            if (data.success) {
+                                respArea.innerHTML = "<strong style='color:green;'>✓ Note successfully saved to course notebook!</strong><br/><br/>" + data.answer.replace(/\n/g, '<br/>');
+                            } else {
+                                respArea.innerHTML = "<strong style='color:red;'>" + data.answer + "</strong>";
+                            }
+                        })
+                        .catch(err => {
+                            if (respArea) {
+                                respArea.innerHTML = "Error connecting to AI service.";
+                            }
+                        });
+                });
+            }
         </script>
     </form>
 </body>
