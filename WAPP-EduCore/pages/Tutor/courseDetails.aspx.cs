@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Script.Serialization;
@@ -13,9 +15,6 @@ namespace WAPP_EduCore.pages.Tutor
 {
     public partial class courseDetails : System.Web.UI.Page
     {
-        // ------------------------------------------------------------------
-        // Settings
-        // ------------------------------------------------------------------
         private const string ConnectionName = "SupabasePostgres";
         private const string SessionUserKey = "UserID";
         private const string SessionNameKey = "UserFullName";
@@ -29,8 +28,12 @@ namespace WAPP_EduCore.pages.Tutor
 
         private const int MaxWeeks = 52;
         private const int MaxHoursPerWeek = 40;
-        private const string ImageFolder = "~/uploads/courses/";
         private const int MaxImageBytes = 2 * 1024 * 1024;   // 2 MB
+
+        // Supabase Storage configuration settings from Web.config
+        private static readonly string SupabaseUrl = ConfigurationManager.AppSettings["SupabaseUrl"];
+        private static readonly string SupabaseKey = ConfigurationManager.AppSettings["SupabaseServiceKey"];
+        private const string BucketName = "course-images"; // Matches your created Supabase bucket
 
         private static readonly Regex DurationPattern = new Regex(
             @"^\s*(\d+)\s*weeks?\s*\(\s*(\d+)\s*hrs?\s*/\s*week\s*\)\s*$", RegexOptions.IgnoreCase);
@@ -54,9 +57,6 @@ namespace WAPP_EduCore.pages.Tutor
             return conn;
         }
 
-        // ------------------------------------------------------------------
-        // SQL Statements
-        // ------------------------------------------------------------------
         private const string SqlCourse =
             "SELECT title, category, course_level, duration, course_img, status, course_description, reference " +
             "FROM courses WHERE course_id = @cid AND user_id = @uid";
@@ -75,14 +75,6 @@ namespace WAPP_EduCore.pages.Tutor
         private const string SqlUserName =
             "SELECT full_name FROM public.users WHERE user_id = @uid";
 
-        private const string SqlCourseInfoUpdate =
-            "UPDATE courses SET title = @title, category = @topic, duration = @duration, course_level = @level, " +
-            "course_img = COALESCE(CAST(@img AS text), course_img), updated_at = now() " +
-            "WHERE course_id = @cid AND user_id = @uid";
-
-        // ------------------------------------------------------------------
-        // Data shapes
-        // ------------------------------------------------------------------
         public class ComponentView
         {
             public string IconHtml { get; set; }
@@ -116,9 +108,6 @@ namespace WAPP_EduCore.pages.Tutor
             public string HostText { get; set; }
         }
 
-        // ------------------------------------------------------------------
-        // Page load
-        // ------------------------------------------------------------------
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!TryGetUserId(out userId))
@@ -178,7 +167,6 @@ namespace WAPP_EduCore.pages.Tutor
                 LblStatusPill.CssClass = "cd-pill " + (published ? "published" : "draft");
                 LitMeta.Text = Server.HtmlEncode(JoinParts(topic, level, duration));
 
-                // Overview card
                 LitThumb.Text = BuildThumb(image);
                 LitDescription.Text = string.IsNullOrWhiteSpace(description)
                     ? "<span class=\"cd-muted\">No overview yet. Add learning outcomes to populate this section.</span>"
@@ -199,7 +187,6 @@ namespace WAPP_EduCore.pages.Tutor
                     SelectIfPresent(DdlCourseHours, hours);
                 }
 
-                // Publishing overview
                 PnlLiveNotice.Visible = published;
                 LblPublishPill.Text = published ? "Published course" : "Draft course";
                 LblPublishPill.CssClass = "cd-pill " + (published ? "published" : "draft");
@@ -210,14 +197,12 @@ namespace WAPP_EduCore.pages.Tutor
                 int enrolled = CountEnrolled(conn);
                 LitEnrolled.Text = enrolled >= 0 ? enrolled.ToString(CultureInfo.InvariantCulture) : "-";
 
-                // Syllabus
                 List<LessonView> lessons = LoadLessons(conn);
                 RptLessons.DataSource = lessons;
                 RptLessons.DataBind();
                 PnlNoLessons.Visible = lessons.Count == 0;
                 LitLessonCount.Text = lessons.Count.ToString(CultureInfo.InvariantCulture);
 
-                // Learning outcomes
                 var outcomes = new List<OutcomeView>();
                 if (!string.IsNullOrWhiteSpace(description))
                 {
@@ -238,7 +223,6 @@ namespace WAPP_EduCore.pages.Tutor
                 PnlOutcomeList.Visible = outcomes.Count > 0;
                 PnlNoOutcomes.Visible = outcomes.Count == 0;
 
-                // References
                 var references = new List<ReferenceView>();
                 if (!string.IsNullOrWhiteSpace(referenceJson))
                 {
@@ -263,9 +247,6 @@ namespace WAPP_EduCore.pages.Tutor
             }
         }
 
-        // ------------------------------------------------------------------
-        // Queries & Helpers
-        // ------------------------------------------------------------------
         private bool TryGetCourse(NpgsqlConnection conn, out string title, out string topic, out string level,
                                 out string duration, out string image, out string status, out string description, out string referenceJson)
         {
@@ -522,13 +503,10 @@ namespace WAPP_EduCore.pages.Tutor
 
         private string BuildThumb(string path)
         {
-            string url = "";
             if (!string.IsNullOrWhiteSpace(path))
             {
-                if (path.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase)) url = ResolveUrl(path);
-                else url = SafeHttpsUrl(path);
+                return "<img src=\"" + HttpUtility.HtmlAttributeEncode(path.Trim()) + "\" alt=\"Course image\" />";
             }
-            if (url.Length > 0) return "<img src=\"" + HttpUtility.HtmlAttributeEncode(url) + "\" alt=\"Course image\" />";
             return IconImagePlaceholder();
         }
 
@@ -575,21 +553,35 @@ namespace WAPP_EduCore.pages.Tutor
             if (item != null) { list.ClearSelection(); item.Selected = true; }
         }
 
-        private bool TrySaveCourseImage(out string savedPath, out string error)
+        private string SafeImageUrl(string path)
         {
-            savedPath = null;
-            error = null;
-            HttpPostedFile file = FileCourseImg.PostedFile;
+            if (string.IsNullOrWhiteSpace(path)) return "";
 
-            if (file == null || file.ContentLength == 0)
-                return true; // No new file uploaded
-
-            // Enforce single file selection safeguard
-            if (FileCourseImg.PostedFiles != null && FileCourseImg.PostedFiles.Count > 1)
+            // Allow full Supabase storage public URLs or any external HTTPS links
+            if (path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
-                error = "Please upload only one image file at a time.";
-                return false;
+                return path;
             }
+
+            // Fallback for legacy local relative paths if any exist in the database
+            if (path.StartsWith("~/") || path.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase))
+            {
+                return ResolveUrl(path.StartsWith("~/") ? path : "~" + path);
+            }
+
+            return "";
+        }
+
+        // ==================================================================
+        // Supabase Cloud Storage Integration 
+        // ==================================================================
+        private bool TryUploadToSupabaseStorage(HttpPostedFile file, out string publicUrl, out string error)
+        {
+            publicUrl = null;
+            error = null;
+
+            if (file == null || file.ContentLength == 0) return true;
 
             if (file.ContentLength > MaxImageBytes)
             {
@@ -597,45 +589,74 @@ namespace WAPP_EduCore.pages.Tutor
                 return false;
             }
 
+            var head = new byte[12];
+            int read = file.InputStream.Read(head, 0, head.Length);
+            file.InputStream.Position = 0;
+
+            string extension = DetectImageExtension(head, read);
+            if (extension == null)
+            {
+                error = "Please choose a valid JPG, PNG or WEBP image format.";
+                return false;
+            }
+
+            string fileName = "course-" + courseId + "-" + Guid.NewGuid().ToString("N") + extension;
+            string uploadEndpoint = $"{SupabaseUrl.TrimEnd('/')}/storage/v1/object/{BucketName}/{fileName}";
+
             try
             {
-                var head = new byte[12];
-                int read = file.InputStream.Read(head, 0, head.Length);
-                file.InputStream.Position = 0; // Reset stream pointer
-
-                string extension = DetectImageExtension(head, read);
-                if (extension == null)
+                using (var client = new HttpClient())
                 {
-                    error = "Please choose a valid JPG, PNG or WEBP image format.";
-                    return false;
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", SupabaseKey);
+                    client.DefaultRequestHeaders.Add("apikey", SupabaseKey);
+
+                    using (var content = new StreamContent(file.InputStream))
+                    {
+                        content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                        var response = client.PostAsync(uploadEndpoint, content).Result;
+
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            error = "Cloud upload failed: " + response.ReasonPhrase;
+                            return false;
+                        }
+                    }
                 }
 
-                string folder = Server.MapPath(ImageFolder);
-                if (!Directory.Exists(folder))
-                {
-                    Directory.CreateDirectory(folder);
-                }
-
-                string fileName = courseId + "-" + Guid.NewGuid().ToString("N") + extension;
-                string fullPath = Path.Combine(folder, fileName);
-
-                file.SaveAs(fullPath);
-                savedPath = ImageFolder + fileName;
+                publicUrl = $"{SupabaseUrl.TrimEnd('/')}/storage/v1/object/public/{BucketName}/{fileName}";
                 return true;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("File Upload Exception: " + ex.ToString());
-                error = "The image could not be saved due to a server error.";
+                error = "Could not upload image to cloud storage: " + ex.Message;
                 return false;
             }
         }
 
-        // Event handler when the tutor clicks the "X" button on the current image preview
+        private void DeleteFromSupabaseStorage(string fileUrl)
+        {
+            if (string.IsNullOrWhiteSpace(fileUrl)) return;
+
+            try
+            {
+                var uri = new Uri(fileUrl);
+                string fileName = Path.GetFileName(uri.LocalPath);
+                string deleteEndpoint = $"{SupabaseUrl.TrimEnd('/')}/storage/v1/object/{BucketName}/{fileName}";
+
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", SupabaseKey);
+                    client.DefaultRequestHeaders.Add("apikey", SupabaseKey);
+                    client.DeleteAsync(deleteEndpoint).Wait();
+                }
+            }
+            catch { }
+        }
+
         protected void BtnRemoveImg_Click(object sender, EventArgs e)
         {
             HfRemoveImage.Value = "true";
-            PnlCurrentImg.Visible = false; // Hide preview instantly on UI
+            PnlCurrentImg.Visible = false;
             ReopenCourseInfoDialog("Image marked for removal. Click 'Save changes' to apply.");
         }
 
@@ -643,19 +664,8 @@ namespace WAPP_EduCore.pages.Tutor
         {
             if (length >= 3 && head[0] == 0xFF && head[1] == 0xD8 && head[2] == 0xFF) return ".jpg";
             if (length >= 8 && head[0] == 0x89 && head[1] == 0x50 && head[2] == 0x4E && head[3] == 0x47 && head[4] == 0x0D && head[5] == 0x0A && head[6] == 0x1A && head[7] == 0x0A) return ".png";
+            if (length >= 12 && head[0] == 'R' && head[1] == 'I' && head[2] == 'F' && head[3] == 'F' && head[8] == 'W' && head[9] == 'E' && head[10] == 'B' && head[11] == 'P') return ".webp";
             return null;
-        }
-
-        private void DeleteStoredImage(string path)
-        {
-            if (string.IsNullOrWhiteSpace(path) || !path.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase)) return;
-            try
-            {
-                string folder = Path.GetFullPath(Server.MapPath(ImageFolder));
-                string full = Path.GetFullPath(Server.MapPath(path));
-                if (full.StartsWith(folder, StringComparison.OrdinalIgnoreCase) && File.Exists(full)) File.Delete(full);
-            }
-            catch { }
         }
 
         private string DetailsUrl(string notice) => "courseDetails.aspx?courseId=" + courseId + (notice != null ? "&notice=" + notice : "");
@@ -928,14 +938,13 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            string newImage = null;
+            string newImageUrl = null;
             string imageError = null;
             bool removeRequested = HfRemoveImage.Value == "true";
 
-            // If a new file is uploaded, process it
             if (FileCourseImg.HasFile)
             {
-                if (!TrySaveCourseImage(out newImage, out imageError))
+                if (!TryUploadToSupabaseStorage(FileCourseImg.PostedFile, out newImageUrl, out imageError))
                 {
                     ReopenCourseInfoDialog(imageError);
                     return;
@@ -943,14 +952,13 @@ namespace WAPP_EduCore.pages.Tutor
             }
 
             string duration = FormatDuration(weeks, hours);
-            string oldImage = "";
+            string oldImageUrl = "";
 
             try
             {
                 int rows;
                 using (NpgsqlConnection conn = OpenConnection())
                 {
-                    // 1. Fetch current image path from DB
                     using (var selectCmd = new NpgsqlCommand("SELECT course_img FROM courses WHERE course_id = @cid AND user_id = @uid", conn))
                     {
                         selectCmd.Parameters.AddWithValue("cid", courseId);
@@ -958,26 +966,10 @@ namespace WAPP_EduCore.pages.Tutor
                         object dbImg = selectCmd.ExecuteScalar();
                         if (dbImg != null && dbImg != DBNull.Value)
                         {
-                            oldImage = Convert.ToString(dbImg);
+                            oldImageUrl = Convert.ToString(dbImg);
                         }
                     }
 
-                    // Determine image parameter value for update query
-                    object imgParam;
-                    if (removeRequested && !FileCourseImg.HasFile)
-                    {
-                        imgParam = DBNull.Value; // Clear image if requested and no new file uploaded
-                    }
-                    else if (newImage != null)
-                    {
-                        imgParam = newImage;     // Use newly uploaded image path
-                    }
-                    else
-                    {
-                        imgParam = DBNull.Value; // Keep existing via COALESCE logic in SQL update
-                    }
-
-                    // 2. Perform update query
                     string updateSql = "UPDATE courses SET title = @title, category = @topic, duration = @duration, course_level = @level, " +
                                        (removeRequested && !FileCourseImg.HasFile ? "course_img = NULL, " : "course_img = COALESCE(CAST(@img AS text), course_img), ") +
                                        "updated_at = now() WHERE course_id = @cid AND user_id = @uid";
@@ -990,7 +982,7 @@ namespace WAPP_EduCore.pages.Tutor
                         cmd.Parameters.AddWithValue("level", level);
                         if (!removeRequested || FileCourseImg.HasFile)
                         {
-                            cmd.Parameters.AddWithValue("img", newImage == null ? (object)DBNull.Value : newImage);
+                            cmd.Parameters.AddWithValue("img", newImageUrl == null ? (object)DBNull.Value : newImageUrl);
                         }
                         cmd.Parameters.AddWithValue("cid", courseId);
                         cmd.Parameters.AddWithValue("uid", userId);
@@ -1000,7 +992,7 @@ namespace WAPP_EduCore.pages.Tutor
 
                 if (rows == 0)
                 {
-                    if (newImage != null) DeleteStoredImage(newImage);
+                    if (newImageUrl != null) DeleteFromSupabaseStorage(newImageUrl);
                     ReopenCourseInfoDialog("This course could not be found.");
                     return;
                 }
@@ -1008,7 +1000,7 @@ namespace WAPP_EduCore.pages.Tutor
             catch (NpgsqlException ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                if (newImage != null) DeleteStoredImage(newImage);
+                if (newImageUrl != null) DeleteFromSupabaseStorage(newImageUrl);
 
                 var pg = ex as PostgresException;
                 string detail = pg != null ? pg.MessageText : ex.Message;
@@ -1016,12 +1008,11 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            // 3. Clean up physical files from disk if replaced or removed
-            if (!string.IsNullOrWhiteSpace(oldImage))
+            if (!string.IsNullOrWhiteSpace(oldImageUrl))
             {
-                if (removeRequested || newImage != null)
+                if (removeRequested || newImageUrl != null)
                 {
-                    DeleteStoredImage(oldImage);
+                    DeleteFromSupabaseStorage(oldImageUrl);
                 }
             }
 

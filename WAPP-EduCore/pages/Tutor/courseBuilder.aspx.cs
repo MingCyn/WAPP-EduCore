@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Script.Serialization;
@@ -31,7 +33,13 @@ namespace WAPP_EduCore.pages.Tutor
         private const int MaxWeeks = 52;
         private const int MaxHoursPerWeek = 40;
 
-        // Course image
+        // Supabase Storage configuration settings from Web.config
+        private static readonly string SupabaseUrl = ConfigurationManager.AppSettings["SupabaseUrl"];
+        private static readonly string SupabaseKey = ConfigurationManager.AppSettings["SupabaseServiceKey"];
+        private const string CourseBucketName = "course-images";
+        private const string LessonBucketName = "lesson-images";
+
+        // Legacy / fallback paths (kept for safe parsing or display checks if needed)
         private const string ImageFolder = "~/uploads/courses/";
         private const int MaxImageBytes = 2 * 1024 * 1024;
 
@@ -110,7 +118,7 @@ namespace WAPP_EduCore.pages.Tutor
             "UPDATE " + LessonsTable + " SET quiz_id = NULL WHERE lesson_id = @lid AND course_id = @cid" + OwnsCourse;
 
         // Quiz tables: quiz(quiz_id, lesson_id, quiz_title, passing_score, created_at, question_id)
-        //              quiz_questions(question_id, quiz_id, question_text, option_a..d, correct_answer, explaination)
+        //             quiz_questions(question_id, quiz_id, question_text, option_a..d, correct_answer, explaination)
         // The quiz is found either through quiz.lesson_id or through lesson.quiz_id.
         private const string SqlQuizIdsOfLesson =
             "SELECT quiz_id FROM quiz WHERE lesson_id = @lid " +
@@ -308,7 +316,7 @@ namespace WAPP_EduCore.pages.Tutor
             {
                 string courseTitle, topic, duration, level, image, status, description, referenceJson;
                 if (!TryGetCourse(conn, out courseTitle, out topic, out duration, out level, out image,
-                                  out status, out description, out referenceJson))
+                                          out status, out description, out referenceJson))
                 {
                     Redirect(CourseListPage);
                     return false;
@@ -346,8 +354,8 @@ namespace WAPP_EduCore.pages.Tutor
         }
 
         private bool TryGetCourse(NpgsqlConnection conn, out string title, out string topic, out string duration,
-                                  out string level, out string image, out string status, out string description,
-                                  out string referenceJson)
+                                      out string level, out string image, out string status, out string description,
+                                      out string referenceJson)
         {
             title = topic = duration = level = image = status = description = referenceJson = "";
             using (var cmd = new NpgsqlCommand(SqlCourse, conn))
@@ -486,7 +494,7 @@ namespace WAPP_EduCore.pages.Tutor
         // Course info form
         // =====================================================================
         private void FillCourseInfoForm(string courseTitle, string topic, string duration, string level,
-                                        string description, string referenceJson)
+                                             string description, string referenceJson)
         {
             TxtCourseTitle.Text = courseTitle == DraftTitle ? "" : courseTitle;
             TxtCourseTopic.Text = topic;
@@ -577,6 +585,7 @@ namespace WAPP_EduCore.pages.Tutor
         private string SafeImageUrl(string path)
         {
             if (string.IsNullOrWhiteSpace(path)) return "";
+            if (path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || path.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) return path;
             if (path.StartsWith(ImageFolder, StringComparison.OrdinalIgnoreCase)) return ResolveUrl(path);
             return "";
         }
@@ -600,12 +609,12 @@ namespace WAPP_EduCore.pages.Tutor
             else if (weeks <= 0 || hours <= 0) problem = "Please select the duration in weeks and hours per week.";
 
             // Optional new course image
-            string newImage = null;
+            string newImageUrl = null;
             if (problem == null && FileCourseImg.HasFile)
             {
                 string imageError;
-                if (!TrySaveImage(FileCourseImg.PostedFile, ImageFolder, "course-" + courseId, MaxImageBytes,
-                                  out newImage, out imageError))
+                if (!TryUploadToSupabaseStorage(FileCourseImg.PostedFile, CourseBucketName, "course-" + courseId, MaxImageBytes,
+                                                out newImageUrl, out imageError))
                     problem = imageError;
             }
 
@@ -634,7 +643,7 @@ namespace WAPP_EduCore.pages.Tutor
                     cmd.Parameters.AddWithValue("level", level);
                     AddText(cmd, "desc", outcomesText);
                     AddText(cmd, "reference", referenceJson);
-                    AddText(cmd, "img", newImage);
+                    AddText(cmd, "img", newImageUrl);
                     cmd.Parameters.AddWithValue("cid", courseId);
                     cmd.Parameters.AddWithValue("uid", userId);
                     cmd.ExecuteNonQuery();
@@ -643,12 +652,13 @@ namespace WAPP_EduCore.pages.Tutor
             catch (NpgsqlException ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                if (newImage != null) DeleteUploadedFile(newImage, ImageFolder);
+                if (newImageUrl != null) DeleteFromSupabaseStorage(CourseBucketName, newImageUrl);
                 ShowPopup("Couldn't save the course", "We couldn't save the course." + DbErrorText(ex));
                 return;
             }
 
-            if (newImage != null) DeleteUploadedFile(currentImage, ImageFolder);
+            if (newImageUrl != null && !string.IsNullOrWhiteSpace(currentImage))
+                DeleteFromSupabaseStorage(CourseBucketName, currentImage);
             ReloadLesson();
         }
 
@@ -845,21 +855,13 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            foreach (string url in imageFiles) DeleteUploadedFile(url, LessonImageFolder);
+            foreach (string url in imageFiles) DeleteFromSupabaseStorage(LessonBucketName, url);
             Redirect("courseBuilder.aspx?courseId=" + courseId + "&notice=lessondeleted");
         }
 
         // =====================================================================
         // Assessment (quiz) delete
         // =====================================================================
-        // Deletes every quiz that belongs to the current lesson together with its questions.
-        // Must run inside a transaction. Returns how many quizzes were deleted.
-        //
-        // Order matters:
-        //   1. lesson.quiz_id            -> NULL   (the lesson stops pointing at the quiz)
-        //   2. quiz.question_id          -> NULL   (the quiz stops pointing at a question)
-        //   3. DELETE FROM quiz_questions          (questions no longer referenced)
-        //   4. DELETE FROM quiz                    (nothing references it any more)
         private int DeleteQuizzesOfLesson(NpgsqlConnection conn, NpgsqlTransaction tx)
         {
             var quizIds = new List<long>();
@@ -876,7 +878,6 @@ namespace WAPP_EduCore.pages.Tutor
 
             foreach (long quizId in quizIds)
             {
-                // Removed SqlQuizClearQuestionPointer since column doesn't exist on quiz table
                 using (var cmd = new NpgsqlCommand(SqlQuestionsDelete, conn, tx))
                 {
                     cmd.Parameters.AddWithValue("qid", quizId);
@@ -1111,6 +1112,7 @@ namespace WAPP_EduCore.pages.Tutor
         {
             if (string.IsNullOrWhiteSpace(url)) return "";
             url = url.Trim();
+            if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) return url;
             if (url.StartsWith("~/") || url.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase))
                 return ResolveUrl(url.StartsWith("~/") ? url : "~" + url);
 
@@ -1158,9 +1160,6 @@ namespace WAPP_EduCore.pages.Tutor
         // =====================================================================
         // Lesson content blocks: saving
         // =====================================================================
-
-        // Locks the lesson row, lets `change` modify the block list, then saves it.
-        // `change` returns null on success or an error message (nothing is saved then).
         private string ModifyBlocks(Func<List<Dictionary<string, object>>, string> change)
         {
             if (lessonId <= 0) return "Please select a lesson first.";
@@ -1201,7 +1200,6 @@ namespace WAPP_EduCore.pages.Tutor
             }
         }
 
-        // ModifyBlocks, then either reload the lesson or show the error.
         private bool SaveBlocks(Func<List<Dictionary<string, object>>, string> change, string reopenModalId)
         {
             string error = ModifyBlocks(change);
@@ -1338,8 +1336,8 @@ namespace WAPP_EduCore.pages.Tutor
             }
 
             string savedUrl, imageError;
-            if (!TrySaveImage(FileBlockImage.PostedFile, LessonImageFolder, "lesson-" + lessonId, MaxLessonImageBytes,
-                              out savedUrl, out imageError))
+            if (!TryUploadToSupabaseStorage(FileBlockImage.PostedFile, LessonBucketName, "lesson-" + lessonId, MaxLessonImageBytes,
+                                            out savedUrl, out imageError))
             {
                 ShowPopup("Couldn't save", imageError);
                 return;
@@ -1356,7 +1354,7 @@ namespace WAPP_EduCore.pages.Tutor
 
             if (error != null)
             {
-                DeleteUploadedFile(savedUrl, LessonImageFolder);   // don't leave an orphan file behind
+                DeleteFromSupabaseStorage(LessonBucketName, savedUrl);   // don't leave an orphan file behind
                 ShowPopup("Couldn't save", error);
                 return;
             }
@@ -1430,7 +1428,6 @@ namespace WAPP_EduCore.pages.Tutor
             }
         }
 
-        // Fills the matching pop-up with the block's current values and opens it.
         private void BeginEditBlock(int index)
         {
             List<Dictionary<string, object>> blocks = ParseBlocks(currentContentJson);
@@ -1488,7 +1485,6 @@ namespace WAPP_EduCore.pages.Tutor
             }
         }
 
-        // ---------- Delete a block ----------
         protected void BtnConfirmRemoveBlock_Click(object sender, EventArgs e)
         {
             int index;
@@ -1513,19 +1509,17 @@ namespace WAPP_EduCore.pages.Tutor
                 return;
             }
 
-            if (removedImageUrl.Length > 0) DeleteUploadedFile(removedImageUrl, LessonImageFolder);
+            if (removedImageUrl.Length > 0) DeleteFromSupabaseStorage(LessonBucketName, removedImageUrl);
             ReloadLesson();
         }
 
         // =====================================================================
-        // Image upload helpers
+        // Supabase Cloud Storage Integration
         // =====================================================================
-
-        // Validates (size, type, real file header) and saves an uploaded image.
-        private bool TrySaveImage(HttpPostedFile file, string folderVirtualPath, string namePrefix, int maxBytes,
-                                  out string savedUrl, out string errorMessage)
+        private bool TryUploadToSupabaseStorage(HttpPostedFile file, string bucketName, string namePrefix, int maxBytes,
+                                                out string publicUrl, out string errorMessage)
         {
-            savedUrl = "";
+            publicUrl = "";
             errorMessage = "";
 
             if (file == null || file.ContentLength <= 0)
@@ -1550,7 +1544,6 @@ namespace WAPP_EduCore.pages.Tutor
                     return false;
             }
 
-            // Check the first bytes too, because the content type is supplied by the browser.
             var header = new byte[12];
             int read = file.InputStream.Read(header, 0, header.Length);
             file.InputStream.Position = 0;
@@ -1562,23 +1555,55 @@ namespace WAPP_EduCore.pages.Tutor
 
             try
             {
-                string folder = Server.MapPath(folderVirtualPath);
-                Directory.CreateDirectory(folder);
                 string fileName = namePrefix + "-" + Guid.NewGuid().ToString("N") + extension;
-                file.SaveAs(Path.Combine(folder, fileName));
-                savedUrl = folderVirtualPath + fileName;
+                string uploadEndpoint = $"{SupabaseUrl.TrimEnd('/')}/storage/v1/object/{bucketName}/{fileName}";
+
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", SupabaseKey);
+                    client.DefaultRequestHeaders.Add("apikey", SupabaseKey);
+
+                    using (var content = new StreamContent(file.InputStream))
+                    {
+                        content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                        var response = client.PostAsync(uploadEndpoint, content).Result;
+
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            errorMessage = "Cloud upload failed: " + response.ReasonPhrase;
+                            return false;
+                        }
+                    }
+                }
+
+                publicUrl = $"{SupabaseUrl.TrimEnd('/')}/storage/v1/object/public/{bucketName}/{fileName}";
                 return true;
             }
-            catch (IOException ex)
+            catch (Exception ex)
             {
-                errorMessage = "The image could not be saved." + (ShowDatabaseErrors ? " (" + ex.Message + ")" : "");
+                errorMessage = "The image could not be saved to cloud storage." + (ShowDatabaseErrors ? " (" + ex.Message + ")" : "");
                 return false;
             }
-            catch (UnauthorizedAccessException ex)
+        }
+
+        private void DeleteFromSupabaseStorage(string bucketName, string fileUrl)
+        {
+            if (string.IsNullOrWhiteSpace(fileUrl)) return;
+
+            try
             {
-                errorMessage = "The image could not be saved." + (ShowDatabaseErrors ? " (" + ex.Message + ")" : "");
-                return false;
+                var uri = new Uri(fileUrl);
+                string fileName = Path.GetFileName(uri.LocalPath);
+                string deleteEndpoint = $"{SupabaseUrl.TrimEnd('/')}/storage/v1/object/{bucketName}/{fileName}";
+
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", SupabaseKey);
+                    client.DefaultRequestHeaders.Add("apikey", SupabaseKey);
+                    client.DeleteAsync(deleteEndpoint).Wait();
+                }
             }
+            catch { }
         }
 
         private static bool HeaderMatches(string extension, byte[] h)
@@ -1592,23 +1617,6 @@ namespace WAPP_EduCore.pages.Tutor
                            h[8] == 'W' && h[9] == 'E' && h[10] == 'B' && h[11] == 'P';
                 default: return false;
             }
-        }
-
-        // Deletes a previously uploaded file, but only if it lives inside the expected upload folder.
-        private void DeleteUploadedFile(string virtualPath, string folderVirtualPath)
-        {
-            if (string.IsNullOrWhiteSpace(virtualPath)) return;
-            if (!virtualPath.StartsWith(folderVirtualPath, StringComparison.OrdinalIgnoreCase)) return;
-
-            try
-            {
-                string fileName = Path.GetFileName(virtualPath);
-                if (string.IsNullOrEmpty(fileName)) return;
-                string fullPath = Path.Combine(Server.MapPath(folderVirtualPath), fileName);
-                if (File.Exists(fullPath)) File.Delete(fullPath);
-            }
-            catch (IOException ex) { System.Diagnostics.Debug.WriteLine(ex.Message); }
-            catch (UnauthorizedAccessException ex) { System.Diagnostics.Debug.WriteLine(ex.Message); }
         }
     }
 }
