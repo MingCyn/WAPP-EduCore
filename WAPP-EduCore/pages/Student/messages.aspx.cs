@@ -15,6 +15,9 @@ namespace WAPP_EduCore.pages.Student
         private const int UtcOffsetHours = 8;   // Malaysia time, used for older dates
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
+        // Session key used to show a popup after a redirect (e.g. "Post updated")
+        private const string FlashKey = "FmFlash";
+
         private class Post
         {
             public long Id;
@@ -110,6 +113,8 @@ namespace WAPP_EduCore.pages.Student
             BuildTabs();
             RenderPosts();
             BuildPeople();
+
+            ShowFlashIfAny();
         }
 
         // ---------- lesson context (opened from the lesson page) ----------
@@ -200,7 +205,8 @@ namespace WAPP_EduCore.pages.Student
                 pnlSelected.Visible = true;
                 litSelTop.Text = AuthorHtml(p) +
                     "<div class=\"fm-title\">" + HttpUtility.HtmlEncode(p.Title) + "</div>" +
-                    "<div class=\"fm-body\">" + Multiline(p.Content) + "</div>";
+                    "<div class=\"fm-body\">" + Multiline(p.Content) + "</div>" +
+                    OwnerActionsHtml(p);
                 litReplies.Text = RepliesHtml(p.Id);
             }
         }
@@ -286,8 +292,10 @@ namespace WAPP_EduCore.pages.Student
             if (p.Type == "Question") tag = "<span class=\"fm-tag q\">Question</span>";
             else if (p.Type == "Announcement") tag = "<span class=\"fm-tag a\">Announcement</span>";
 
+            string you = IsMine(p) ? "<span class=\"fmx-you\">Your post</span>" : "";
+
             return "<div class=\"fm-author\">" + AvatarHtml(p.AuthorId, p.Author) +
-                   "<div class=\"fm-who\"><strong>" + HttpUtility.HtmlEncode(p.Author) + "</strong><small>" +
+                   "<div class=\"fm-who\"><strong>" + HttpUtility.HtmlEncode(p.Author) + "</strong>" + you + "<small>" +
                    HttpUtility.HtmlEncode(p.Role) + " &middot; " + TimeAgo(p.Created) + "</small></div>" +
                    tag + "</div>";
         }
@@ -444,6 +452,179 @@ namespace WAPP_EduCore.pages.Student
             }
 
             Response.Redirect(Request.RawUrl);
+        }
+
+        // ---------- NEW: edit / delete your own post ----------
+
+        // Students may only change their own Discussion and Question posts (never Announcements).
+        private static bool IsEditableType(string type)
+        {
+            return string.Equals(type, "Discussion", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(type, "Question", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsMine(Post p)
+        {
+            return !IsGuest && p.AuthorId == UserId;
+        }
+
+        // The Edit and Delete buttons shown under the selected post (only for the author)
+        private string OwnerActionsHtml(Post p)
+        {
+            if (!IsMine(p) || !IsEditableType(p.Type)) return "";
+
+            string type = string.Equals(p.Type, "Question", StringComparison.OrdinalIgnoreCase) ? "Question" : "Discussion";
+
+            return "<div class=\"fmx-actions\">" +
+                   "<button type=\"button\" class=\"fmx-act\" onclick=\"fmxOpenEdit(this)\"" +
+                   " data-title=\"" + HttpUtility.HtmlAttributeEncode(p.Title) + "\"" +
+                   " data-type=\"" + type + "\"" +
+                   " data-content=\"" + HttpUtility.HtmlAttributeEncode(p.Content) + "\">" +
+                   "<svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\">" +
+                   "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z\"/></svg>Edit</button>" +
+                   "<button type=\"button\" class=\"fmx-act danger\" onclick=\"fmxAskDelete(this)\"" +
+                   " data-title=\"" + HttpUtility.HtmlAttributeEncode(p.Title) + "\"" +
+                   " data-replies=\"" + p.Replies + "\">" +
+                   "<svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\">" +
+                   "<polyline points=\"3 6 5 6 21 6\"/><path d=\"M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6\"/>" +
+                   "<path d=\"M10 11v6\"/><path d=\"M14 11v6\"/><path d=\"M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2\"/></svg>Delete</button>" +
+                   "</div>";
+        }
+
+        // Checks that the post exists, belongs to this student, and is a Discussion/Question.
+        // Returns null when everything is fine, otherwise a message to show the student.
+        private string CheckOwnPost()
+        {
+            if (_postId <= 0)
+                return "We couldn\u2019t tell which post you meant. Please refresh the page and try again.";
+
+            DataTable own = Db.Query(
+                "SELECT post_type FROM discussion_posts WHERE post_id = @pid AND user_id = @uid",
+                new Dictionary<string, object> { { "@pid", _postId }, { "@uid", UserId } });
+
+            if (own.Rows.Count == 0)
+                return "This post no longer exists, or it isn\u2019t yours. You can only change posts that you wrote.";
+
+            if (!IsEditableType(Convert.ToString(own.Rows[0]["post_type"])))
+                return "Announcements can\u2019t be changed here.";
+
+            return null;
+        }
+
+        protected void btnSaveEdit_Click(object sender, EventArgs e)
+        {
+            if (IsGuest)
+            {
+                ClientScript.RegisterStartupScript(GetType(), "openLoginPrompt", "openLoginPrompt();", true);
+                return;
+            }
+
+            string title = txtEditTitle.Text.Trim();
+            string content = txtEditContent.Text.Trim();
+            string type = ddlEditType.SelectedValue == "Question" ? "Question" : "Discussion";
+
+            if (title.Length == 0) { EditError("Please enter a topic title."); return; }
+            if (title.Length > 150) { EditError("The title is too long (150 characters at most)."); return; }
+            if (content.Length == 0) { EditError("Please write something in the content box."); return; }
+            if (content.Length > 2000) { EditError("The content is too long (2000 characters at most)."); return; }
+
+            try
+            {
+                string problem = CheckOwnPost();
+                if (problem != null) { EditError(problem); return; }
+
+                Db.Execute(
+                    "UPDATE discussion_posts SET title = @t, content = @c, post_type = @type " +
+                    "WHERE post_id = @pid AND user_id = @uid",
+                    new Dictionary<string, object>
+                    {
+                        { "@t", title },
+                        { "@c", content },
+                        { "@type", type },
+                        { "@pid", _postId },
+                        { "@uid", UserId }
+                    });
+            }
+            catch (Exception)
+            {
+                EditError("Something went wrong while saving your changes. Please try again.");
+                return;
+            }
+
+            SetFlash("success", "Post updated", "Your changes have been saved.");
+            Response.Redirect(ResolveUrl(RawUrl(_tab, _postId)));
+        }
+
+        protected void btnConfirmDelete_Click(object sender, EventArgs e)
+        {
+            if (IsGuest)
+            {
+                ClientScript.RegisterStartupScript(GetType(), "openLoginPrompt", "openLoginPrompt();", true);
+                return;
+            }
+
+            try
+            {
+                string problem = CheckOwnPost();
+                if (problem != null)
+                {
+                    NoticeNow("error", "Can\u2019t delete this post", problem);
+                    return;
+                }
+
+                // Remove the replies first, then the post itself (works with or without ON DELETE CASCADE)
+                Db.Execute(
+                    "DELETE FROM discussion_replies WHERE post_id = @pid",
+                    new Dictionary<string, object> { { "@pid", _postId } });
+
+                Db.Execute(
+                    "DELETE FROM discussion_posts WHERE post_id = @pid AND user_id = @uid",
+                    new Dictionary<string, object> { { "@pid", _postId }, { "@uid", UserId } });
+            }
+            catch (Exception)
+            {
+                NoticeNow("error", "Could not delete the post",
+                    "Something went wrong while deleting your post. Please try again.");
+                return;
+            }
+
+            SetFlash("success", "Post deleted", "Your post and its replies have been removed.");
+            Response.Redirect(ResolveUrl(RawUrl(_tab, 0)));
+        }
+
+        // Shows an error inside the Edit popup and re-opens it (the student keeps what they typed)
+        private void EditError(string text)
+        {
+            fmxEditErr.InnerText = text;
+            ClientScript.RegisterStartupScript(GetType(), "fmxShowEdit", "fmxShowEdit();", true);
+        }
+
+        // Shows the styled notice popup right away (no redirect)
+        private void NoticeNow(string kind, string title, string message)
+        {
+            ClientScript.RegisterStartupScript(GetType(), "fmxNotice", NoticeScript(kind, title, message), true);
+        }
+
+        // Remembers a notice for the next page load (used right before a redirect)
+        private void SetFlash(string kind, string title, string message)
+        {
+            Session[FlashKey] = new[] { kind, title, message };
+        }
+
+        private void ShowFlashIfAny()
+        {
+            string[] f = Session[FlashKey] as string[];
+            if (f == null || f.Length < 3) return;
+
+            Session.Remove(FlashKey);
+            ClientScript.RegisterStartupScript(GetType(), "fmxFlash", NoticeScript(f[0], f[1], f[2]), true);
+        }
+
+        private static string NoticeScript(string kind, string title, string message)
+        {
+            return "fmxNotice('" + HttpUtility.JavaScriptStringEncode(kind) + "','" +
+                   HttpUtility.JavaScriptStringEncode(title) + "','" +
+                   HttpUtility.JavaScriptStringEncode(message) + "');";
         }
 
         private void PostError(string text)
