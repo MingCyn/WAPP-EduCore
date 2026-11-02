@@ -193,6 +193,7 @@
     <Content Include="Default.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="google449095e53891922f.html" />
     <Content Include="images\cell-diagram.png" />
     <Content Include="images\logo.png" />
     <Content Include="images\study.jpg" />
