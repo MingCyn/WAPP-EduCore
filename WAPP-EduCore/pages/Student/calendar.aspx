@@ -437,6 +437,72 @@
             color: #4a5468
         }
 
+        /* ===== NEW: guest "Sign up" popup (same look as the Course Overview enroll popup) ===== */
+        .su-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,26,70,.55);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center
+        }
+
+            .su-overlay.open {
+                display: flex !important
+            }
+
+        .su-box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 28px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,.25)
+        }
+
+            .su-box h3 {
+                margin: 0 0 8px;
+                color: #1a2550
+            }
+
+            .su-box p {
+                margin: 0 0 20px;
+                color: #6b7385;
+                font-size: 14px;
+                line-height: 1.5
+            }
+
+        .su-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center
+        }
+
+        .su-btn {
+            padding: 10px 22px;
+            border-radius: 8px;
+            border: 1px solid #243f86;
+            color: #243f86;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 14px
+        }
+
+        .su-primary {
+            background: #243f86;
+            color: #fff
+        }
+
+        .su-close {
+            margin-top: 14px;
+            background: none;
+            border: 0;
+            color: #7b8697;
+            cursor: pointer;
+            font-size: 13px
+        }
+
         @media(max-width:1000px) {
             .cl-wrap {
                 grid-template-columns: 1fr
@@ -512,7 +578,7 @@ function calConfirmRemove() {
 }
 
 document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { closeNotice(); closeAdd(); calCloseConfirm(); }
+    if (e.key === 'Escape') { closeNotice(); closeAdd(); calCloseConfirm(); closeLoginPrompt(); }
 });
     </script>
 </head>
@@ -544,6 +610,7 @@ document.addEventListener('keydown', function (e) {
                             <asp:Panel ID="pnlNoUpcoming" runat="server" Visible="false" CssClass="cl-empty">
                                 No upcoming events yet. Use Add Event to plan something.
                            
+                           
                             </asp:Panel>
 
                             <!-- Repeater controls its items correctly -->
@@ -567,7 +634,7 @@ document.addEventListener('keydown', function (e) {
                             OnClick="btnExportIcs_Click" Style="background: #FAEBD7; color: #0F1939; margin-top: 10px;
                             width: 100%; border: none; cursor: pointer;" />
 
-                        <% if (Session["UserID"] == null)
+                        <% if (IsGuest)
                             { %>
                         <a href="#" class="cl-add" onclick="openLoginPrompt(); return false;">+ Add Event</a>
                         <% }
@@ -666,34 +733,34 @@ document.addEventListener('keydown', function (e) {
             </div>
         </div>
 
-        <!-- Not Logged In Modal Popup -->
-        <div class="modal-back" id="loginPromptModal">
-            <div class="modal-box" style="text-align: center; padding: 30px 24px;">
-                <div style="font-size: 40px; margin-bottom: 12px;">🔒</div>
-                <h3 style="font-family: 'Merriweather', Georgia, serif; font-size: 20px; color: #111c3d;
-                    margin-bottom: 8px;">Not logged in?</h3>
-                <p style="font-size: 14px; color: #4a5468; margin-bottom: 24px; line-height: 1.5;">
-                    Login or create an account to unlock all functions, post discussions, track your
-                    progress, and manage your schedule!
+        <!-- NEW: Guest popup (same style as the Course Overview "Sign up to enroll" popup).
+             Opens when a non-logged-in user clicks + Add Event (or Export). Logged-in users never see it. -->
+        <div id="loginPromptModal" class="su-overlay" style="display: none"
+            onclick="if(event.target===this)closeLoginPrompt()">
+            <div class="su-box" role="dialog" aria-modal="true" aria-labelledby="suTitle">
+                <h3 id="suTitle">Sign up to add events</h3>
+                <p>
+                    You need an account to add events to your calendar. Create one for free, or log
+                    in
+                    if you already have one.
                
                 </p>
-                <div style="display: flex; gap: 12px; justify-content: center;">
-                    <a href="<%= ResolveUrl("~/auth/login.aspx") %>" class="cl-btn-solid" style="text-decoration: none;
-                        padding: 10px 24px;">Log In</a>
-                    <a href="<%= ResolveUrl("~/auth/signup.aspx") %>" class="cl-btn-ghost" style="text-decoration: none;
-                        padding: 10px 24px; display: inline-flex; align-items: center;">Sign Up</a>
-                    <button type="button" class="cl-btn-ghost" onclick="closeLoginPrompt()" style="padding: 10px 16px;">
-                        Cancel</button>
+                <div class="su-actions">
+                    <a class="su-btn su-primary" href="<%= ResolveUrl("~/auth/signup.aspx") %>">Sign Up</a>
+                    <a class="su-btn" href="<%= ResolveUrl("~/auth/login.aspx") %>">Log In</a>
                 </div>
+                <button type="button" class="su-close" onclick="closeLoginPrompt()">Maybe later</button>
             </div>
         </div>
 
         <script>
 function openLoginPrompt() {
-    document.getElementById('loginPromptModal').classList.add('open');
+    var m = document.getElementById('loginPromptModal');
+    if (m) m.classList.add('open');
 }
 function closeLoginPrompt() {
-    document.getElementById('loginPromptModal').classList.remove('open');
+    var m = document.getElementById('loginPromptModal');
+    if (m) m.classList.remove('open');
 }
 </script>
 

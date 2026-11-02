@@ -48,8 +48,24 @@ namespace WAPP_EduCore.pages.Student
         private DateTime _anchor;
         private DateTime _today;
 
-        private bool IsGuest { get { return Session["UserID"] == null; } }
-        private long UserId { get { return Convert.ToInt64(Session["UserID"]); } }
+        // CHANGED: "Continue as Guest" on the login page stores UserID = 0, so a guest is
+        // either no UserID at all, or a UserID that is not a real (greater than 0) number.
+        // "protected" so calendar.aspx can use it for the + Add Event button.
+        protected bool IsGuest
+        {
+            get
+            {
+                object id = Session["UserID"];
+                if (id == null) return true;
+
+                long parsed;
+                if (!long.TryParse(Convert.ToString(id), out parsed) || parsed <= 0) return true;
+
+                return false;
+            }
+        }
+
+        private long UserId { get { return IsGuest ? 0 : Convert.ToInt64(Session["UserID"]); } }
 
         protected void Page_Load(object sender, EventArgs e)
         {
