@@ -1,107 +1,102 @@
-# WAPP-EduCore
 
-Welcome to the **WAPP-EduCore** repository! This is an ASP.NET Web Application (.NET Framework) built using Web Forms and integrated with PostgreSQL.
+# WAPP-EduCore (Local Setup Guide)
 
-Please follow this guide carefully to set up your local development environment, understand the project folder structure, and adhere to our Git workflow to prevent merge conflicts.
+Welcome to **WAPP-EduCore**! This guide walks you through extracting the project files, opening the solution in Visual Studio, building the project, and running it locally using **IIS Express** and **Google Chrome**.
 
----
+Our production-ready application is also deployed and hosted on Microsoft Azure:
 
-## 🛠️ Initial Setup Instructions
-
-### 1. Clone the Repository
-* Open **Visual Studio**.
-* On the startup screen, select **Clone a repository**.
-* Enter the repo URL: `https://github.com/MingCyn/WAPP-EduCore.git`
-* Set your local path and click **Clone**.
+**Live Website:** [WAPP-EduCore](https://educore-bwgvd2fxafbdf0e8.southeastasia-01.azurewebsites.net/)
 
 ---
 
-### 2. Open the Solution
-* In Visual Studio, navigate to the cloned folder and open **`WAPP-EduCore.sln`**.
-* ⚠️ **Do NOT** open individual `.aspx` files directly via Folder View—always open through the `.sln` file so Visual Studio loads project dependencies correctly.
+## 🛠️ Step-by-Step Setup Instructions
+
+### Step 1: Extract the ZIP File
+
+1. Locate the downloaded project ZIP file (e.g., `WAPP-EduCore.zip`).
+2. Right-click the ZIP file and select **Extract All...** (or use an extraction tool such as 7-Zip or WinRAR).
+3. Choose your preferred destination folder and click **Extract**.
+
+   > **Tip:** Extract the project into a stable directory, such as your `source/repos` folder, before opening it in Visual Studio.
+
+### Step 2: Open the Solution in Visual Studio
+
+To ensure that all project files, references, and dependencies load correctly, always open the project through its solution file rather than browsing individual folders.
+
+1. Launch **Visual Studio**.
+2. From the startup window, select **Open a project or solution**, or navigate to **File > Open > Project/Solution...** (`Ctrl + Shift + O`).
+3. Browse to the folder where you extracted the project.
+4. Select **`WAPP-EduCore.sln`** (or `.slnx`, if applicable) and click **Open**.
+
+   > ⚠️ **Important:** Do not open individual `.aspx` files directly through folder view. Opening the solution file ensures that Visual Studio can properly recognize the project structure and resolve its dependencies.
+
+### Step 3: Verify the Solution Explorer
+
+Once the project has finished loading, verify that Visual Studio recognizes the project structure correctly.
+
+1. Locate the **Solution Explorer** panel on the right side of Visual Studio.
+2. Ensure that **`Solution 'WAPP-EduCore'`** appears at the top, with the main project nested underneath.
+3. Verify that the following project directories are visible:
+
+   - `Auth/`
+   - `Pages/`
+   - `Models/`
+   - `Data/`
+   - `Content/`
+
+4. Check that there are no missing files, unloaded projects, or broken reference indicators.
+
+### Step 4: Build the Project
+
+Before running the application, ensure that all project references and dependencies compile successfully.
+
+1. Navigate to **Build > Build Solution** in the Visual Studio menu.
+2. Alternatively, use the keyboard shortcut `Ctrl + Shift + B`.
+3. Check the **Output** window at the bottom of Visual Studio.
+4. Confirm that the build completes successfully with:
+
+   - **0 Failed**
+   - **0 Errors**
+
+   > **Note:** Warnings may appear depending on your environment. Review them to ensure that none affect application functionality.
+
+### Step 5: Run Locally Using IIS Express (Google Chrome)
+
+1. Locate the run configuration dropdown in the Visual Studio toolbar.
+2. Select **IIS Express** as the launch profile.
+3. Ensure that **Google Chrome** is selected as your preferred browser.
+4. Click the **IIS Express (Google Chrome)** run button or press `F5`.
+5. Visual Studio will launch the local debugging server, and Google Chrome will automatically open the application.
+
+Your local development instance of **WAPP-EduCore** is now ready to use!
 
 ---
 
-### 3. Configure Connection String in `Web.config`
-* Our database is hosted in the cloud on **Supabase**, so **you do NOT need to install PostgreSQL or pgAdmin locally**.
-* Open **`Web.config`** located at the root of the project.
-* Locate the `<connectionStrings>` section and fill in our shared database password:
 
-```xml
-<configuration>
-  <connectionStrings>
-    <add name="SupabasePostgres" 
-         connectionString="Server=db.iqrwnjvshxcqdkwfnilt.supabase.co;Port=5432;Database=postgres;User Id=postgres;Password=YOUR_TEAM_PASSWORD_HERE;Ssl Mode=Require;Trust Server Certificate=true;" 
-         providerName="Npgsql" />
-  </connectionStrings>
-  ...
-</configuration>
+## 🔐 Administrator Login Credentials
 
-```
-### 4. **Restore NuGet Packages:**
-   * Right-click `Solution 'WAPP-EduCore'` in **Solution Explorer** -> click **Restore NuGet Packages**.
-   * Go to **Build** > **Build Solution** (`Ctrl` + `Shift` + `B`) to ensure all dependencies (such as `Npgsql`) build correctly.
+WAPP-EduCore provides a pre-configured administrator account for accessing the administrative dashboard.
 
+| Credential | Details |
+|---|---|
+| **Email** | `admin@gmail.com` |
+| **Password** | `adminEduCore` |
 
-
-## 📁 Folder & Project Architecture
-
-To keep the repository organized, please place new files inside their designated folders:
-
-```text
-WAPP-EduCore/
-│
-├── WAPP-EduCore.sln              <-- Solution File
-│
-└── WAPP-EduCore/                 <-- Main Project Folder
-    ├── App_Data/                 <-- Local assets / temporary database scripts
-    ├── auth/                     <-- Login.aspx, Signup.aspx
-    ├── pages/                    
-    │   ├── General/              <-- Dashboard, Courses, Discussion, Messages, Profile
-    │   ├── Student/              <-- MyCourses, Calendar, Assessment, VirtualLab, etc.
-    │   ├── Tutor/                <-- CourseBuilder, AssessmentBuilder, etc.
-    │   └── Admin/                <-- AdminDashboard, UserManagement, ActivityLog, etc.
-    ├── Models/                   <-- C# Data Classes (User.cs, Course.cs, etc.)
-    ├── Data/                     <-- DatabaseHelper.cs & Repositories (PostgreSQL queries)
-    ├── Services/                 <-- Business & Validation Logic (AuthenticationService.cs)
-    ├── Content/                  <-- CSS Stylesheets
-    ├── Scripts/                  <-- JavaScript files
-    └── Site.Master               <-- Global Master Layout Page
-```
+> ⚠️ **Important Notes:**
+> - The administrator account is pre-configured in the system.
+> - Administrator accounts cannot be registered externally through the user registration page.
+> - Please use the provided credentials above to log in as an administrator.
+> - Do not attempt to create another administrator account through the standard registration process.
 
 ---
 
-## 🔄 Git Workflow (Push & Pull Rules)
+## 🌐 Deployment
 
-To prevent `.csproj` file conflicts and code overwrites, follow this simple rule: **ALWAYS PULL BEFORE YOU START WORKING.**
+WAPP-EduCore is also deployed and accessible online through Microsoft Azure.
 
-### Step 1: Start of Work (Pull Latest Changes)
-Before making any changes or adding new files:
-1. Open the **Git Changes** tab in Visual Studio (`Ctrl` + `Alt` + `F7`).
-2. Click the **Pull** button (`↓` downward arrow).
-3. Ensure your local branch is up to date with `main`.
-
-### Step 2: Making Changes
-* Work on your assigned pages or classes.
-* Notice the icons in Solution Explorer:
-  * `🔒` **Blue Lock:** File is saved and synchronized with GitHub.
-  * `✓` **Red Check Mark:** File has local changes waiting to be committed.
-
-### Step 3: End of Work (Commit & Push Changes)
-When your feature or task is ready:
-1. Save all your files (`Ctrl` + `Shift` + `S`).
-2. Open the **Git Changes** tab (`Ctrl` + `Alt` + `F7`).
-3. Check the **Changes** list to verify you are only committing intended files.
-4. Enter a descriptive commit message (e.g., `Add UI layout for Student/Calendar.aspx`).
-5. Click **Commit All**.
-6. Click the **Pull** button (`↓`) one more time to fetch any changes pushed by teammates while you were working.
-7. Click the **Push** button (`↑` upward arrow) to send your code to GitHub.
+- **Hosting Platform:** Microsoft Azure App Service
+- **Live Application:** [https://educore-bwgvd2fxafbdf0e8.southeastasia-01.azurewebsites.net/](https://educore-bwgvd2fxafbdf0e8.southeastasia-01.azurewebsites.net/)
 
 ---
 
-## ⚠️ Important Guidelines to Prevent Conflicts
-
-1. **Avoid Renaming/Moving Pages Shared by Others:** In Web Forms, moving or renaming a page alters `WAPP-EduCore.csproj`. Coordinate with the team before restructuring existing folders.
-2. **Do NOT Commit Build Artifacts:** Folders like `bin/`, `obj/`, `.vs/`, and `packages/` are automatically ignored via `.gitignore`. Do not bypass `.gitignore` settings.
-3. **Relative URL Linking:** When linking between subfolders in HTML or ASP.NET controls, always use the root prefix `~` (e.g., `href="~/Pages/General/Dashboard.aspx"`).
-4. **Database Credentials:** Do not hardcode private PostgreSQL passwords in C# source files. Configure your connection string in `Web.config`.
+**Thank you for exploring WAPP-EduCore!**

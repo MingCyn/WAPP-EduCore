@@ -187,22 +187,14 @@
     <Content Include="Content\messages.css" />
     <Content Include="Content\settings.css" />
     <Content Include="Content\Site.css" />
-    <Content Include="Content\navDashboard.css" />
     <Content Include="Content\student-upgrade.css" />
     <Content Include="Content\student.css" />
     <Content Include="Content\chatbot.css" />
     <Content Include="Default.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
-    <Content Include="images\calendar_icon.png" />
     <Content Include="images\cell-diagram.png" />
-    <Content Include="images\certificates_icon.png" />
-    <Content Include="images\dashboard_icon.png" />
-    <Content Include="images\grades_icon.png" />
     <Content Include="images\logo.png" />
-    <Content Include="images\messages_icon.png" />
-    <Content Include="images\mycourse_icon.png" />
-    <Content Include="images\settings_icon.png" />
     <Content Include="images\study.jpg" />
     <Content Include="pages\Admin\adminDashboard.aspx" />
     <Content Include="pages\Admin\adminNav.aspx" />
@@ -265,6 +257,7 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <None Include="Properties\PublishProfiles\EduCore - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -645,7 +638,6 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="secrets.config" />
     <Content Include="Scripts\bootstrap.min.js.map" />
     <Content Include="Scripts\bootstrap.js.map" />
     <Content Include="Scripts\bootstrap.esm.min.js.map" />

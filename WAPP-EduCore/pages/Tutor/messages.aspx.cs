@@ -91,8 +91,8 @@ namespace WAPP_EduCore.pages.Tutor
                 ViewState["UnansweredOnly"] = false;
                 LoadFilterCourses();
                 LoadAnnouncementCourses();
+                LoadThreads(); // Only load threads on initial load or explicit actions
             }
-            LoadThreads();
         }
 
         private void LoadFilterCourses()
@@ -332,12 +332,13 @@ namespace WAPP_EduCore.pages.Tutor
                         cmd.ExecuteNonQuery();
                     }
 
+                    txtBox.Text = ""; // Clear box
                     ShowNote("Reply posted successfully!", false);
-                    LoadThreads();
+                    LoadThreads(); // Reload threads to show the new reply count and items
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    ShowNote("Your reply could not be saved.", true);
+                    ShowNote("Save failed: " + ex.Message, true);
                 }
             }
         }
