@@ -327,6 +327,57 @@
             font-weight: 600;
             color: #64748b;
         }
+
+        /* ===== NEW: Quota / rate-limit message ===== */
+        .fc-limit {
+            text-align: center;
+            padding: 36px 24px;
+        }
+
+        .fc-limit-icon {
+            font-size: 44px;
+            margin-bottom: 8px;
+        }
+
+        .fc-limit h4 {
+            margin: 0 0 8px;
+            font-size: 19px;
+            color: #1e293b;
+        }
+
+        .fc-limit p {
+            margin: 0 auto 16px;
+            max-width: 420px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #64748b;
+        }
+
+        .fc-limit-timer {
+            display: inline-block;
+            background: #fff7ed;
+            border: 1px solid #fdba74;
+            color: #9a3412;
+            font-size: 26px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            padding: 10px 26px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .fc-limit-label {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            margin-bottom: 14px;
+        }
+
+        .fc-error {
+            color: #b91c1c;
+        }
     </style>
 </head>
 <body>
@@ -352,8 +403,11 @@
                         <div style="margin-bottom: 20px;">
                             <h3 style="margin: 0 0 4px 0; color: #1e293b; font-size: 18px;">Select a Course Notebook
                             </h3>
-                            <p style="margin: 0; color: #64748b; font-size: 14px;">Choose a course below to view
-                                your saved notes and generate study flashcards.</p>
+                            <p style="margin: 0; color: #64748b; font-size: 14px;">
+                                Choose a course below to view
+                                your saved notes and
+                                generate study flashcards.
+                            </p>
                         </div>
 
                         <asp:Repeater ID="rptCourses" runat="server">
@@ -368,6 +422,7 @@
                                     </div>
                                     <div class="course-card-action">
                                         View Notes &rarr;
+                                   
                                     </div>
                                 </a>
                             </ItemTemplate>
@@ -391,6 +446,7 @@
                                     color: white; padding: 8px 18px; border-radius: 6px; border: none; font-weight: 700;
                                     cursor: pointer; box-shadow: 0 2px 5px rgba(249,115,22,0.3);">
                                     ✨ Generate Flashcards
+                               
                                 </button>
                             </div>
                         </div>
@@ -417,9 +473,13 @@
                     <!-- Empty State Panel -->
                     <asp:Panel ID="pnlEmpty" runat="server" Visible="false" CssClass="result-box sn-empty">
                         <h3>No notebook notes found</h3>
-                        <p>Open a course lesson, highlight key text passages, and create AI study notes to populate
-                            your notebooks.</p>
-                        <p style="margin-top: 12px"><a href="myCourses.aspx" class="btn-solid">Go to my courses</a>
+                        <p>
+                            Open a course lesson, highlight key text passages, and create AI study notes to
+                            populate
+                            your notebooks.
+                        </p>
+                        <p style="margin-top: 12px">
+                            <a href="myCourses.aspx" class="btn-solid">Go to my courses</a>
                         </p>
                     </asp:Panel>
                 </div>
@@ -431,9 +491,11 @@
             <div class="flashcard-box">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="margin: 0; color: #1e293b; font-size: 18px;">✨ Interactive Flashcards
+                   
                     </h3>
                     <button type="button" id="btnCloseFlashcard" class="btn-ghost" style="padding: 4px 10px;
-                        cursor: pointer;">✕ Close</button>
+                        cursor: pointer;">
+                        ✕ Close</button>
                 </div>
 
                 <div id="flashcardDeckContainer" style="display: none;">
@@ -451,32 +513,138 @@
                     </div>
 
                     <div class="fc-nav">
-                        <button type="button" class="fc-btn" id="btnPrevCard" onclick="navigateCard(-1)">&larr;
+                        <button type="button" class="fc-btn" id="btnPrevCard" onclick="navigateCard(-1)">
+                            &larr;
                             Previous</button>
                         <span class="fc-counter" id="fcCounterText">Card 1 of 1</span>
-                        <button type="button" class="fc-btn" id="btnNextCard" onclick="navigateCard(1)">Next
+                        <button type="button" class="fc-btn" id="btnNextCard" onclick="navigateCard(1)">
+                            Next
                             &rarr;</button>
                     </div>
 
                     <div style="text-align: center; margin-top: 15px;">
                         <button type="button" class="fc-btn" style="background: #ffedd5; border-color: #fdba74;
-                            color: #9a3412; font-weight: 700;" onclick="toggleFlipCard()">🔄 Flip Card</button>
+                            color: #9a3412; font-weight: 700;"
+                            onclick="toggleFlipCard()">
+                            🔄 Flip Card</button>
                     </div>
                 </div>
 
                 <div id="flashcardLoading" style="text-align: center; padding: 50px 20px; color: #64748b;
                     font-weight: 500;">
                     Generating high-yield flashcards from your notebook...
+               
                 </div>
             </div>
         </div>
 
         <script type="text/javascript">
 var activeCourseId = "<%= _selectedCourseId %>";
-            
+
             /** @type {any[]} */
             var flashcardDeck = [];
             var currentCardIndex = 0;
+            var quotaTimer = null;
+
+            /* ================= Quota / rate-limit helpers ================= */
+
+            function stopQuotaTimer() {
+                if (quotaTimer) {
+                    clearInterval(quotaTimer);
+                    quotaTimer = null;
+                }
+            }
+
+            /** @param {string} msg */
+            function isQuotaError(msg) {
+                return /429|quota|rate.?limit|RESOURCE_EXHAUSTED/i.test(msg || "");
+            }
+
+            // Reads "Please retry in 2h41m1.006723152s" (or "41m3s", "45s") and returns seconds
+            /** @param {string} msg */
+            function parseRetrySeconds(msg) {
+                var m = /retry in\s*(?:(\d+)h)?(?:(\d+)m(?!s))?(?:(\d+(?:\.\d+)?)s)?/i.exec(msg || "");
+                if (!m) return null;
+                var total = (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + Math.ceil(+m[3] || 0);
+                return total > 0 ? total : null;
+            }
+
+            /** @param {number} n */
+            function pad2(n) {
+                return n < 10 ? "0" + n : "" + n;
+            }
+
+            /** @param {number} sec */
+            function formatClock(sec) {
+                var h = Math.floor(sec / 3600);
+                var m = Math.floor((sec % 3600) / 60);
+                var s = sec % 60;
+                return (h > 0 ? pad2(h) + ":" : "") + pad2(m) + ":" + pad2(s);
+            }
+
+            /** @param {number} sec */
+            function formatHuman(sec) {
+                var h = Math.floor(sec / 3600);
+                var m = Math.floor((sec % 3600) / 60);
+                if (h > 0) return h + (h === 1 ? " hour " : " hours ") + m + (m === 1 ? " minute" : " minutes");
+                if (m > 0) return m + (m === 1 ? " minute" : " minutes");
+                return sec + " seconds";
+            }
+
+            /**
+             * @param {HTMLElement} container
+             * @param {string} rawMsg
+             */
+            function showQuotaMessage(container, rawMsg) {
+                stopQuotaTimer();
+                var remaining = parseRetrySeconds(rawMsg);
+
+                // No wait time found in the message -> generic friendly notice
+                if (remaining === null) {
+                    container.innerHTML =
+                        '<div class="fc-limit"><div class="fc-limit-icon">⏳</div>' +
+                        '<h4>Daily AI limit reached</h4>' +
+                        '<p>The flashcard generator has reached its free usage limit for now. ' +
+                        'Please try again later today.</p></div>';
+                    return;
+                }
+
+                container.innerHTML =
+                    '<div class="fc-limit">' +
+                    '<div class="fc-limit-icon">⏳</div>' +
+                    '<h4>You\'ve hit today\'s AI limit</h4>' +
+                    '<p>Our free flashcard generator has used up its daily quota. ' +
+                    'It resets in about <strong>' + formatHuman(remaining) + '</strong>. ' +
+                    'Your notes are safe, so come back then.</p>' +
+                    '<div class="fc-limit-timer" id="fcLimitTimer">' + formatClock(remaining) + '</div>' +
+                    '<span class="fc-limit-label">until you can generate again</span>' +
+                    '<div id="fcLimitAction"></div>' +
+                    '</div>';
+
+                var timerEl = document.getElementById("fcLimitTimer");
+                quotaTimer = setInterval(function () {
+                    remaining--;
+                    if (remaining <= 0) {
+                        stopQuotaTimer();
+                        if (timerEl) timerEl.textContent = "00:00";
+                        var act = document.getElementById("fcLimitAction");
+                        if (act) {
+                            act.innerHTML = '<button type="button" class="fc-btn" id="fcRetryNow" ' +
+                                'style="background:#f97316;color:#fff;border-color:#f97316;">Try again now</button>';
+                            var retryBtn = document.getElementById("fcRetryNow");
+                            if (retryBtn) {
+                                retryBtn.addEventListener("click", function () {
+                                    if (btnGen) btnGen.click();
+                                });
+                            }
+                        }
+                        return;
+                    }
+                    if (timerEl) timerEl.textContent = formatClock(remaining);
+                }, 1000);
+            }
+
+            /* ================= Generate flashcards ================= */
 
             var btnGen = document.getElementById("btnGenerateFlashcards");
             if (btnGen) {
@@ -484,9 +652,15 @@ var activeCourseId = "<%= _selectedCourseId %>";
                     var modal = document.getElementById("flashcardModal");
                     var loadingDiv = document.getElementById("flashcardLoading");
                     var deckContainer = document.getElementById("flashcardDeckContainer");
-                    
+
+                    stopQuotaTimer();
+
                     if (modal) modal.style.display = "flex";
-                    if (loadingDiv) { loadingDiv.style.display = "block"; loadingDiv.innerHTML = "Generating flashcards from your notebook notes..."; }
+                    if (loadingDiv) {
+                        loadingDiv.style.display = "block";
+                        loadingDiv.style.color = "";
+                        loadingDiv.textContent = "Generating flashcards from your notebook notes...";
+                    }
                     if (deckContainer) deckContainer.style.display = "none";
 
                     fetch('/pages/Student/GenerateFlashcards.ashx', {
@@ -503,15 +677,25 @@ var activeCourseId = "<%= _selectedCourseId %>";
                                 renderCurrentCard();
                                 if (loadingDiv) loadingDiv.style.display = "none";
                                 if (deckContainer) deckContainer.style.display = "block";
-                            } else {
-                                if (loadingDiv) loadingDiv.innerHTML = "<span style='color:red;'>No valid flashcards could be parsed from AI response.</span>";
+                            } else if (loadingDiv) {
+                                loadingDiv.textContent = "No valid flashcards could be parsed from AI response.";
+                                loadingDiv.style.color = "#b91c1c";
                             }
-                        } else {
-                            if (loadingDiv) loadingDiv.innerHTML = '<span style="color:red;">' + (data.message || "Error generating flashcards.") + '</span>';
+                        } else if (loadingDiv) {
+                            var msg = String(data.message || "");
+                            if (isQuotaError(msg)) {
+                                showQuotaMessage(loadingDiv, msg);
+                            } else {
+                                loadingDiv.textContent = msg || "Error generating flashcards.";
+                                loadingDiv.style.color = "#b91c1c";
+                            }
                         }
                     })
                     .catch(function (err) {
-                        if (loadingDiv) loadingDiv.innerHTML = "<span style='color:red;'>Could not connect to AI service.</span>";
+                        if (loadingDiv) {
+                            loadingDiv.textContent = "Could not connect to AI service.";
+                            loadingDiv.style.color = "#b91c1c";
+                        }
                     });
                 });
             }
@@ -542,7 +726,7 @@ var activeCourseId = "<%= _selectedCourseId %>";
                 if (flashcardDeck.length === 0) return;
                 /** @type {any} */
                 var card = flashcardDeck[currentCardIndex];
-                
+
                 var qText = document.getElementById("fcQuestionText");
                 var aText = document.getElementById("fcAnswerText");
                 var cText = document.getElementById("fcCounterText");
@@ -556,7 +740,7 @@ var activeCourseId = "<%= _selectedCourseId %>";
 
                 var btnPrev = document.getElementById("btnPrevCard");
                 var btnNext = document.getElementById("btnNextCard");
-                
+
                 if (btnPrev && "disabled" in btnPrev) {
                     /** @type {any} */ (btnPrev).disabled = (currentCardIndex === 0);
                 }
@@ -583,6 +767,7 @@ var activeCourseId = "<%= _selectedCourseId %>";
                 btnClose.addEventListener("click", function () {
                     var modal = document.getElementById("flashcardModal");
                     if (modal) modal.style.display = "none";
+                    stopQuotaTimer();
                 });
             }
         </script>
